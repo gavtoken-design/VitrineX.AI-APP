@@ -31,8 +31,12 @@ const ContentLibrary = React.lazy(() => import('./pages/ContentLibrary'));
 const SmartScheduler = React.lazy(() => import('./pages/SmartScheduler'));
 const Settings = React.lazy(() => import('./pages/Settings'));
 const Chatbot = React.lazy(() => import('./pages/Chatbot'));
-// Lazy load Admin Console
-const AdminConsole = React.lazy(() => import('./pages/AdminConsole'));
+const CodeAudit = React.lazy(() => import('./pages/CodeAudit'));
+const AudioTools = React.lazy(() => import('./pages/AudioTools'));
+const CalendarManager = React.lazy(() => import('./pages/CalendarManager'));
+const CodePlayground = React.lazy(() => import('./pages/CodePlayground'));
+const LocalFinder = React.lazy(() => import('./pages/LocalFinder'));
+
 
 export type ModuleName =
   | 'Dashboard'
@@ -46,7 +50,12 @@ export type ModuleName =
   | 'SmartScheduler'
   | 'Settings'
   | 'Chatbot'
-  | 'Admin'; // Added Admin type
+  | 'CodeAudit'
+  | 'AudioTools'
+  | 'CalendarManager'
+  | 'CodePlayground'
+  | 'LocalFinder';
+
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -66,13 +75,7 @@ function AppContent() {
   const [manualApiKey, setManualApiKey] = useState<string>('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Check URL for Admin Route on mount
-  useEffect(() => {
-    const path = window.location.pathname;
-    if (path === '/admin' || path === '/__core-admin' || window.location.search.includes('mode=admin')) {
-      setActiveModule('Admin');
-    }
-  }, []);
+
 
   const checkAndSelectApiKey = useCallback(async () => {
     // 1. Check Window (AI Studio)
@@ -130,8 +133,13 @@ function AppContent() {
       case 'ContentLibrary': return <ContentLibrary />;
       case 'SmartScheduler': return <SmartScheduler />;
       case 'Chatbot': return <Chatbot />;
+      case 'CodeAudit': return <CodeAudit />;
+      case 'AudioTools': return <AudioTools />;
+      case 'CalendarManager': return <CalendarManager />;
+      case 'CodePlayground': return <CodePlayground />;
+      case 'LocalFinder': return <LocalFinder />;
       case 'Settings': return <Settings />;
-      case 'Admin': return <AdminConsole />;
+
       default: return <Dashboard />;
     }
   };
@@ -145,9 +153,7 @@ function AppContent() {
     );
   }
 
-  // Admin access doesn't require the standard API Key check immediately, 
-  // as it has its own auth and manages keys.
-  if (!hasApiKey && activeModule !== 'Admin') {
+  if (!hasApiKey) {
     return (
       <div className="flex flex-col items-center justify-center h-screen bg-background p-6 text-center">
         <div className="p-10 bg-surface rounded-3xl shadow-2xl border border-gray-100 dark:border-gray-800 max-w-md w-full">
@@ -189,14 +195,7 @@ function AppContent() {
     );
   }
 
-  // If in Admin mode, render only the Admin Console without standard layout wrappers
-  if (activeModule === 'Admin') {
-    return (
-      <Suspense fallback={<div className="h-screen w-full bg-black flex items-center justify-center text-green-500 font-mono">INITIALIZING CORE...</div>}>
-        <AdminConsole />
-      </Suspense>
-    );
-  }
+
 
   const isFullHeightModule = activeModule === 'Chatbot';
 

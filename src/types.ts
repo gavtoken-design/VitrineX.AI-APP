@@ -215,3 +215,11 @@ declare global {
     aistudio?: AIStudio;
   }
 }
+
+export interface APIKey {
+  id: string;
+  label: string;
+  key: string;
+  createdAt: string;
+  lastUsed?: string;
+}

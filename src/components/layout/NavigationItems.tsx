@@ -75,6 +75,14 @@ export const useNavItems = () => {
       ]
     },
     {
+      section: 'sidebar.tools', items: [
+        { name: "AudioTools" as ModuleName, label: t('sidebar.audio_tools'), icon: 'audio' as IconName },
+        { name: "CodePlayground" as ModuleName, label: t('sidebar.code_playground'), icon: 'code' as IconName },
+        { name: "LocalFinder" as ModuleName, label: t('sidebar.local_finder'), icon: 'map' as IconName },
+        { name: "CalendarManager" as ModuleName, label: t('sidebar.calendar_manager'), icon: 'calendarAlt' as IconName }
+      ]
+    },
+    {
       section: 'sidebar.system', items: [
         { name: "ContentLibrary" as ModuleName, label: t('sidebar.library'), icon: 'library' as IconName },
         { id: "nav-settings", name: "Settings" as ModuleName, label: t('sidebar.config'), icon: 'settings' as IconName }

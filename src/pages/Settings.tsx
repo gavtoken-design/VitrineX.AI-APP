@@ -10,7 +10,7 @@ import { testGeminiConnection } from '../services/ai/gemini';
 import { UserProfile } from '../types';
 import { DEFAULT_BUSINESS_PROFILE, HARDCODED_API_KEY, SUBSCRIPTION_CURRENCY, SUBSCRIPTION_PRICE_PROMO, SUBSCRIPTION_PRICE_FULL } from '../constants';
 // FIX: Add missing import for Cog6ToothIcon
-import { KeyIcon, ServerStackIcon, InformationCircleIcon, ArrowDownOnSquareIcon, PaintBrushIcon, GlobeAltIcon, SunIcon, MoonIcon, UserCircleIcon, Cog6ToothIcon, CheckCircleIcon, MegaphoneIcon } from '@heroicons/react/24/outline';
+import { KeyIcon, ServerStackIcon, InformationCircleIcon, ArrowDownOnSquareIcon, PaintBrushIcon, GlobeAltIcon, SunIcon, MoonIcon, UserCircleIcon, Cog6ToothIcon, CheckCircleIcon, MegaphoneIcon, CpuChipIcon } from '@heroicons/react/24/outline';
 import { useToast } from '../contexts/ToastContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -431,24 +431,22 @@ const Settings: React.FC = () => {
               <ArrowDownOnSquareIcon className="w-4 h-4 mr-2" />
               Exportar Todos os Dados (.JSON)
             </Button>
+
+            <div className="pt-6 mt-4 border-t border-border flex justify-center">
+              <Button
+                onClick={() => navigateTo('CodeAudit')}
+                variant="ghost"
+                className="text-xs text-muted hover:text-primary"
+              >
+                <CpuChipIcon className="w-4 h-4 mr-2" />
+                Abrir Auditoria de Código
+              </Button>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Admin Access - Discreet */}
-      <div className="flex justify-center pt-10 pb-6 opacity-40 hover:opacity-100 transition-opacity duration-500">
-        <button
-          onClick={() => navigateTo('Admin')}
-          className="group relative p-3 rounded-full hover:bg-white/5 dark:hover:bg-white/5 transition-all duration-500"
-          aria-label="Access Admin Console"
-        >
-          <div className="transform group-hover:rotate-[360deg] transition-transform duration-1000 ease-in-out">
-            <Logo showText={false} className="w-6 h-6 grayscale group-hover:grayscale-0 transition-all duration-500" />
-          </div>
-          {/* Subtle Glow */}
-          <div className="absolute inset-0 rounded-full bg-primary/20 blur-xl scale-0 group-hover:scale-150 transition-transform duration-700 ease-out" />
-        </button>
-      </div>
+
 
     </div>
   );

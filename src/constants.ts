@@ -81,3 +81,10 @@ export const SEASONAL_TEMPLATES = [
     colorPalette: ['#FFD700', '#000000', '#FF4500']
   }
 ];
+
+// Local Storage Keys
+export const STORAGE_KEYS = {
+  ADMIN_API_KEYS: 'vitrinex_admin_api_keys',
+  THEME_PREFERENCE: 'vitrinex_theme',
+  USER_SESSION: 'vitrinex_session'
+};

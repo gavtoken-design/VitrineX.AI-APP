@@ -29,6 +29,12 @@ export const translations: Translations = {
     'sidebar.system': 'System',
     'sidebar.library': 'Library',
     'sidebar.config': 'Configuration',
+    'sidebar.tools': 'Tools',
+    'sidebar.audio_tools': 'Audio Tools',
+    'sidebar.code_playground': 'Code Playground',
+    'sidebar.live_conversation': 'Live Conversation',
+    'sidebar.local_finder': 'Local Finder',
+    'sidebar.calendar_manager': 'Calendar Manager',
 
     // Dashboard
     'dashboard.title': 'Executive Overview',
@@ -79,6 +85,12 @@ export const translations: Translations = {
     'sidebar.system': 'Sistema',
     'sidebar.library': 'Biblioteca',
     'sidebar.config': 'Configurações',
+    'sidebar.tools': 'Ferramentas',
+    'sidebar.audio_tools': 'Ferramentas de Áudio',
+    'sidebar.code_playground': 'Playground de Código',
+    'sidebar.live_conversation': 'Conversa ao Vivo',
+    'sidebar.local_finder': 'Buscador Local',
+    'sidebar.calendar_manager': 'Gerenciador de Calendário',
 
     // Dashboard
     'dashboard.title': 'Visão Executiva',

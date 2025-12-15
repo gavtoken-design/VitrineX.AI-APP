@@ -38,7 +38,12 @@ import {
   ClockIcon,
   PlusIcon,
   BoltIcon,
-  ChartBarIcon
+  ChartBarIcon,
+  CodeBracketIcon,
+  VideoCameraIcon,
+  MapPinIcon,
+  SpeakerWaveIcon,
+  CalendarIcon
 } from '@heroicons/react/24/outline';
 
 // Registro central de ícones. 
@@ -85,7 +90,12 @@ export const iconRegistry = {
   clock: ClockIcon,
   plus: PlusIcon,
   bolt: BoltIcon,
-  chart: ChartBarIcon
+  chart: ChartBarIcon,
+  code: CodeBracketIcon,
+  video: VideoCameraIcon,
+  map: MapPinIcon,
+  audio: SpeakerWaveIcon,
+  calendarAlt: CalendarIcon
 };
 
 export type IconName = keyof typeof iconRegistry;
