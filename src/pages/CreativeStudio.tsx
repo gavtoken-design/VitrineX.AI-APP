@@ -303,7 +303,7 @@ const CreativeStudio: React.FC = () => {
                 <button
                   key={tpl.id}
                   onClick={() => applyTemplate(tpl)}
-                  className="relative group overflow-hidden rounded-xl border border-border hover:border-primary transition-all text-left h-24"
+                  className="relative group overflow-hidden rounded-xl border border-border hover:border-primary liquid-transition hover-lift icon-fluid-squeeze text-left h-24"
                 >
                   {/* Background Image (Hidden Link usage) */}
                   <div
@@ -313,7 +313,7 @@ const CreativeStudio: React.FC = () => {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
 
                   <div className="relative p-3 z-10 flex flex-col justify-end h-full">
-                    <div className="text-xl mb-1 filter drop-shadow-lg">{tpl.icon}</div>
+                    <div className="text-xl mb-1 filter drop-shadow-lg icon-fluid-breathe">{tpl.icon}</div>
                     <div className="text-xs font-bold text-white leading-tight drop-shadow-md">{tpl.label}</div>
                   </div>
                 </button>
@@ -439,8 +439,8 @@ const CreativeStudio: React.FC = () => {
                   </Button>
                 </>
               ) : (
-                <Button onClick={handleGenerateMedia} isLoading={loading} variant="primary" className="col-span-2">
-                  <SparklesIcon className="w-4 h-4 mr-2" /> Gerar {mediaType === 'image' ? 'Imagem' : 'Vídeo'}
+                <Button onClick={handleGenerateMedia} isLoading={loading} variant="primary" className="col-span-2 gradient-animated glow-effect bounce-on-click liquid-transition">
+                  <SparklesIcon className="w-4 h-4 mr-2 icon-fluid-breathe" /> Gerar {mediaType === 'image' ? 'Imagem' : 'Vídeo'}
                 </Button>
               )}
             </div>

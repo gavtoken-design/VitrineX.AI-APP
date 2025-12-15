@@ -50,5 +50,7 @@ validar_chave.html
 *.ps1
 *.log
 _Backups
-site.zip
+*.zip
 
+
+!backups/

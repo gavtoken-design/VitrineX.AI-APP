@@ -18,6 +18,9 @@ import { useLanguage } from '../contexts/LanguageContext';
 const Settings: React.FC = () => {
   // Profile State
   const [businessProfileForm, setBusinessProfileForm] = useState<UserProfile['businessProfile']>(DEFAULT_BUSINESS_PROFILE);
+  const [contactInfoForm, setContactInfoForm] = useState<UserProfile['contactInfo']>({
+    instagram: '', tiktok: '', twitter: '', pinterest: '', whatsapp: '', facebook: ''
+  });
   const [profileLoading, setProfileLoading] = useState<boolean>(true);
   const [savingProfile, setSavingProfile] = useState<boolean>(false);
 
@@ -39,6 +42,9 @@ const Settings: React.FC = () => {
         const profile = await getUserProfile(userId);
         if (profile) {
           setBusinessProfileForm(profile.businessProfile);
+          if (profile.contactInfo) {
+            setContactInfoForm(profile.contactInfo);
+          }
         }
         const savedKey = localStorage.getItem('vitrinex_gemini_api_key');
         if (savedKey) {
@@ -112,7 +118,10 @@ const Settings: React.FC = () => {
   const handleSaveProfile = async () => {
     setSavingProfile(true);
     try {
-      const profileData = { businessProfile: businessProfileForm };
+      const profileData = {
+        businessProfile: businessProfileForm,
+        contactInfo: contactInfoForm
+      };
       await updateUserProfile(userId, profileData);
       addToast({ type: 'success', message: 'Perfil do negócio salvo com sucesso!' });
     } catch (err) {
@@ -160,7 +169,7 @@ const Settings: React.FC = () => {
               value={apiKey}
               onChange={(e) => validateAndSetKey(e.target.value)}
               placeholder="AIzaSy..."
-              className={`block w-full px-3 py-2.5 bg-surface border rounded-lg shadow-sm text-body placeholder-muted transition-colors sm:text-sm focus:outline-none ${keyError ? 'border-error ring-1 ring-error' : 'border-border focus:border-primary focus:ring-1 focus:ring-primary'
+              className={`block w-full px-3 py-2.5 liquid-glass-light border rounded-lg shadow-sm text-title placeholder-muted liquid-transition sm:text-sm focus:outline-none ${keyError ? 'border-error ring-1 ring-error' : 'border-white/20 focus:border-primary focus:ring-1 focus:ring-primary'
                 }`}
             />
             {keyError && <p className="mt-2 text-xs text-error">{keyError}</p>}
@@ -245,6 +254,67 @@ const Settings: React.FC = () => {
             <Button onClick={handleSaveProfile} isLoading={savingProfile} variant="primary" className="w-full sm:w-auto">
               Salvar Perfil
             </Button>
+          </div>
+        )}
+      </div>
+
+      {/* Social & Contact Section */}
+      <div className="bg-surface p-8 rounded-xl shadow-card border border-border">
+        <h3 className="text-xl font-semibold text-title mb-6 flex items-center gap-2">
+          <GlobeAltIcon className="w-5 h-5 text-primary" /> Redes Sociais & Contato
+        </h3>
+        {profileLoading ? <LoadingSpinner /> : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input
+              id="email"
+              label="Email de Contato"
+              value={'gavtoken@gmail.com'}
+              disabled={true}
+              placeholder="gavtoken@gmail.com"
+              className="md:col-span-2"
+            />
+            <Input
+              id="instagram"
+              label="Instagram"
+              value={contactInfoForm?.instagram || ''}
+              onChange={(e) => setContactInfoForm({ ...contactInfoForm, instagram: e.target.value })}
+              placeholder="@seu_perfil"
+            />
+            <Input
+              id="twitter"
+              label="Twitter / X"
+              value={contactInfoForm?.twitter || ''}
+              onChange={(e) => setContactInfoForm({ ...contactInfoForm, twitter: e.target.value })}
+              placeholder="@seu_perfil"
+            />
+            <Input
+              id="tiktok"
+              label="TikTok"
+              value={contactInfoForm?.tiktok || ''}
+              onChange={(e) => setContactInfoForm({ ...contactInfoForm, tiktok: e.target.value })}
+              placeholder="@seu_perfil"
+            />
+            <Input
+              id="pinterest"
+              label="Pinterest"
+              value={contactInfoForm?.pinterest || ''}
+              onChange={(e) => setContactInfoForm({ ...contactInfoForm, pinterest: e.target.value })}
+              placeholder="@seu_perfil"
+            />
+            <Input
+              id="whatsapp"
+              label="WhatsApp"
+              value={contactInfoForm?.whatsapp || ''}
+              onChange={(e) => setContactInfoForm({ ...contactInfoForm, whatsapp: e.target.value })}
+              placeholder="(00) 00000-0000"
+              className="md:col-span-2"
+            />
+
+            <div className="md:col-span-2 pt-4">
+              <Button onClick={handleSaveProfile} isLoading={savingProfile} variant="primary" className="w-full sm:w-auto">
+                Salvar Informações
+              </Button>
+            </div>
           </div>
         )}
       </div>

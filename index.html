@@ -48,6 +48,9 @@
             'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
             'card': '0 0 0 1px rgba(0,0,0,0.03), 0 2px 8px rgba(0,0,0,0.04)',
             'glow': '0 0 15px rgba(var(--color-primary), 0.3)',
+            // Book Flow Premium Shadows
+            'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.12)',
+            'premium': '0 10px 40px -10px rgba(0, 0, 0, 0.2)',
           },
           borderRadius: {
             'xl': '0.75rem',
@@ -126,24 +129,32 @@
       /* Slate-500 */
     }
 
-    /* Dark Mode (Rich Navy/Slate - Not Pitch Black) */
+    /* Dark Mode (Book Flow - Premium Deep Blue-Black) */
     .dark {
-      --color-primary: 99 102 241;
-      /* Indigo-500 (Lighter for dark mode) */
+      --color-primary: 129 140 248;
+      /* Indigo-400 (Brighter for dark mode) */
 
-      --color-background: 15 23 42;
-      /* Slate-900 */
-      --color-surface: 30 41 59;
-      /* Slate-800 */
-      --color-border: 51 65 85;
-      /* Slate-700 */
+      --color-background: 10 15 25;
+      /* Deep blue-black (~#0A0F19) */
+      --color-surface: 17 24 39;
+      /* Gray-900 with blue tint (~#111827) */
+      --color-border: 30 41 59;
+      /* Slate-800 (Subtle borders) */
 
-      --color-text-title: 241 245 249;
-      /* Slate-100 */
-      --color-text-body: 203 213 225;
-      /* Slate-300 */
+      --color-text-title: 248 250 252;
+      /* Slate-50 (Warm white) */
+      --color-text-body: 226 232 240;
+      /* Slate-200 (Clear text) */
       --color-text-muted: 148 163 184;
-      /* Slate-400 */
+      /* Slate-400 (Secondary text) */
+    }
+
+    /* Book Flow Accent Colors */
+    :root {
+      --color-accent-violet: 139 92 246;
+      /* Violet-500 */
+      --color-accent-emerald: 16 185 129;
+      /* Emerald-500 */
     }
 
     /* REQUISITO: CSS Global para layout responsivo e UX Móvel */
@@ -200,6 +211,1214 @@
     ::-webkit-scrollbar-thumb:hover {
       /* Usa a cor de texto 'muted' para destaque no hover */
       background: rgba(var(--color-text-muted), 0.5);
+    }
+
+    /* === BOOK FLOW UTILITIES === */
+
+    /* Glassmorphism */
+    .glass-light {
+      background: rgba(var(--color-surface), 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .glass-medium {
+      background: rgba(var(--color-surface), 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+
+    /* Gradientes Suaves */
+    .gradient-indigo {
+      background: linear-gradient(135deg, #6366f1 0%, #818cf8 100%);
+    }
+
+    .gradient-emerald {
+      background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+    }
+
+    /* === LIQUID UI SYSTEM (Visual Líquido) === */
+
+    /* Glassmorphism Líquido - Vidro Translúcido Dinâmico */
+    .liquid-glass {
+      background: linear-gradient(135deg,
+          rgba(var(--color-surface), 0.75) 0%,
+          rgba(var(--color-surface), 0.65) 100%);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Variações de blur adaptativo */
+    .liquid-glass-light {
+      background: linear-gradient(135deg,
+          rgba(var(--color-surface), 0.7) 0%,
+          rgba(var(--color-surface), 0.6) 100%);
+      backdrop-filter: blur(16px) saturate(150%);
+      -webkit-backdrop-filter: blur(16px) saturate(150%);
+    }
+
+    .liquid-glass-heavy {
+      background: linear-gradient(135deg,
+          rgba(var(--color-surface), 0.85) 0%,
+          rgba(var(--color-surface), 0.75) 100%);
+      backdrop-filter: blur(28px) saturate(200%);
+      -webkit-backdrop-filter: blur(28px) saturate(200%);
+    }
+
+    /* Iluminação e Reflexos Sutis - Refração */
+    .liquid-glass::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg,
+          rgba(255, 255, 255, 0.15) 0%,
+          transparent 50%,
+          rgba(129, 140, 248, 0.08) 100%);
+      border-radius: inherit;
+      pointer-events: none;
+    }
+
+    /* Micro-highlights nas bordas (edge light) */
+    .liquid-glass::after {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      background: linear-gradient(45deg,
+          rgba(255, 255, 255, 0.2) 0%,
+          transparent 25%,
+          transparent 75%,
+          rgba(255, 255, 255, 0.1) 100%);
+      border-radius: inherit;
+      mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#ff 0 0);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      mask-composite: exclude;
+      -webkit-mask-composite: xor;
+      padding: 1px;
+      pointer-events: none;
+    }
+
+    /* Sombras difusas (não duras) */
+    .liquid-shadow-soft {
+      box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.06),
+        0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    .liquid-shadow-medium {
+      box-shadow:
+        0 12px 48px rgba(0, 0, 0, 0.08),
+        0 4px 16px rgba(0, 0, 0, 0.06);
+    }
+
+    .liquid-shadow-deep {
+      box-shadow:
+        0 20px 64px rgba(0, 0, 0, 0.12),
+        0 8px 24px rgba(0, 0, 0, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+
+    /* Animações Fluidas Orgânicas (cubic-bezier não linear) */
+    .liquid-transition {
+      transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .liquid-transition-slow {
+      transition: all 0.8s cubic-bezier(0.19, 1, 0.22, 1);
+    }
+
+    .liquid-transition-fast {
+      transition: all 0.4s cubic-bezier(0.37, 0, 0.63, 1);
+    }
+
+    /* Emergência Suave (Modal/Card) */
+    .liquid-emerge {
+      animation: liquidEmerge 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes liquidEmerge {
+      0% {
+        opacity: 0;
+        transform: scale(0.94) translateY(20px);
+        filter: blur(8px);
+      }
+
+      50% {
+        opacity: 0.5;
+        filter: blur(4px);
+      }
+
+      100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+        filter: blur(0);
+      }
+    }
+
+    /* Flutuação Líquida Contínua */
+    .liquid-float {
+      animation: liquidFloat 4s ease-in-out infinite;
+    }
+
+    @keyframes liquidFloat {
+
+      0%,
+      100% {
+        transform: translateY(0px) scale(1);
+      }
+
+      25% {
+        transform: translateY(-6px) scale(1.01);
+      }
+
+      50% {
+        transform: translateY(-3px) scale(0.99);
+      }
+
+      75% {
+        transform: translateY(-8px) scale(1.005);
+      }
+    }
+
+    /* Parallax Sutil (Profundidade) */
+    .liquid-parallax-slow {
+      transform: translateZ(0);
+      will-change: transform;
+    }
+
+    /* Tipografia Integrada - Glow Interno */
+    .liquid-text-glow {
+      text-shadow:
+        0 0 10px rgba(129, 140, 248, 0.3),
+        0 0 20px rgba(139, 92, 246, 0.2);
+      font-weight: 500;
+      letter-spacing: -0.02em;
+    }
+
+    .liquid-text-embedded {
+      text-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.1),
+        0 -1px 0 rgba(0, 0, 0, 0.2);
+      color: rgba(var(--color-text-title), 0.95);
+    }
+
+    /* Gradiente de Iluminação Dinâmica */
+    .liquid-light-gradient {
+      position: relative;
+    }
+
+    .liquid-light-gradient::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 30% 20%,
+          rgba(255, 255, 255, 0.12) 0%,
+          transparent 50%);
+      pointer-events: none;
+      border-radius: inherit;
+    }
+
+    /* Card Líquido Completo */
+    .liquid-card {
+      background: linear-gradient(135deg,
+          rgba(var(--color-surface), 0.8) 0%,
+          rgba(var(--color-surface), 0.7) 100%);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 20px;
+      box-shadow:
+        0 12px 48px rgba(0, 0, 0, 0.08),
+        0 4px 16px rgba(0, 0, 0, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+      position: relative;
+      overflow: hidden;
+      transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* Hover State - Expansão Fluida */
+    .liquid-card:hover {
+      transform: translateY(-4px) scale(1.01);
+      box-shadow:
+        0 20px 64px rgba(0, 0, 0, 0.12),
+        0 8px 24px rgba(0, 0, 0, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      border-color: rgba(129, 140, 248, 0.3);
+    }
+
+    /* Luz de refração no hover */
+    .liquid-card:hover::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+          rgba(129, 140, 248, 0.15) 0%,
+          transparent 60%);
+      pointer-events: none;
+    }
+
+    /* Modal Líquido */
+    .liquid-modal {
+      background: linear-gradient(135deg,
+          rgba(var(--color-surface), 0.85) 0%,
+          rgba(var(--color-surface), 0.75) 100%);
+      backdrop-filter: blur(32px) saturate(200%);
+      -webkit-backdrop-filter: blur(32px) saturate(200%);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow:
+        0 24px 80px rgba(0, 0, 0, 0.15),
+        0 8px 32px rgba(0, 0, 0, 0.1),
+        inset 0 2px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    /* Overlay com vidro translúcido */
+    .liquid-overlay {
+      background: rgba(var(--color-background), 0.4);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+    }
+
+    /* Sombras Premium */
+    .shadow-glass {
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.12);
+    }
+
+    .shadow-premium {
+      box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Hover Lift Effect - MELHORADO */
+    .hover-lift {
+      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s ease;
+    }
+
+    .hover-lift:hover {
+      transform: translateY(-4px) scale(1.01);
+      box-shadow: 0 16px 56px -12px rgba(129, 140, 248, 0.35);
+    }
+
+    /* NOVOS: Gradientes Animados */
+    .gradient-animated {
+      background: linear-gradient(135deg,
+          rgba(129, 140, 248, 0.8) 0%,
+          rgba(139, 92, 246, 0.8) 50%,
+          rgba(129, 140, 248, 0.8) 100%);
+      background-size: 200% 200%;
+      animation: gradientShift 6s ease infinite;
+    }
+
+    @keyframes gradientShift {
+
+      0%,
+      100% {
+        background-position: 0% 50%;
+      }
+
+      50% {
+        background-position: 100% 50%;
+      }
+    }
+
+    /* Efeito de Brilho (Glow) */
+    .glow-effect {
+      position: relative;
+    }
+
+    .glow-effect::before {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border-radius: inherit;
+      background: linear-gradient(135deg,
+          rgba(129, 140, 248, 0.4),
+          rgba(139, 92, 246, 0.4));
+      filter: blur(8px);
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      z-index: -1;
+    }
+
+    .glow-effect:hover::before {
+      opacity: 1;
+    }
+
+    /* Animação Floating (Flutuante) */
+    .floating {
+      animation: floating 3s ease-in-out infinite;
+    }
+
+    @keyframes floating {
+
+      0%,
+      100% {
+        transform: translateY(0px);
+      }
+
+      50% {
+        transform: translateY(-8px);
+      }
+    }
+
+    /* Breathing Effect (Pulsação suave) */
+    .breathing {
+      animation: breathing 4s ease-in-out infinite;
+    }
+
+    @keyframes breathing {
+
+      0%,
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+
+      50% {
+        transform: scale(1.03);
+        opacity: 0.9;
+      }
+    }
+
+    /* === ANIMAÇÕES INTERATIVAS PREMIUM (Tipo VEO/Motion Design) === */
+
+    /* Bounce - Pulo elástico */
+    .bounce-on-hover:hover,
+    .bounce-on-click:active {
+      animation: bounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    @keyframes bounce {
+
+      0%,
+      100% {
+        transform: scale(1) translateY(0);
+      }
+
+      25% {
+        transform: scale(1.1) translateY(-8px);
+      }
+
+      50% {
+        transform: scale(0.95) translateY(0);
+      }
+
+      75% {
+        transform: scale(1.05) translateY(-4px);
+      }
+    }
+
+    /* Pop - Explosão rápida */
+    .pop-on-hover:hover,
+    .pop-on-click:active {
+      animation: pop 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    @keyframes pop {
+      0% {
+        transform: scale(1);
+      }
+
+      50% {
+        transform: scale(1.3) rotate(5deg);
+      }
+
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    /* Shake - Tremor horizontal */
+    .shake-on-hover:hover,
+    .shake-on-click:active {
+      animation: shake 0.5s;
+    }
+
+    @keyframes shake {
+
+      0%,
+      100% {
+        transform: translateX(0);
+      }
+
+      10%,
+      30%,
+      50%,
+      70%,
+      90% {
+        transform: translateX(-6px);
+      }
+
+      20%,
+      40%,
+      60%,
+      80% {
+        transform: translateX(6px);
+      }
+    }
+
+    /* Jelly - Efeito gelatinoso */
+    .jelly-on-hover:hover,
+    .jelly-on-click:active {
+      animation: jelly 0.8s;
+    }
+
+    @keyframes jelly {
+
+      0%,
+      100% {
+        transform: scale(1, 1);
+      }
+
+      25% {
+        transform: scale(0.9, 1.1);
+      }
+
+      50% {
+        transform: scale(1.1, 0.9);
+      }
+
+      75% {
+        transform: scale(0.95, 1.05);
+      }
+    }
+
+    /* Spin - Rotação completa */
+    .spin-on-hover:hover,
+    .spin-on-click:active {
+      animation: spin 0.6s ease-in-out;
+    }
+
+    @keyframes spin {
+      from {
+        transform: rotate(0deg);
+      }
+
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* Spin Contínuo */
+    .spin-continuous {
+      animation: spin 2s linear infinite;
+    }
+
+    /* Rotate - Rotação sutil */
+    .rotate-on-hover:hover {
+      transform: rotate(15deg) scale(1.1);
+      transition: transform 0.3s ease;
+    }
+
+    /* Wiggle - Movimento de dança */
+    .wiggle-on-hover:hover,
+    .wiggle-on-click:active {
+      animation: wiggle 0.6s;
+    }
+
+    @keyframes wiggle {
+
+      0%,
+      100% {
+        transform: rotate(0deg);
+      }
+
+      25% {
+        transform: rotate(-10deg);
+      }
+
+      50% {
+        transform: rotate(10deg);
+      }
+
+      75% {
+        transform: rotate(-5deg);
+      }
+    }
+
+    /* Rubber Band - Elástico */
+    .rubber-on-hover:hover,
+    .rubber-on-click:active {
+      animation: rubberBand 0.8s;
+    }
+
+    @keyframes rubberBand {
+      0% {
+        transform: scale(1);
+      }
+
+      30% {
+        transform: scaleX(1.25) scaleY(0.75);
+      }
+
+      40% {
+        transform: scaleX(0.75) scaleY(1.25);
+      }
+
+      50% {
+        transform: scaleX(1.15) scaleY(0.85);
+      }
+
+      65% {
+        transform: scaleX(0.95) scaleY(1.05);
+      }
+
+      75% {
+        transform: scaleX(1.05) scaleY(0.95);
+      }
+
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    /* Swing - Balanço pendular */
+    .swing-on-hover:hover {
+      animation: swing 1s ease-in-out;
+    }
+
+    @keyframes swing {
+      20% {
+        transform: rotate(15deg);
+      }
+
+      40% {
+        transform: rotate(-10deg);
+      }
+
+      60% {
+        transform: rotate(5deg);
+      }
+
+      80% {
+        transform: rotate(-5deg);
+      }
+
+      100% {
+        transform: rotate(0deg);
+      }
+    }
+
+    /* Pulse Ring - Onda expansiva */
+    .pulse-ring-on-click:active::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      border: 2px solid rgba(129, 140, 248, 0.6);
+      animation: pulseRing 0.6s ease-out;
+    }
+
+    @keyframes pulseRing {
+      0% {
+        transform: scale(0.8);
+        opacity: 1;
+      }
+
+      100% {
+        transform: scale(1.5);
+        opacity: 0;
+      }
+    }
+
+    /* Flip - Virada 3D */
+    .flip-on-hover:hover {
+      animation: flip 0.6s;
+    }
+
+    @keyframes flip {
+      0% {
+        transform: perspective(400px) rotateY(0);
+      }
+
+      100% {
+        transform: perspective(400px) rotateY(360deg);
+      }
+    }
+
+    /* Heartbeat - Batimento cardíaco */
+    .heartbeat {
+      animation: heartbeat 1.5s ease-in-out infinite;
+    }
+
+    @keyframes heartbeat {
+
+      0%,
+      100% {
+        transform: scale(1);
+      }
+
+      14% {
+        transform: scale(1.15);
+      }
+
+      28% {
+        transform: scale(1);
+      }
+
+      42% {
+        transform: scale(1.15);
+      }
+
+      56% {
+        transform: scale(1);
+      }
+    }
+
+    /* Glow Pulse - Brilho pulsante */
+
+    /* === ÍCONES LÍQUIDOS ORGÂNICOS (Nano Banana / VEO Style) === */
+
+    /* 1. Breathing - Micro-ondulações contínuas */
+    .icon-fluid-breathe {
+      animation: fluidBreathe 3s ease-in-out infinite;
+      transform-origin: center center;
+      will-change: transform;
+    }
+
+    @keyframes fluidBreathe {
+
+      0%,
+      100% {
+        transform: scale(1) rotate(0deg);
+      }
+
+      25% {
+        transform: scale(1.02) rotate(0.5deg);
+      }
+
+      50% {
+        transform: scale(0.98) rotate(-0.3deg);
+      }
+
+      75% {
+        transform: scale(1.01) rotate(0.2deg);
+      }
+    }
+
+    /* 2. Tensão Superficial - Squeeze ao pressionar */
+    .icon-fluid-squeeze:active {
+      animation: fluidSqueeze 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes fluidSqueeze {
+      0% {
+        transform: scale(1, 1);
+      }
+
+      30% {
+        transform: scale(0.85, 1.15);
+        /* Afunda e expande */
+      }
+
+      60% {
+        transform: scale(1.08, 0.92);
+        /* Overshoot viscoso */
+      }
+
+      80% {
+        transform: scale(0.97, 1.03);
+      }
+
+      100% {
+        transform: scale(1, 1);
+      }
+    }
+
+    /* 3. Reação ao Hover - Atração sutil */
+    .icon-fluid-attract:hover {
+      animation: fluidAttract 0.6s ease-out;
+    }
+
+    @keyframes fluidAttract {
+      0% {
+        transform: scale(1);
+        filter: brightness(1);
+      }
+
+      40% {
+        transform: scale(1.12);
+        filter: brightness(1.2);
+      }
+
+      100% {
+        transform: scale(1.08);
+        filter: brightness(1.15);
+      }
+    }
+
+    /* 4. Viscosidade - Movimento com inércia */
+    .icon-fluid-viscous {
+      transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1.2);
+    }
+
+    .icon-fluid-viscous:hover {
+      transform: translateY(-3px) scale(1.1);
+    }
+
+    .icon-fluid-viscous:active {
+      transform: translateY(1px) scale(0.95);
+      transition: all 0.12s cubic-bezier(0.6, 0, 0.4, 1);
+    }
+
+    /* 5. Morphing - Forma viva */
+    .icon-fluid-morph {
+      animation: fluidMorph 4s ease-in-out infinite;
+      border-radius: 50%;
+    }
+
+    @keyframes fluidMorph {
+
+      0%,
+      100% {
+        border-radius: 50% 50% 50% 50% / 50% 50% 50% 50%;
+      }
+
+      25% {
+        border-radius: 45% 55% 52% 48% / 48% 52% 48% 52%;
+      }
+
+      50% {
+        border-radius: 52% 48% 45% 55% / 55% 45% 52% 48%;
+      }
+
+      75% {
+        border-radius: 48% 52% 55% 45% / 52% 48% 45% 55%;
+      }
+    }
+
+    /* 6. Pulsing Glow - Luz orgânica */
+    .icon-fluid-glow {
+      animation: fluidGlow 2.5s ease-in-out infinite;
+    }
+
+    @keyframes fluidGlow {
+
+      0%,
+      100% {
+        filter: drop-shadow(0 0 2px rgba(129, 140, 248, 0.3));
+      }
+
+      50% {
+        filter: drop-shadow(0 0 12px rgba(129, 140, 248, 0.7)) drop-shadow(0 0 24px rgba(139, 92, 246, 0.4));
+      }
+    }
+
+    /* 7. Ripple - Ondas internas */
+    .icon-fluid-ripple {
+      position: relative;
+      overflow: visible;
+    }
+
+    .icon-fluid-ripple::after {
+      content: '';
+      position: absolute;
+      inset: -20%;
+      border-radius: 50%;
+      background: radial-gradient(circle,
+          rgba(129, 140, 248, 0.3) 0%,
+          transparent 70%);
+      opacity: 0;
+      transform: scale(0.8);
+      animation: fluidRipple 2s ease-out infinite;
+    }
+
+    @keyframes fluidRipple {
+      0% {
+        opacity: 0;
+        transform: scale(0.5);
+      }
+
+      50% {
+        opacity: 0.6;
+        transform: scale(1);
+      }
+
+      100% {
+        opacity: 0;
+        transform: scale(1.5);
+      }
+    }
+
+    /* 8. Blob - Formato orgânico */
+    .icon-fluid-blob {
+      animation: fluidBlob 6s ease-in-out infinite;
+      border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+    }
+
+    @keyframes fluidBlob {
+
+      0%,
+      100% {
+        border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+        transform: rotate(0deg);
+      }
+
+      33% {
+        border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%;
+        transform: rotate(120deg);
+      }
+
+      66% {
+        border-radius: 70% 30% 50% 50% / 40% 50% 60% 50%;
+        transform: rotate(240deg);
+      }
+    }
+
+    /* 9. Gradient Flow - Luz escorrendo */
+    .icon-fluid-gradient {
+      background: linear-gradient(135deg,
+          rgba(129, 140, 248, 0.4) 0%,
+          rgba(139, 92, 246, 0.6) 100%);
+      background-size: 200% 200%;
+      animation: fluidGradientFlow 3s ease-in-out infinite;
+    }
+
+    @keyframes fluidGradientFlow {
+
+      0%,
+      100% {
+        background-position: 0% 50%;
+      }
+
+      50% {
+        background-position: 100% 50%;
+      }
+    }
+
+    /* 10. Jello - Gelatina ao hover */
+    .icon-fluid-jello:hover {
+      animation: fluidJello 0.7s ease-in-out;
+    }
+
+    @keyframes fluidJello {
+
+      0%,
+      100% {
+        transform: scale(1, 1) rotate(0deg);
+      }
+
+      25% {
+        transform: scale(1.1, 0.9) rotate(-2deg);
+      }
+
+      50% {
+        transform: scale(0.9, 1.1) rotate(2deg);
+      }
+
+      75% {
+        transform: scale(1.05, 0.95) rotate(-1deg);
+      }
+    }
+
+    /* 11. Combinação ULTRA: Ícone Líquido Completo */
+    .icon-liquid-ultra {
+      position: relative;
+      border-radius: 50%;
+      background: linear-gradient(135deg,
+          rgba(129, 140, 248, 0.5),
+          rgba(139, 92, 246, 0.5));
+      background-size: 200% 200%;
+      animation:
+        fluidBreathe 3s ease-in-out infinite,
+        fluidMorph 5s ease-in-out infinite,
+        fluidGradientFlow 4s ease-in-out infinite,
+        fluidGlow 2.5s ease-in-out infinite;
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      will-change: transform, filter;
+      overflow: visible;
+    }
+
+    .icon-liquid-ultra:hover {
+      transform: scale(1.15) translateY(-4px);
+      filter: drop-shadow(0 8px 24px rgba(129, 140, 248, 0.5));
+    }
+
+    .icon-liquid-ultra:active {
+      animation: fluidSqueeze 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* 12. Estado: Carregando */
+    .icon-fluid-loading {
+      animation: fluidLoading 1.2s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+    }
+
+    @keyframes fluidLoading {
+
+      0%,
+      100% {
+        transform: rotate(0deg) scale(1);
+        border-radius: 50%;
+      }
+
+      25% {
+        transform: rotate(90deg) scale(0.9);
+        border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+      }
+
+      50% {
+        transform: rotate(180deg) scale(1.1);
+        border-radius: 50%;
+      }
+
+      75% {
+        transform: rotate(270deg) scale(0.95);
+        border-radius: 70% 30% 30% 70% / 70% 70% 30% 30%;
+      }
+    }
+
+    /* 13. Estado: Erro - Vibração caótica */
+    .icon-fluid-error {
+      animation: fluidError 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) infinite;
+    }
+
+    @keyframes fluidError {
+
+      0%,
+      100% {
+        transform: translate(0, 0) rotate(0deg);
+      }
+
+      10% {
+        transform: translate(-2px, 1px) rotate(-1deg);
+      }
+
+      20% {
+        transform: translate(2px, -1px) rotate(1deg);
+      }
+
+      30% {
+        transform: translate(-1px, 2px) rotate(-2deg);
+      }
+
+      40% {
+        transform: translate(1px, -2px) rotate(2deg);
+      }
+
+      50% {
+        transform: translate(-2px, -1px) rotate(-1deg);
+      }
+
+      60% {
+        transform: translate(2px, 1px) rotate(1deg);
+      }
+
+      70% {
+        transform: translate(-1px, -2px) rotate(-2deg);
+      }
+
+      80% {
+        transform: translate(1px, 2px) rotate(2deg);
+      }
+
+      90% {
+        transform: translate(-2px, 0) rotate(-1deg);
+      }
+    }
+
+    /* Glow Pulse - Brilho pulsante */
+    .glow-pulse {
+      animation: glowPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes glowPulse {
+
+      0%,
+      100% {
+        box-shadow: 0 0 10px rgba(129, 140, 248, 0.3);
+      }
+
+      50% {
+        box-shadow: 0 0 30px rgba(129, 140, 248, 0.8),
+          0 0 50px rgba(139, 92, 246, 0.5);
+      }
+    }
+
+    /* === ANIMAÇÕES LEVES === */
+
+    /* Fundo Espacial MELHORADO - Poeira Estelar Multi-Layer */
+    .space-background {
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Camada 1: Estrelas grandes e brilhantes */
+    .space-background::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image:
+        radial-gradient(3px 3px at 15% 25%, rgba(129, 140, 248, 0.6), transparent),
+        radial-gradient(2px 2px at 85% 15%, rgba(255, 255, 255, 0.5), transparent),
+        radial-gradient(3px 3px at 45% 55%, rgba(139, 92, 246, 0.5), transparent),
+        radial-gradient(2px 2px at 75% 85%, rgba(255, 255, 255, 0.4), transparent),
+        radial-gradient(4px 4px at 25% 75%, rgba(129, 140, 248, 0.6), transparent),
+        radial-gradient(2px 2px at 65% 35%, rgba(255, 255, 255, 0.5), transparent),
+        radial-gradient(3px 3px at 90% 60%, rgba(139, 92, 246, 0.4), transparent),
+        radial-gradient(2px 2px at 10% 90%, rgba(255, 255, 255, 0.5), transparent),
+        radial-gradient(3px 3px at 55% 20%, rgba(129, 140, 248, 0.5), transparent),
+        radial-gradient(2px 2px at 35% 45%, rgba(255, 255, 255, 0.4), transparent);
+      background-size: 300% 300%;
+      background-position: 0% 0%;
+      animation: starfield1 60s linear infinite;
+      pointer-events: none;
+      opacity: 0.8;
+      z-index: 0;
+      filter: blur(0.5px);
+    }
+
+    /* Camada 2: Partículas médias em movimento */
+    .space-background::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image:
+        radial-gradient(1px 1px at 20% 30%, rgba(255, 255, 255, 0.3), transparent),
+        radial-gradient(1px 1px at 60% 70%, rgba(129, 140, 248, 0.3), transparent),
+        radial-gradient(2px 2px at 50% 50%, rgba(255, 255, 255, 0.4), transparent),
+        radial-gradient(1px 1px at 80% 10%, rgba(139, 92, 246, 0.3), transparent),
+        radial-gradient(1px 1px at 90% 60%, rgba(255, 255, 255, 0.3), transparent),
+        radial-gradient(2px 2px at 33% 80%, rgba(129, 140, 248, 0.3), transparent),
+        radial-gradient(1px 1px at 70% 40%, rgba(255, 255, 255, 0.3), transparent),
+        radial-gradient(1px 1px at 15% 65%, rgba(139, 92, 246, 0.3), transparent),
+        radial-gradient(1px 1px at 45% 15%, rgba(255, 255, 255, 0.3), transparent),
+        radial-gradient(2px 2px at 88% 88%, rgba(129, 140, 248, 0.4), transparent),
+        radial-gradient(1px 1px at 25% 5%, rgba(255, 255, 255, 0.3), transparent),
+        radial-gradient(1px 1px at 5% 45%, rgba(139, 92, 246, 0.3), transparent);
+      background-size: 250% 250%;
+      background-position: 100% 100%;
+      animation: starfield2 90s linear infinite reverse;
+      pointer-events: none;
+      opacity: 0.6;
+      z-index: 0;
+    }
+
+    @keyframes starfield1 {
+      0% {
+        background-position: 0% 0%;
+        opacity: 0.6;
+      }
+
+      25% {
+        opacity: 0.9;
+      }
+
+      50% {
+        background-position: 100% 100%;
+        opacity: 0.7;
+      }
+
+      75% {
+        opacity: 0.9;
+      }
+
+      100% {
+        background-position: 0% 0%;
+        opacity: 0.6;
+      }
+    }
+
+    @keyframes starfield2 {
+      0% {
+        background-position: 100% 100%;
+        opacity: 0.4;
+      }
+
+      33% {
+        opacity: 0.7;
+      }
+
+      66% {
+        opacity: 0.5;
+      }
+
+      100% {
+        background-position: 0% 0%;
+        opacity: 0.4;
+      }
+    }
+
+    /* Fade-in suave para mensagens - MELHORADO */
+    .message-fade-in {
+      animation: messageFadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    @keyframes messageFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(15px) scale(0.98);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    /* Pulse suave (para typing indicator) */
+    .pulse-gentle {
+      animation: pulseGentle 2s ease-in-out infinite;
+    }
+
+    @keyframes pulseGentle {
+
+      0%,
+      100% {
+        opacity: 0.6;
+      }
+
+      50% {
+        opacity: 1;
+      }
+    }
+
+    /* Slide-in suave de baixo */
+    .slide-up {
+      animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Shimmer effect (opcional) */
+    .shimmer {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .shimmer::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg,
+          transparent,
+          rgba(255, 255, 255, 0.1),
+          transparent);
+      animation: shimmer 3s infinite;
+    }
+
+    @keyframes shimmer {
+      100% {
+        left: 100%;
+      }
     }
   </style>
 </head>

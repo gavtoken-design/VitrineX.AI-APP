@@ -27,18 +27,18 @@ interface SummaryCardProps {
 }
 
 const SummaryCard: React.FC<SummaryCardProps> = ({ title, value, description, icon: Icon, isLoading }) => (
-  <div className="bg-surface p-6 rounded-xl shadow-card border border-gray-100 dark:border-gray-800 hover:shadow-soft transition-all duration-300">
+  <div className="liquid-card liquid-transition liquid-light-gradient p-6">
     <div className="flex justify-between items-start mb-4">
       <div className="w-full">
-        <p className="text-sm font-medium text-muted">{title}</p>
+        <p className="text-sm font-medium text-muted liquid-text-embedded">{title}</p>
         {isLoading ? (
           <Skeleton className="h-9 w-16 mt-1" />
         ) : (
-          <p className="text-3xl font-bold text-title mt-1 tracking-tight animate-fade-in">{value}</p>
+          <p className="text-3xl font-bold text-title mt-1 tracking-tight animate-fade-in liquid-text-glow">{value}</p>
         )}
       </div>
-      <div className="p-2.5 bg-background rounded-lg text-primary">
-        <Icon className="w-5 h-5" />
+      <div className="p-2.5 bg-primary/10 rounded-lg text-primary icon-fluid-breathe icon-fluid-squeeze icon-fluid-glow icon-fluid-morph icon-fluid-gradient">
+        <Icon className="w-5 h-5 icon-fluid-viscous" />
       </div>
     </div>
     <div className="flex items-center">

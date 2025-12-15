@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualização de Exportação - VitrineX AI</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: #1e293b;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            max-width: 600px;
+            width: 100%;
+            border: 1px solid #334155;
+        }
+        h1 {
+            color: #4f46e5;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+        }
+        .status-badge {
+            display: inline-block;
+            background-color: #059669;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        .file-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            border: 1px solid #334155;
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+        .file-item {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #334155;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background-color: #0f172a;
+        }
+        .file-item:last-child {
+            border-bottom: none;
+        }
+        .file-icon {
+            color: #94a3b8;
+        }
+        .file-name {
+            font-family: monospace;
+            color: #e2e8f0;
+        }
+        .folder {
+            color: #f59e0b;
+        }
+        .summary {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background-color: #312e81;
+            border-radius: 0.5rem;
+            text-align: center;
+            font-size: 0.9rem;
+            color: #c7d2fe;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div style="text-align: center;">
+            <span class="status-badge">PRONTO PARA EXPORTAÇÃO</span>
+        </div>
+        <h1>VitrineX AI - Pacote de Deploy</h1>
+        
+        <p style="color: #94a3b8; margin-bottom: 1rem;">Conteúdo da pasta <code>/dist</code> pronto para envio:</p>
+
+        <ul class="file-list">
+            <li class="file-item">
+                <span class="file-icon folder">📁</span>
+                <span class="file-name">assets/</span>
+                <span style="margin-left: auto; color: #64748b; font-size: 0.8rem;">(JS, CSS, Imagens)</span>
+            </li>
+            <li class="file-item">
+                <span class="file-icon">📄</span>
+                <span class="file-name">index.html</span>
+                <span style="margin-left: auto; color: #059669; font-size: 0.8rem;">Entry Point</span>
+            </li>
+            <li class="file-item">
+                <span class="file-icon">⚙️</span>
+                <span class="file-name">.htaccess</span>
+                <span style="margin-left: auto; color: #64748b; font-size: 0.8rem;">Config Server</span>
+            </li>
+            <li class="file-item">
+                <span class="file-icon">🖼️</span>
+                <span class="file-name">icon.svg</span>
+            </li>
+            <li class="file-item">
+                <span class="file-icon">📱</span>
+                <span class="file-name">manifest.webmanifest</span>
+            </li>
+            <li class="file-item">
+                <span class="file-icon">⚡</span>
+                <span class="file-name">sw.js / registerSW.js</span>
+            </li>
+        </ul>
+
+        <div class="summary">
+            📦 <strong>Arquivo Final:</strong> <code>dist.zip</code><br>
+            Este arquivo contém tudo acima compactado e seguro.<br>
+            Nenhuma chave de API exposta encontrada.
+        </div>
+    </div>
+</body>
+</html>

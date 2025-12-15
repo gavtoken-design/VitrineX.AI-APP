@@ -91,7 +91,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onSpeak, onDownload,
   }
 
   return (
-    <div className={`flex w-full ${isUser ? 'justify-end' : 'justify-start'} mb-6 group`}>
+    <div className={`flex w-full ${isUser ? 'justify-end' : 'justify-start'} mb-6 group message-fade-in`}>
       <div className={`flex max-w-[90%] md:max-w-[80%] gap-4 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
 
         {/* Avatar */}
@@ -114,6 +114,15 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onSpeak, onDownload,
               : 'bg-surface text-body border-gray-100 rounded-tl-sm'
               }`}
           >
+            {message.attachment && (
+              <div className="mb-3 rounded-lg overflow-hidden border border-white/20">
+                <img
+                  src={message.attachment.data}
+                  alt={message.attachment.name}
+                  className="max-w-full h-auto object-cover max-h-[300px]"
+                />
+              </div>
+            )}
             <div className="prose prose-sm max-w-none prose-p:my-1 prose-headings:my-2 whitespace-pre-wrap" style={{ color: isUser ? 'white' : 'inherit' }}>
               {renderMessageContent()}
             </div>

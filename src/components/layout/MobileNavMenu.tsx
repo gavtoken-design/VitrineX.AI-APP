@@ -21,25 +21,25 @@ const MobileNavMenu: React.FC<MobileNavMenuProps> = ({ isOpen, onClose, activeMo
 
   return (
     <div className="md:hidden">
-      {/* Overlay */}
+      {/* Overlay com vidro translúcido */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 transition-opacity"
+          className="fixed inset-0 liquid-overlay z-30 liquid-transition"
           onClick={onClose}
           aria-hidden="true"
         ></div>
       )}
 
-      {/* Painel Deslizante - Adicionado flex flex-col */}
-      <aside className={`fixed top-0 left-0 h-full w-72 bg-surface border-r border-border z-40
-        transform transition-transform duration-300 ease-in-out shadow-2xl flex flex-col
+      {/* Painel Deslizante Líquido */}
+      <aside className={`fixed top-0 left-0 h-full w-72 liquid-glass-heavy liquid-shadow-deep border-r border-white/10 z-40
+        transform liquid-transition-slow shadow-2xl flex flex-col liquid-emerge
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
 
-        {/* Cabeçalho fixo no topo do flex container */}
-        <div className="flex justify-between items-center p-4 border-b border-border/50 flex-shrink-0">
-          <span className="font-bold text-lg text-title ml-2">Menu</span>
-          <button onClick={onClose} className="p-2 text-muted hover:text-title hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
-            <XMarkIcon className="w-6 h-6" />
+        {/* Cabeçalho fixo no topo */}
+        <div className="flex justify-between items-center p-4 border-b border-white/10 flex-shrink-0 liquid-light-gradient">
+          <span className="font-bold text-lg text-title ml-2 liquid-text-glow">Menu</span>
+          <button onClick={onClose} className="p-2 text-muted hover:text-title hover:bg-primary/20 rounded-full liquid-transition icon-fluid-breathe icon-fluid-squeeze">
+            <XMarkIcon className="w-6 h-6 icon-fluid-viscous" />
           </button>
         </div>
 

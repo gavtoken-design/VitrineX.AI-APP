@@ -19,6 +19,15 @@ export interface UserProfile {
   name?: string; // Added name property
   plan: 'free' | 'premium';
   businessProfile: BusinessProfile;
+  contactInfo?: {
+    whatsapp?: string;
+    instagram?: string; // e.g. @vitrinex
+    tiktok?: string;
+    twitter?: string;
+    pinterest?: string;
+    facebook?: string;
+    linkedin?: string; // Explicitly kept for completeness, though user doesn't use it
+  };
   status?: 'active' | 'blocked'; // Added status for admin control
 }
 
@@ -108,6 +117,11 @@ export interface ChatMessage {
   toolCall?: {
     name: string;
     args: any;
+  };
+  attachment?: {
+    name: string;
+    type: string;
+    data: string; // base64
   };
 }
 

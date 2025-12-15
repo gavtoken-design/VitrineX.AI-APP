@@ -19,10 +19,10 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
         <div className="flex items-center gap-3">
           <button
             onClick={onMenuClick}
-            className="md:hidden p-2 -ml-2 text-muted hover:text-primary transition-colors rounded-full hover:bg-background"
+            className="md:hidden p-2 -ml-2 text-muted hover:text-primary transition-colors rounded-full hover:bg-background bounce-on-click"
             aria-label="Abrir menu"
           >
-            <Bars3Icon className="w-6 h-6" />
+            <Bars3Icon className="w-6 h-6 wiggle-on-hover" />
           </button>
           <Logo className="h-9 w-9" />
         </div>
@@ -30,8 +30,8 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
         <div className="flex items-center gap-4">
 
           <div className="relative group">
-            <button className="flex items-center gap-1.5 px-2 py-1.5 rounded-md hover:bg-background text-sm font-medium text-muted transition-colors">
-              <GlobeAltIcon className="w-5 h-5" />
+            <button className="flex items-center gap-1.5 px-2 py-1.5 rounded-md hover:bg-background text-sm font-medium text-muted transition-colors pop-on-hover">
+              <GlobeAltIcon className="w-5 h-5 rotate-on-hover" />
               <span className="uppercase">{language.split('-')[0]}</span>
             </button>
 
@@ -55,17 +55,17 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
 
           <button
             onClick={toggleTheme}
-            className="p-2 rounded-full text-muted hover:bg-background transition-colors"
+            className="p-2 rounded-full text-muted hover:bg-background transition-colors spin-on-click"
             title={theme === 'light' ? 'Mudar para o Modo Escuro' : 'Mudar para o Modo Claro'}
           >
             {theme === 'light' ? (
-              <MoonIcon className="w-5 h-5" />
+              <MoonIcon className="w-5 h-5 rotate-on-hover" />
             ) : (
-              <SunIcon className="w-5 h-5" />
+              <SunIcon className="w-5 h-5 rotate-on-hover" />
             )}
           </button>
 
-          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 cursor-pointer">
+          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 cursor-pointer heartbeat">
             <span className="text-xs font-bold text-primary">US</span>
           </div>
         </div>

@@ -18,6 +18,7 @@ const ContentGenerator: React.FC = () => {
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string>(PLACEHOLDER_IMAGE_BASE64);
   const [loadingText, setLoadingText] = useState<boolean>(false);
   const [loadingImage, setLoadingImage] = useState<boolean>(false);
+  const [useThinking, setUseThinking] = useState<boolean>(false);
 
   // Library Save State
   const [savedItemName, setSavedItemName] = useState<string>('');
@@ -49,7 +50,10 @@ const ContentGenerator: React.FC = () => {
         fullPrompt = `Generate a compelling social media post (text only) for: "${prompt}". Include relevant hashtags.`;
       }
 
-      const textResponse = await generateText(fullPrompt, { model: GEMINI_FLASH_MODEL });
+      const textResponse = await generateText(fullPrompt, {
+        model: GEMINI_FLASH_MODEL,
+        useThinking: useThinking
+      });
 
       let postContent: string = '';
       let imageDescription: string = '';
@@ -162,6 +166,18 @@ const ContentGenerator: React.FC = () => {
           rows={6}
           placeholder="Ex: 'Um post sobre os benefícios da meditação para o bem-estar mental', ou 'Ideias para 7 posts semanais sobre dicas de produtividade no trabalho.'"
         />
+        <div className="flex items-center gap-2 mt-4 text-sm text-muted">
+          <input
+            type="checkbox"
+            id="useThinking"
+            checked={useThinking}
+            onChange={(e) => setUseThinking(e.target.checked)}
+            className="w-4 h-4 rounded text-primary focus:ring-primary border-gray-600 bg-gray-700"
+          />
+          <label htmlFor="useThinking" className="cursor-pointer select-none flex items-center gap-1">
+            Ativar <b>Thinking Mode</b> 🧠 <span className="text-xs text-gray-500">(Raciocínio Avançado com Gemini 2.0 Thinking)</span>
+          </label>
+        </div>
         <div className="flex flex-col sm:flex-row gap-3 mt-4">
           <Button
             onClick={handleGenerateOnePost}

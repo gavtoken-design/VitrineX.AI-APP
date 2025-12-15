@@ -6,6 +6,7 @@ import {
 import {
     GEMINI_FLASH_MODEL,
     GEMINI_PRO_MODEL,
+    GEMINI_THINKING_MODEL,
 } from '../../constants';
 // We will move types to a central location or keep them in src/types.ts. 
 // The implementation plan didn't say we move src/types.ts, so we keep using ../../types
@@ -28,12 +29,15 @@ export interface GenerateTextOptions {
     responseSchema?: any;
     tools?: Tool[];
     thinkingBudget?: number;
+    useThinking?: boolean; // New Option
 }
 
 export const generateText = async (prompt: string, options?: GenerateTextOptions): Promise<string> => {
+    const modelToUse = options?.useThinking ? GEMINI_THINKING_MODEL : (options?.model || GEMINI_FLASH_MODEL);
+
     try {
         const response = await proxyFetch<any>('call-gemini', 'POST', {
-            model: options?.model || GEMINI_FLASH_MODEL,
+            model: modelToUse,
             contents: [{ role: 'user', parts: [{ text: prompt }] }],
             config: options,
         });
@@ -42,7 +46,7 @@ export const generateText = async (prompt: string, options?: GenerateTextOptions
         console.warn("Backend proxy failed for generateText, falling back to client-side SDK.", error);
         const ai = await getGenAIClient();
         const response = await ai.models.generateContent({
-            model: options?.model || GEMINI_FLASH_MODEL,
+            model: modelToUse,
             contents: prompt,
             config: options,
         });
@@ -54,19 +58,16 @@ export const sendMessageToChat = async (
     history: ChatMessage[],
     message: string | (string | Part)[],
     onChunk: (text: string) => void,
-    options: { model?: string; systemInstruction?: string; useKnowledgeBase?: boolean },
+    options: { model?: string; systemInstruction?: string; useKnowledgeBase?: boolean; useThinking?: boolean },
     signal?: AbortSignal
 ): Promise<string> => {
     // Logic copied from original geminiService.ts
     // Needs BACKEND_URL, getActiveOrganizationId, getAuthToken from legacy/core services
-    // We'll assume proxyFetch handles the backend URL and headers, except this one uses streaming which might need custom handling.
-    // For now, let's duplicate the logic but import dependencies correctly.
 
-    // Dynamic imports or moved services:
-    // We need to move the proxy logic to a shared place or replicate it. 
-    // Let's implement the streaming logic here directly as it's specific.
+    // Determine model
+    const model = options.useThinking ? GEMINI_THINKING_MODEL : (options.model || GEMINI_PRO_MODEL);
 
-    const { getAuthToken, getActiveOrganizationId, BACKEND_URL } = await import('../core/auth'); // Lazy import to avoid circular dep if any? Or just static.
+    const { getAuthToken, getActiveOrganizationId, BACKEND_URL } = await import('../core/auth');
 
     try {
         const organizationId = getActiveOrganizationId();
@@ -75,7 +76,7 @@ export const sendMessageToChat = async (
         const body = {
             prompt: typeof message === 'string' ? message : message.find(p => typeof p === 'string') || '',
             history: history.map(m => ({ role: m.role, parts: [{ text: m.text }] })),
-            model: options.model || GEMINI_PRO_MODEL,
+            model: model,
             options: { systemInstruction: options.systemInstruction },
         };
 
@@ -111,14 +112,13 @@ export const sendMessageToChat = async (
             console.warn("Backend proxy failed for sendMessageToChat, falling back to client-side SDK.", error);
 
             const ai = await getGenAIClient();
-            const model = options.model || GEMINI_PRO_MODEL;
             const chatHistory = history.map(m => ({ role: m.role, parts: [{ text: m.text }] }));
 
             const chat = ai.chats.create({ model, history: chatHistory, config: { systemInstruction: options.systemInstruction } });
-            const msgContent = typeof message === 'string'
-                ? message
-                : (message as Part[]);
-            const resultStream = await chat.sendMessageStream({ message: msgContent });
+
+            // The SDK expects `string | (string | Part)[]` for the message content inside an object wrapper (depending on version).
+            // Using 'any' to bypass strict TS checking for the mixed Content type.
+            const resultStream = await chat.sendMessageStream({ message: message } as any);
 
             let fullText = '';
             for await (const chunk of resultStream) {
@@ -140,8 +140,17 @@ export const queryArchitect = async (query: string): Promise<string> => {
 };
 
 export const aiManagerStrategy = async (prompt: string, userProfile: UserProfile['businessProfile']): Promise<{ strategyText: string; suggestions: string[] }> => {
+    // Enable Thinking for strategic tasks
     const systemInstruction = `You are a marketing expert...`;
-    const response = await generateText(prompt, { model: GEMINI_FLASH_MODEL, systemInstruction, tools: [{ googleSearch: {} }], thinkingBudget: 2048 });
+
+    // Use Thinking Model here for better strategy
+    const response = await generateText(prompt, {
+        useThinking: true, // Enable thinking mode
+        systemInstruction,
+        tools: [{ googleSearch: {} }],
+        thinkingBudget: 2048
+    });
+
     return { strategyText: response, suggestions: ["Suggestion 1", "Suggestion 2"] };
 };
 
@@ -150,7 +159,7 @@ export const campaignBuilder = async (campaignPrompt: string): Promise<{ campaig
     const planJsonStr = await generateText(planPrompt, {
         model: GEMINI_PRO_MODEL,
         responseMimeType: 'application/json',
-        // responseSchema: { type: 'OBJECT', properties: { campaignName: { type: 'STRING' } } },
+        // responseSchema to be added if needed
     });
 
     let plan;
@@ -160,7 +169,6 @@ export const campaignBuilder = async (campaignPrompt: string): Promise<{ campaig
         plan = { campaignName: "Campaign " + Date.now() };
     }
 
-    // Circular dependency or lazy load? generateVideo is in video.ts
     const { generateVideo } = await import('./video');
 
     let videoUrl: string | undefined = undefined;

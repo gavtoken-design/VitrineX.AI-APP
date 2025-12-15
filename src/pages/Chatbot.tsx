@@ -26,6 +26,8 @@ import { useToast } from '../contexts/ToastContext';
 import { generateSpeech, decode, decodeAudioData } from '../services/ai';
 import { useDownloader } from '../hooks/useDownloader';
 import ArtifactPanel from '../components/features/ArtifactPanel';
+import { compactChatHistory } from '../services/ai/memory';
+import { saveToDrive, GOOGLE_DRIVE_FOLDER_ID } from '../services/integrations/drive';
 
 const commands = [
   { key: '/post', text: 'Crie um post para Instagram sobre: ', desc: 'Gera legenda + ideia de imagem' },
@@ -94,6 +96,15 @@ const Chatbot: React.FC = () => {
   useEffect(() => {
     if (messages.length > 0) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+
+      // Auto-save compact memory to Drive every 5 turns (user+model pairs)
+      if (messages.length % 5 === 0) {
+        console.log("Auto-compacting memory for Drive...");
+        const userIdToUse = 'mock-user-123'; // Replace with real Auth
+        compactChatHistory(messages).then((memory) => {
+          saveToDrive(userIdToUse, 'memory.json', JSON.stringify(memory, null, 2));
+        });
+      }
     }
   }, [messages]);
 
@@ -127,8 +138,19 @@ const Chatbot: React.FC = () => {
     abortControllerRef.current = new AbortController();
     const signal = abortControllerRef.current.signal;
 
-    const userMessageText = text + (attachedFile ? ` [Arquivo Anexado: ${attachedFile.name}]` : '');
-    const newUserMessage: ChatMessageType = { role: 'user', text: userMessageText, timestamp: new Date().toISOString() };
+    const userMessageText = text;
+    const attachmentData = attachedFile && typeof attachedFile.data === 'string' ? {
+      name: attachedFile.name,
+      type: attachedFile.type,
+      data: attachedFile.data
+    } : undefined;
+
+    const newUserMessage: ChatMessageType = {
+      role: 'user',
+      text: userMessageText,
+      timestamp: new Date().toISOString(),
+      attachment: attachmentData
+    };
 
     const currentHistory = useHistory ? [...messages, newUserMessage] : [newUserMessage];
     setMessages(currentHistory);
@@ -141,7 +163,21 @@ const Chatbot: React.FC = () => {
       let messagePayload: string | (string | Part)[] = text;
 
       if (attachedFile) {
-        // Handle file payload
+        // Build multimodal payload: [text, imagePart]
+        if (typeof attachedFile.data === 'string') {
+          // Base64 string - convert to Part
+          const base64Data = attachedFile.data.includes(',') ? attachedFile.data.split(',')[1] : attachedFile.data;
+          const imagePart: Part = {
+            inlineData: {
+              data: base64Data,
+              mimeType: attachedFile.type
+            }
+          };
+          messagePayload = [text, imagePart];
+        } else {
+          // Already a Part object
+          messagePayload = [text, attachedFile.data as Part];
+        }
       }
 
       let fullResponse = "";
@@ -207,7 +243,38 @@ const Chatbot: React.FC = () => {
   const handleFileClick = () => fileInputRef.current?.click();
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    // ... implementation
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      addToast({ type: 'error', message: 'Apenas imagens são suportadas no momento.' });
+      return;
+    }
+
+    // Validate file size (max 20MB)
+    const MAX_SIZE = 20 * 1024 * 1024;
+    if (file.size > MAX_SIZE) {
+      addToast({ type: 'error', message: 'Imagem muito grande. Máximo 20MB.' });
+      return;
+    }
+
+    // Convert to base64
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (typeof reader.result === 'string') {
+        setAttachedFile({
+          name: file.name,
+          type: file.type,
+          data: reader.result // base64 with data:image/... prefix
+        });
+        addToast({ type: 'success', message: `Imagem "${file.name}" anexada!` });
+      }
+    };
+    reader.onerror = () => {
+      addToast({ type: 'error', message: 'Erro ao carregar imagem.' });
+    };
+    reader.readAsDataURL(file);
   };
 
   const removeAttachment = () => setAttachedFile(null);
@@ -301,7 +368,7 @@ const Chatbot: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6">
+        <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 space-background">
           {messages.map((msg, index) => (
             <ChatMessage
               key={`${msg.timestamp}-${index}`}
@@ -331,17 +398,36 @@ const Chatbot: React.FC = () => {
               <button onClick={handleFileClick} className="p-2.5 rounded-xl text-muted hover:bg-background" title="Anexar arquivo">
                 <PaperClipIcon className="w-5 h-5" />
               </button>
-              <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
+              <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
 
-              <MultimodalChatInput
-                onSendText={handleSendMessage}
-                onStartVoice={() => { }}
-                onStopVoice={() => { }}
-                isTextLoading={loading}
-                isVoiceActive={false}
-                isListening={false}
-                commands={commands}
-              />
+              <div className="flex-1">
+                {attachedFile && (
+                  <div className="mx-4 mb-2 p-2 bg-surface border border-border rounded-lg inline-flex items-center gap-3 animate-fade-in relative z-10 w-fit">
+                    <div className="w-10 h-10 rounded overflow-hidden flex-shrink-0 bg-black/20">
+                      {typeof attachedFile.data === 'string' && (
+                        <img src={attachedFile.data} className="w-full h-full object-cover" alt="Preview" />
+                      )}
+                    </div>
+                    <div className="text-xs">
+                      <p className="font-medium text-title truncate max-w-[150px]">{attachedFile.name}</p>
+                      <p className="text-muted text-[10px]">Imagem anexada</p>
+                    </div>
+                    <button onClick={removeAttachment} className="ml-2 p-1 hover:bg-gray-700 rounded-full text-muted hover:text-white">
+                      <XMarkIcon className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+
+                <MultimodalChatInput
+                  onSendText={handleSendMessage}
+                  onStartVoice={() => { }}
+                  onStopVoice={() => { }}
+                  isTextLoading={loading}
+                  isVoiceActive={false}
+                  isListening={false}
+                  commands={commands}
+                />
+              </div>
             </div>
           </div>
         </div>

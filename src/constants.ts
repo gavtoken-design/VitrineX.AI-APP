@@ -9,6 +9,7 @@ export const VEO_FAST_GENERATE_MODEL = 'veo-3.1-fast-generate-preview';
 export const VEO_GENERATE_MODEL = 'veo-3.1-generate-preview';
 export const GEMINI_LIVE_AUDIO_MODEL = 'gemini-2.5-flash-native-audio-preview-09-2025';
 export const GEMINI_TTS_MODEL = 'gemini-2.5-flash-preview-tts';
+export const GEMINI_THINKING_MODEL = 'gemini-2.0-flash-thinking-exp-01-21';
 
 // Default values
 export const DEFAULT_ASPECT_RATIO = '16:9';
