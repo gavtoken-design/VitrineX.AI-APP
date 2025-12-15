@@ -147,7 +147,7 @@ const SmartScheduler: React.FC = () => {
                   setNewScheduleContentType(selectedItem.type);
                 }
               }}
-              className="block w-full px-3 py-2 border border-gray-700 rounded-md shadow-sm bg-lightbg text-textdark focus:outline-none focus:ring-2 focus:ring-neonGreen focus:border-neonGreen focus:ring-offset-2 focus:ring-offset-lightbg sm:text-sm mb-2"
+              className="block w-full px-3 py-2 border border-gray-700 rounded-md shadow-sm bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-neonGreen focus:border-neonGreen focus:ring-offset-2 focus:ring-offset-lightbg sm:text-sm mb-2"
             >
               <option value="">Selecione um item da Biblioteca</option>
               {libraryItems.map(item => (
@@ -172,7 +172,7 @@ const SmartScheduler: React.FC = () => {
               id="platformSelect"
               value={newSchedulePlatform}
               onChange={(e) => setNewSchedulePlatform(e.target.value)}
-              className="block w-full px-3 py-2 border border-gray-700 rounded-md shadow-sm bg-lightbg text-textdark focus:outline-none focus:ring-2 focus:ring-neonGreen focus:border-neonGreen focus:ring-offset-2 focus:ring-offset-lightbg sm:text-sm"
+              className="block w-full px-3 py-2 border border-gray-700 rounded-md shadow-sm bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-neonGreen focus:border-neonGreen focus:ring-offset-2 focus:ring-offset-lightbg sm:text-sm"
             >
               <option value="">Selecione uma plataforma</option>
               <option value="Instagram">Instagram</option>

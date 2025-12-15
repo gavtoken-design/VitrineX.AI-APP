@@ -185,7 +185,7 @@ const InteractiveActionCenter: React.FC = () => {
                       <select
                         value={size}
                         onChange={(e) => setSize(e.target.value)}
-                        className="w-full bg-lightbg border border-gray-700 rounded-md px-3 py-2 text-textdark"
+                        className="w-full bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-white"
                       >
                         {IMAGE_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
                       </select>
@@ -196,7 +196,7 @@ const InteractiveActionCenter: React.FC = () => {
                       <select
                         value={resolution}
                         onChange={(e) => setResolution(e.target.value)}
-                        className="w-full bg-lightbg border border-gray-700 rounded-md px-3 py-2 text-textdark"
+                        className="w-full bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-white"
                       >
                         {VIDEO_RESOLUTIONS.map(r => <option key={r} value={r}>{r}</option>)}
                       </select>
@@ -212,7 +212,7 @@ const InteractiveActionCenter: React.FC = () => {
                     <select
                       value={voice}
                       onChange={(e) => setVoice(e.target.value)}
-                      className="w-full bg-lightbg border border-gray-700 rounded-md px-3 py-2 text-textdark"
+                      className="w-full bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-white"
                     >
                       {['Zephyr', 'Puck', 'Charon', 'Kore', 'Fenrir'].map(v => <option key={v} value={v}>{v}</option>)}
                     </select>

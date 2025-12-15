@@ -283,6 +283,38 @@ const Settings: React.FC = () => {
               </button>
             </div>
           </div>
+
+          {/* Data Management Section */}
+          <div className="pt-4 border-t border-border">
+            <h4 className="text-sm font-medium text-title mb-3">Gerenciamento de Dados (Ficar Seguro)</h4>
+            <p className="text-xs text-muted mb-4">
+              Seus dados (posts, campanhas) ficam salvos neste navegador. Exporte regularmente para não perder nada.
+            </p>
+            <Button
+              onClick={() => {
+                const data = {
+                  db: localStorage.getItem('vitrinex_mock_db'),
+                  apiKey: localStorage.getItem('vitrinex_gemini_api_key'),
+                  date: new Date().toISOString()
+                };
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `backup-vitrinex-${new Date().toISOString().slice(0, 10)}.json`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+                addToast({ type: 'success', message: 'Backup de dados baixado com sucesso!' });
+              }}
+              variant="secondary"
+              className="w-full sm:w-auto"
+            >
+              <ArrowDownOnSquareIcon className="w-4 h-4 mr-2" />
+              Exportar Todos os Dados (.JSON)
+            </Button>
+          </div>
         </div>
       </div>
 

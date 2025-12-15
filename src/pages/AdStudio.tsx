@@ -149,7 +149,7 @@ const AdStudio: React.FC = () => {
             id="platform"
             value={selectedPlatform}
             onChange={(e) => setSelectedPlatform(e.target.value as Platform)}
-            className="block w-full px-3 py-2 border border-gray-700 rounded-md shadow-sm bg-lightbg text-textdark focus:outline-none focus:ring-2 focus:ring-neonGreen focus:border-neonGreen focus:ring-offset-2 focus:ring-offset-lightbg sm:text-sm"
+            className="block w-full px-3 py-2 border border-gray-700 rounded-md shadow-sm bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-neonGreen focus:border-neonGreen focus:ring-offset-2 focus:ring-offset-lightbg sm:text-sm"
           >
             {platforms.map((platform) => (
               <option key={platform} value={platform}>
