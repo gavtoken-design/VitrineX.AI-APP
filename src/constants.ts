@@ -53,7 +53,7 @@ export const SEASONAL_TEMPLATES = [
     icon: '🎄',
     basePrompt: 'Crie uma imagem publicitária profissional de Natal para o produto "[PRODUTO]". Estilo minimalista e elegante, fundo vermelho escuro com detalhes em dourado, iluminação suave de estúdio, 4k, alta resolução. Texto "OFERTA DE NATAL" em fonte moderna dourada no topo.',
     // Links ocultos para guiar a IA (Conceito de Few-Shot/Image Prompting)
-    referenceImage: 'https://images.unsplash.com/photo-1607344645866-009c320c5abc?q=80&w=2070&auto=format&fit=crop',
+    referenceImage: 'https://images.unsplash.com/photo-1512389142860-9c449e58a543?q=80&w=2069&auto=format&fit=crop',
     colorPalette: ['#8B0000', '#FFD700', '#F0F0F0']
   },
   {

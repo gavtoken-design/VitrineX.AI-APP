@@ -16,8 +16,9 @@ export interface BusinessProfile {
 export interface UserProfile {
   id: string;
   email: string;
-  name?: string; // Added name property
-  plan: 'free' | 'premium';
+  name?: string;
+  phone?: string; // Added phone property
+  plan: 'free' | 'premium' | 'enterprise';
   businessProfile: BusinessProfile;
   contactInfo?: {
     whatsapp?: string;
@@ -169,6 +170,26 @@ export interface AdminLog {
 export interface AdminConfig {
   modules: {
     [key: string]: boolean;
+  };
+  features: {
+    // AI Generation Features
+    imageGenerationEnabled: boolean;
+    videoGenerationEnabled: boolean;
+    audioGenerationEnabled: boolean;
+    textGenerationEnabled: boolean;
+
+    // Tools & Utilities
+    trendHunterEnabled: boolean;
+    chatbotEnabled: boolean;
+    creativeStudioEnabled: boolean;
+    adStudioEnabled: boolean;
+    smartSchedulerEnabled: boolean;
+
+    // Advanced Features
+    ragKnowledgeBaseEnabled: boolean;
+    voiceInputEnabled: boolean;
+    multimodalChatEnabled: boolean;
+    brandLogoManagerEnabled: boolean;
   };
   system: {
     maintenanceMode: boolean;

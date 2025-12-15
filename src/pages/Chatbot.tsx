@@ -23,6 +23,7 @@ import MultimodalChatInput from '../components/features/MultimodalChatInput';
 import Button from '../components/ui/Button';
 import Textarea from '../components/ui/Textarea';
 import { useToast } from '../contexts/ToastContext';
+import { getActiveAnimation, ChatAnimation } from '../constants/chat-animations';
 import { generateSpeech, decode, decodeAudioData } from '../services/ai';
 import { useDownloader } from '../hooks/useDownloader';
 import ArtifactPanel from '../components/features/ArtifactPanel';
@@ -112,8 +113,22 @@ const Chatbot: React.FC = () => {
 
   const [showBrainSettings, setShowBrainSettings] = useState(false);
   const [systemInstruction, setSystemInstruction] = useState(DEFAULT_SYSTEM_INSTRUCTION);
-  const [initialGreeting, setInitialGreeting] = useState(localStorage.getItem('vitrinex_initial_greeting') || DEFAULT_INITIAL_GREETING);
+  const [initialGreeting, setInitialGreeting] = useState<string>(() => {
+    return localStorage.getItem('vitrinex_initial_greeting') || DEFAULT_INITIAL_GREETING;
+  });
   const [hasPlayedGreeting, setHasPlayedGreeting] = useState(false);
+
+  // Chat Animation State
+  const [chatAnimation, setChatAnimation] = useState<ChatAnimation>(getActiveAnimation());
+
+  // Reload animation when localStorage changes (admin updates)
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setChatAnimation(getActiveAnimation());
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   const [attachedFile, setAttachedFile] = useState<{ name: string, type: string, data: string | Part } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -464,28 +479,46 @@ const Chatbot: React.FC = () => {
             <ChatBubbleLeftRightIcon className="w-5 h-5" /> Chat IA
           </h3>
           <div className="flex items-center gap-2">
-            <Button onClick={() => setShowBrainSettings(true)} variant="ghost" size="sm">
+            <Button onClick={() => setShowBrainSettings(true)} variant="ghost" size="sm" title="Configurar instrução do sistema e comportamento da IA">
               <Cog6ToothIcon className="w-4 h-4 mr-1.5" /> Cérebro da IA
             </Button>
-            <Button onClick={handleClearChat} variant="ghost" size="sm">
+            <Button onClick={handleClearChat} variant="ghost" size="sm" title="Limpar todo o histórico de conversa">
               <TrashIcon className="w-4 h-4 mr-1.5" /> Limpar
             </Button>
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 space-background">
-          {messages.map((msg, index) => (
-            <ChatMessage
-              key={`${msg.timestamp}-${index}`}
-              message={msg}
-              onSpeak={handleTTS}
-              onDownload={handleDownloadTxt}
-              onShare={handleShareCopy}
-              onViewArtifact={setActiveArtifactIndex}
+        <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 relative">
+          {/* Dynamic Background Animation */}
+          {chatAnimation.type === 'video' && chatAnimation.videoUrl ? (
+            <video
+              key={chatAnimation.id}
+              src={chatAnimation.videoUrl}
+              className="absolute inset-0 w-full h-full object-cover opacity-20 pointer-events-none"
+              autoPlay
+              loop
+              muted
+              playsInline
             />
-          ))}
-          {loading && <TypingIndicator />}
-          <div ref={messagesEndRef} />
+          ) : (
+            <div className={`absolute inset-0 ${chatAnimation.cssClass || 'space-background'}`} />
+          )}
+
+          {/* Messages Container */}
+          <div className="relative z-10 space-y-6">
+            {messages.map((msg, index) => (
+              <ChatMessage
+                key={`${msg.timestamp}-${index}`}
+                message={msg}
+                onSpeak={handleTTS}
+                onDownload={handleDownloadTxt}
+                onShare={handleShareCopy}
+                onViewArtifact={setActiveArtifactIndex}
+              />
+            ))}
+            {loading && <TypingIndicator />}
+            <div ref={messagesEndRef} />
+          </div> {/* Close messages container */}
         </div>
 
         <div className="p-4 bg-surface border-t border-border">

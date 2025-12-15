@@ -121,7 +121,7 @@ const SmartScheduler: React.FC = () => {
 
   return (
     <div className="container mx-auto py-8 lg:py-10">
-      <h2 className="text-3xl font-bold text-textdark mb-8">Agendador Inteligente (Autopost)</h2>
+      <h2 className="text-3xl font-bold text-textdark mb-8">Agendador Inteligente</h2>
 
       {error && (
         <div className="bg-red-900 border border-red-600 text-red-300 px-4 py-3 rounded relative mb-8" role="alert">
@@ -256,23 +256,23 @@ const SmartScheduler: React.FC = () => {
         ) : scheduledItems.length === 0 ? (
           <div className="text-center text-textlight p-4">Nenhum agendamento encontrado.</div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto -mx-6 px-6 md:mx-0 md:px-0">
             <table className="min-w-full divide-y divide-gray-700">
               <thead className="bg-darkbg">
                 <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-textmuted uppercase tracking-wider">
+                  <th scope="col" className="px-4 md:px-6 py-3 text-left text-xs font-medium text-textmuted uppercase tracking-wider">
                     Status
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-textmuted uppercase tracking-wider">
+                  <th scope="col" className="px-4 md:px-6 py-3 text-left text-xs font-medium text-textmuted uppercase tracking-wider">
                     Data/Hora
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-textmuted uppercase tracking-wider">
+                  <th scope="col" className="px-4 md:px-6 py-3 text-left text-xs font-medium text-textmuted uppercase tracking-wider">
                     Conteúdo
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-textmuted uppercase tracking-wider">
+                  <th scope="col" className="px-4 md:px-6 py-3 text-left text-xs font-medium text-textmuted uppercase tracking-wider">
                     Plataforma
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-textmuted uppercase tracking-wider">
+                  <th scope="col" className="px-4 md:px-6 py-3 text-left text-xs font-medium text-textmuted uppercase tracking-wider">
                     Ações
                   </th>
                 </tr>
@@ -284,22 +284,22 @@ const SmartScheduler: React.FC = () => {
                   const isPast = dateTime < new Date();
                   return (
                     <tr key={entry.id} className={isPast ? 'bg-darkbg text-textmuted' : 'text-textlight'}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex items-center">
                           {getStatusIcon(entry.status)}
                           <span className="ml-2 capitalize">{entry.status}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm">
                         {dateTime.toLocaleDateString()} {dateTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm">
                         {item ? item.name : 'Conteúdo não encontrado'}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm">
                         {entry.platform}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <td className="px-4 md:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         {!isPast && (
                           <Button
                             onClick={() => handleDeleteSchedule(entry.id)}

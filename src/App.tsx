@@ -12,6 +12,7 @@ import { NavigationContext } from './hooks/useNavigate';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { ToastProvider } from './contexts/ToastContext';
+import { NotificationProvider } from './contexts/NotificationContext';
 import { TutorialProvider } from './contexts/TutorialContext';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { KeyIcon, CheckCircleIcon, PlayIcon } from '@heroicons/react/24/outline';
@@ -63,8 +64,6 @@ function AppContent() {
   const [hasApiKey, setHasApiKey] = useState<boolean>(false);
   const [loadingApiKeyCheck, setLoadingApiKeyCheck] = useState<boolean>(true);
   const [manualApiKey, setManualApiKey] = useState<string>('');
-  const [isTestingKey, setIsTestingKey] = useState<boolean>(false);
-  const [testResult, setTestResult] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Check URL for Admin Route on mount
@@ -115,23 +114,8 @@ function AppContent() {
     const key = manualApiKey.trim();
     if (!key) return;
 
-    setIsTestingKey(true);
-    setTestResult(null);
-
-    try {
-      const result = await testGeminiConnection(key);
-      setTestResult(result);
-
-      setTimeout(() => {
-        localStorage.setItem('vitrinex_gemini_api_key', key);
-        setHasApiKey(true);
-      }, 1500);
-    } catch (error: any) {
-      alert(`Erro ao ativar API: ${error.message || 'Chave inválida'}`);
-      setTestResult(null);
-    } finally {
-      setIsTestingKey(false);
-    }
+    localStorage.setItem('vitrinex_gemini_api_key', key);
+    setHasApiKey(true);
   };
 
   const renderModule = () => {
@@ -184,32 +168,21 @@ function AppContent() {
                 onChange={(e) => setManualApiKey(e.target.value)}
                 placeholder="Cole sua API Key aqui..."
                 className="w-full pl-10 pr-4 py-3 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary text-body transition-all"
-                disabled={isTestingKey}
               />
             </div>
 
-            {testResult && (
-              <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg border border-green-200 dark:border-green-800 flex items-start gap-2 text-left animate-fade-in">
-                <CheckCircleIcon className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-xs font-bold text-green-700 dark:text-green-300">Conexão Ativa!</p>
-                  <p className="text-[10px] text-green-600 dark:text-green-400 mt-1 line-clamp-2">"{testResult}"</p>
-                </div>
-              </div>
-            )}
-
             <button
               type="submit"
-              disabled={!manualApiKey || isTestingKey}
+              disabled={!manualApiKey}
               className="w-full px-6 py-3.5 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/40 hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              {isTestingKey ? <LoadingSpinner className="w-5 h-5 text-white" /> : <PlayIcon className="w-5 h-5" />}
-              {isTestingKey ? 'Testando Conexão...' : 'Ativar API & Entrar'}
+              <PlayIcon className="w-5 h-5" />
+              Ativar & Entrar
             </button>
           </form>
 
           <p className="mt-6 text-xs text-muted">
-            A chave é testada com o prompt "Explain how AI works" e salva localmente.
+            A chave será salva localmente no seu navegador.
           </p>
         </div>
       </div>
@@ -246,8 +219,8 @@ function AppContent() {
           <main className={`flex-1 flex flex-col min-w-0 relative overflow-x-hidden ${isFullHeightModule
             ? 'h-full'
             // REQUISITO: Garante que haja rolagem vertical e um padding generoso na parte inferior
-            // Ajustado pb-24 para mobile (BottomNav) e pb-16 para desktop
-            : 'overflow-y-auto pb-24 md:pb-16'
+            // Ajustado pb-32 para mobile (BottomNav) e pb-16 para desktop
+            : 'overflow-y-auto pb-32 md:pb-16'
             }`}>
             <Suspense fallback={
               <div className="flex-1 flex items-center justify-center">
@@ -261,13 +234,12 @@ function AppContent() {
             </Suspense>
           </main>
 
-          {/* Mobile Bottom Navigation */}
+          {/* Mobile Bottom Navigation - Moved outside to ensure Z-Index layer is top-level relative to viewport */}
           <BottomNav
             activeModule={activeModule}
             setActiveModule={setActiveModule}
             onMoreClick={() => setIsMobileMenuOpen(true)}
           />
-
         </div>
       </div>
     </NavigationContext.Provider>
@@ -280,9 +252,11 @@ function App() {
       <ThemeProvider>
         <LanguageProvider>
           <ToastProvider>
-            <TutorialProvider>
-              <AppContent />
-            </TutorialProvider>
+            <NotificationProvider>
+              <TutorialProvider>
+                <AppContent />
+              </TutorialProvider>
+            </NotificationProvider>
           </ToastProvider>
         </LanguageProvider>
       </ThemeProvider>

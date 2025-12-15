@@ -16,6 +16,26 @@ let globalConfig: AdminConfig = {
         'CreativeStudio': true,
         'Chatbot': true,
     },
+    features: {
+        // AI Generation - Core enabled by default
+        imageGenerationEnabled: true,
+        videoGenerationEnabled: false, // Premium - disabled by default
+        audioGenerationEnabled: true,
+        textGenerationEnabled: true,
+
+        // Tools & Utilities - All enabled
+        trendHunterEnabled: true,
+        chatbotEnabled: true,
+        creativeStudioEnabled: true,
+        adStudioEnabled: true,
+        smartSchedulerEnabled: true,
+
+        // Advanced Features - Selectively enabled
+        ragKnowledgeBaseEnabled: true,
+        voiceInputEnabled: true,
+        multimodalChatEnabled: true,
+        brandLogoManagerEnabled: true,
+    },
     system: {
         maintenanceMode: false,
         debugLevel: 'verbose',

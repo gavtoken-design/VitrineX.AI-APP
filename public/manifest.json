@@ -1,0 +1,56 @@
+{
+    "name": "VitrineX AI",
+    "short_name": "VitrineX",
+    "description": "Plataforma de Automação de Marketing com Inteligência Artificial",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#0A0F19",
+    "theme_color": "#4F46E5",
+    "orientation": "portrait-primary",
+    "icons": [
+        {
+            "src": "/logo.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/logo.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ],
+    "categories": [
+        "productivity",
+        "business",
+        "marketing"
+    ],
+    "screenshots": [],
+    "shortcuts": [
+        {
+            "name": "Criar Conteúdo",
+            "short_name": "Criar",
+            "description": "Abrir Creative Studio",
+            "url": "/?module=CreativeStudio",
+            "icons": [
+                {
+                    "src": "/logo.png",
+                    "sizes": "96x96"
+                }
+            ]
+        },
+        {
+            "name": "Chat IA",
+            "short_name": "Chat",
+            "description": "Abrir Chatbot",
+            "url": "/?module=Chatbot",
+            "icons": [
+                {
+                    "src": "/logo.png",
+                    "sizes": "96x96"
+                }
+            ]
+        }
+    ]
+}

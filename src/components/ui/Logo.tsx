@@ -24,8 +24,8 @@ const Logo: React.FC<LogoProps> = ({ className = "h-8 w-auto", showText = true }
           </linearGradient>
         </defs>
 
-        {/* Background Shape (Subtle) */}
-        <rect width="40" height="40" rx="10" className="fill-primary" fillOpacity="0.08" />
+        {/* Background Shape (Subtle) - REMOVED as per user request */}
+        {/* <rect width="40" height="40" rx="10" className="fill-primary" fillOpacity="0.08" /> */}
 
         {/* The 'V' Shape - Stylized for Vitrine */}
         <path

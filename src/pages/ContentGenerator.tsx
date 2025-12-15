@@ -6,6 +6,7 @@ import Input from '../components/ui/Input';
 import SaveToLibraryButton from '../components/features/SaveToLibraryButton';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import MediaActionsToolbar from '../components/features/MediaActionsToolbar'; // NOVO
+import { ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 import { generateText, generateImage } from '../services/ai';
 import { savePost } from '../services/core/firestore';
 import { Post } from '../types';
@@ -211,6 +212,22 @@ const ContentGenerator: React.FC = () => {
                   {generatedPost.content_text}
                 </div>
               )}
+              <button
+                onClick={() => {
+                  const blob = new Blob([generatedPost.content_text], { type: 'text/plain' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `vitrinex-texto-${Date.now()}.txt`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                  addToast({ type: 'success', message: 'Texto baixado como .txt' });
+                }}
+                className="mt-3 flex items-center justify-center gap-2 w-full bg-blue-900/30 hover:bg-blue-900/50 text-blue-400 px-4 py-2 rounded border border-blue-900 text-sm font-medium transition-colors"
+                title="Baixar texto como arquivo .txt"
+              >
+                <ArrowDownTrayIcon className="w-4 h-4" /> Baixar TXT
+              </button>
             </div>
             <div className="flex flex-col">
               <h4 className="text-lg font-semibold text-textlight mb-3">Imagem do Post</h4>

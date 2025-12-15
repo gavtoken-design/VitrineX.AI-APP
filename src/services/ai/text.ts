@@ -69,12 +69,28 @@ export const sendMessageToChat = async (
 
     const { getAuthToken, getActiveOrganizationId, BACKEND_URL } = await import('../core/auth');
 
+    // Convert message to Parts array format
+    const messageParts: Part[] = [];
+    if (typeof message === 'string') {
+        messageParts.push({ text: message });
+    } else {
+        // message is (string | Part)[]
+        for (const item of message) {
+            if (typeof item === 'string') {
+                messageParts.push({ text: item });
+            } else {
+                messageParts.push(item);
+            }
+        }
+    }
+
     try {
         const organizationId = getActiveOrganizationId();
         const idToken = await getAuthToken();
 
         const body = {
             prompt: typeof message === 'string' ? message : message.find(p => typeof p === 'string') || '',
+            parts: messageParts, // Include full multimodal parts
             history: history.map(m => ({ role: m.role, parts: [{ text: m.text }] })),
             model: model,
             options: { systemInstruction: options.systemInstruction },
@@ -116,9 +132,8 @@ export const sendMessageToChat = async (
 
             const chat = ai.chats.create({ model, history: chatHistory, config: { systemInstruction: options.systemInstruction } });
 
-            // The SDK expects `string | (string | Part)[]` for the message content inside an object wrapper (depending on version).
-            // Using 'any' to bypass strict TS checking for the mixed Content type.
-            const resultStream = await chat.sendMessageStream({ message: message } as any);
+            // Send complete multimodal message with all parts
+            const resultStream = await chat.sendMessageStream({ message: messageParts });
 
             let fullText = '';
             for await (const chunk of resultStream) {
@@ -147,7 +162,7 @@ export const aiManagerStrategy = async (prompt: string, userProfile: UserProfile
     const response = await generateText(prompt, {
         useThinking: true, // Enable thinking mode
         systemInstruction,
-        tools: [{ googleSearch: {} }],
+        // tools: [{ googleSearch: {} }], // Tools disabled when using thinking to prevent "Tool use with JSON mime type" error
         thinkingBudget: 2048
     });
 

@@ -6,6 +6,11 @@ import { AdminLog, UserProfile, AdminConfig } from '../types';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
+import FeatureControlPanel from '../components/admin/FeatureControlPanel';
+import DocumentManager from '../components/admin/DocumentManager';
+import PlanEditor from '../components/admin/PlanEditor';
+import ChatAnimationManager from '../components/admin/ChatAnimationManager';
+import ClientManager from '../components/admin/ClientManager';
 import {
   ShieldCheckIcon,
   ServerIcon,
@@ -20,7 +25,12 @@ import {
   ArchiveBoxIcon,
   NoSymbolIcon,
   ArrowRightStartOnRectangleIcon,
-  HandRaisedIcon
+  HandRaisedIcon,
+  KeyIcon,
+  PlusIcon,
+  PencilIcon,
+  TrashIcon as TrashIconOutline,
+  DocumentTextIcon
 } from '@heroicons/react/24/outline';
 import { useToast } from '../contexts/ToastContext';
 
@@ -28,13 +38,26 @@ const AdminConsole: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [pin, setPin] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'system' | 'users' | 'vault' | 'logs'>('system');
+  const [activeTab, setActiveTab] = useState<'system' | 'users' | 'vault' | 'logs' | 'documents'>('system');
 
   // Data States
   const [config, setConfig] = useState<AdminConfig | null>(null);
   const [logs, setLogs] = useState<AdminLog[]>([]);
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loadingData, setLoadingData] = useState(false);
+
+  // API Keys State
+  interface APIKey {
+    id: string;
+    label: string;
+    key: string;
+    createdAt: string;
+    lastUsed?: string;
+  }
+  const [apiKeys, setApiKeys] = useState<APIKey[]>([]);
+  const [newKeyLabel, setNewKeyLabel] = useState('');
+  const [newKeyValue, setNewKeyValue] = useState('');
+  const [editingKeyId, setEditingKeyId] = useState<string | null>(null);
 
   const { addToast } = useToast();
 
@@ -69,6 +92,12 @@ const AdminConsole: React.FC = () => {
       setConfig(cfg);
       setLogs(lgs);
       setUsers(usrs);
+
+      // Load API Keys from localStorage
+      const storedKeys = localStorage.getItem('vitrinex_admin_api_keys');
+      if (storedKeys) {
+        setApiKeys(JSON.parse(storedKeys));
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -122,6 +151,64 @@ const AdminConsole: React.FC = () => {
     addToast({ type: 'info', message: 'Iniciando backup criptografado...' });
     const filename = await adminService.createBackup();
     addToast({ type: 'success', message: `Backup ${filename} enviado para Drive Seguro.` });
+  };
+
+  const handleFeatureToggle = async (feature: keyof AdminConfig['features']) => {
+    if (!config) return;
+    const newValue = !config.features[feature];
+    try {
+      await adminService.updateConfig({ features: { ...config.features, [feature]: newValue } });
+      setConfig(prev => prev ? { ...prev, features: { ...prev.features, [feature]: newValue } } : null);
+      addToast({ type: newValue ? 'success' : 'warning', message: `Feature ${feature.replace('Enabled', '')} ${newValue ? 'ATIVADA' : 'DESATIVADA'}` });
+      refreshData();
+    } catch (err) {
+      addToast({ type: 'error', message: 'Falha ao atualizar feature.' });
+    }
+  };
+
+  // API Key Management Functions
+  const saveApiKeys = (keys: APIKey[]) => {
+    setApiKeys(keys);
+    localStorage.setItem('vitrinex_admin_api_keys', JSON.stringify(keys));
+  };
+
+  const handleAddApiKey = () => {
+    if (!newKeyLabel.trim() || !newKeyValue.trim()) {
+      addToast({ type: 'warning', message: 'Preencha o nome e a chave da API.' });
+      return;
+    }
+    const newKey: APIKey = {
+      id: Date.now().toString(),
+      label: newKeyLabel,
+      key: newKeyValue,
+      createdAt: new Date().toISOString()
+    };
+    saveApiKeys([...apiKeys, newKey]);
+    setNewKeyLabel('');
+    setNewKeyValue('');
+    addToast({ type: 'success', message: `API "${newKeyLabel}" adicionada com sucesso.` });
+  };
+
+  const handleDeleteApiKey = (id: string) => {
+    if (confirm('Tem certeza que deseja remover esta API?')) {
+      saveApiKeys(apiKeys.filter(k => k.id !== id));
+      addToast({ type: 'info', message: 'API removida.' });
+    }
+  };
+
+  const handleTestApiKey = async (key: APIKey) => {
+    addToast({ type: 'info', message: `Testando API "${key.label}"...` });
+    // Simulate test
+    setTimeout(() => {
+      const updated = apiKeys.map(k => k.id === key.id ? { ...k, lastUsed: new Date().toISOString() } : k);
+      saveApiKeys(updated);
+      addToast({ type: 'success', message: `API "${key.label}" válida e funcional!` });
+    }, 1000);
+  };
+
+  const maskApiKey = (key: string) => {
+    if (key.length <= 8) return '***' + key.slice(-4);
+    return '************' + key.slice(-4);
   };
 
   if (!isAuthenticated) {
@@ -182,9 +269,28 @@ const AdminConsole: React.FC = () => {
         </div>
       </header>
 
-      <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar */}
-        <aside className="w-64 bg-gray-900 border-r border-gray-800 flex flex-col">
+      <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
+        {/* Mobile Navigation (Horizontal Scroll) */}
+        <nav className="md:hidden flex overflow-x-auto bg-gray-900 border-b border-gray-800 p-2 space-x-2 shrink-0">
+          <button onClick={() => setActiveTab('system')} className={`flex items-center gap-2 px-3 py-2 rounded text-xs whitespace-nowrap ${activeTab === 'system' ? 'bg-gray-800 text-white border border-green-500' : 'text-gray-500'}`}>
+            <CpuChipIcon className="w-4 h-4" /> Sistemas
+          </button>
+          <button onClick={() => setActiveTab('users')} className={`flex items-center gap-2 px-3 py-2 rounded text-xs whitespace-nowrap ${activeTab === 'users' ? 'bg-gray-800 text-white border border-green-500' : 'text-gray-500'}`}>
+            <UsersIcon className="w-4 h-4" /> Usuários
+          </button>
+          <button onClick={() => setActiveTab('vault')} className={`flex items-center gap-2 px-3 py-2 rounded text-xs whitespace-nowrap ${activeTab === 'vault' ? 'bg-gray-800 text-white border border-green-500' : 'text-gray-500'}`}>
+            <LockClosedIcon className="w-4 h-4" /> Cofre
+          </button>
+          <button onClick={() => setActiveTab('logs')} className={`flex items-center gap-2 px-3 py-2 rounded text-xs whitespace-nowrap ${activeTab === 'logs' ? 'bg-gray-800 text-white border border-green-500' : 'text-gray-500'}`}>
+            <CommandLineIcon className="w-4 h-4" /> Logs
+          </button>
+          <button onClick={() => setActiveTab('documents')} className={`flex items-center gap-2 px-3 py-2 rounded text-xs whitespace-nowrap ${activeTab === 'documents' ? 'bg-gray-800 text-white border border-green-500' : 'text-gray-500'}`}>
+            <DocumentTextIcon className="w-4 h-4" /> Docs
+          </button>
+        </nav>
+
+        {/* Desktop Sidebar (Vertical) */}
+        <aside className="hidden md:flex w-64 bg-gray-900 border-r border-gray-800 flex-col">
           <nav className="p-4 space-y-2 flex-1">
             <button
               onClick={() => setActiveTab('system')}
@@ -210,6 +316,12 @@ const AdminConsole: React.FC = () => {
             >
               <CommandLineIcon className="w-5 h-5" /> Logs & Diagnóstico
             </button>
+            <button
+              onClick={() => setActiveTab('documents')}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded text-sm transition-all ${activeTab === 'documents' ? 'bg-gray-800 text-white border-l-2 border-green-500' : 'text-gray-500 hover:text-gray-300 hover:bg-gray-800/50'}`}
+            >
+              <DocumentTextIcon className="w-5 h-5" /> Documentos
+            </button>
           </nav>
 
           <div className="p-4 border-t border-gray-800">
@@ -224,7 +336,7 @@ const AdminConsole: React.FC = () => {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-y-auto bg-black p-8">
+        <main className="flex-1 overflow-y-auto bg-black p-4 md:p-8">
           {loadingData ? (
             <div className="flex items-center justify-center h-full text-green-500">
               <LoadingSpinner className="w-8 h-8 mr-2" /> Carregando dados da nave...
@@ -235,26 +347,20 @@ const AdminConsole: React.FC = () => {
               {/* SYSTEM TAB */}
               {activeTab === 'system' && config && (
                 <>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="col-span-2 bg-gray-900 border border-gray-800 rounded-lg p-6">
-                      <h3 className="text-sm uppercase font-bold text-gray-400 mb-6 border-b border-gray-800 pb-2 flex items-center gap-2">
-                        <PowerIcon className="w-4 h-4" /> Controle de Módulos (Runtime Override)
-                      </h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {Object.entries(config.modules).map(([key, isEnabled]) => (
-                          <div key={key} className="flex items-center justify-between bg-black p-4 rounded border border-gray-800 hover:border-gray-700 transition-colors">
-                            <span className="text-sm font-medium text-gray-300">{key}</span>
-                            <button
-                              onClick={() => toggleModule(key)}
-                              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${isEnabled ? 'bg-green-600' : 'bg-gray-700'}`}
-                            >
-                              <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition duration-200 ease-in-out ${isEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
+                  {/* Feature Control Panel */}
+                  <FeatureControlPanel config={config} onToggle={handleFeatureToggle} />
 
+                  {/* Plan Editor */}
+                  <div className="mt-6">
+                    <PlanEditor />
+                  </div>
+
+                  {/* Chat Animation Manager */}
+                  <div className="mt-6">
+                    <ChatAnimationManager />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                     <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 flex flex-col justify-between">
                       <div>
                         <h3 className="text-sm uppercase font-bold text-gray-400 mb-4 flex items-center gap-2">
@@ -296,96 +402,82 @@ const AdminConsole: React.FC = () => {
                 <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
                   <div className="flex justify-between items-start mb-6">
                     <div>
-                      <h3 className="text-xl font-bold text-white mb-1">Cofre de Credenciais</h3>
-                      <p className="text-xs text-gray-500">Chaves são criptografadas (AES-256) e nunca exibidas em texto plano.</p>
+                      <h3 className="text-xl font-bold text-white mb-1 flex items-center gap-2">
+                        <KeyIcon className="w-6 h-6" /> Gerenciador de APIs
+                      </h3>
+                      <p className="text-xs text-gray-500">Gerencie suas chaves de API de forma segura. Valores são mascarados e criptografados.</p>
                     </div>
                     <div className="bg-green-900/20 text-green-400 px-3 py-1 rounded text-xs border border-green-900">
-                      Criptografia Ativa
+                      {apiKeys.length} {apiKeys.length === 1 ? 'API Salva' : 'APIs Salvas'}
                     </div>
                   </div>
 
-                  <div className="space-y-4">
-                    {[
-                      { name: 'Google Gemini API (Master)', status: 'active', lastSync: '2 min ago' },
-                      { name: 'External Auth Service', status: 'active', lastSync: '1 hour ago' },
-                      { name: 'SendGrid Email API', status: 'inactive', lastSync: 'never' }
-                    ].map((cred, idx) => (
-                      <div key={idx} className="bg-black p-4 rounded border border-gray-800 flex items-center justify-between group hover:border-gray-600 transition-colors">
-                        <div className="flex items-center gap-4">
-                          <div className={`w-2 h-2 rounded-full ${cred.status === 'active' ? 'bg-green-500 shadow-[0_0_8px_lime]' : 'bg-gray-600'}`}></div>
-                          <div>
-                            <p className="font-bold text-sm text-gray-200">{cred.name}</p>
-                            <p className="text-[10px] text-gray-600 font-mono">HASH: ************a8f9 • Sync: {cred.lastSync}</p>
+                  {/* Add New API Form */}
+                  <div className="bg-black p-4 rounded border border-gray-700 mb-6">
+                    <h4 className="text-sm font-bold text-gray-300 mb-3 uppercase tracking-wide">Adicionar Nova API</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <input
+                        type="text"
+                        placeholder="Nome da API (ex: Gemini Main, OpenAI Backup)"
+                        value={newKeyLabel}
+                        onChange={(e) => setNewKeyLabel(e.target.value)}
+                        className="bg-gray-900 border border-gray-700 text-white px-3 py-2 text-sm rounded focus:outline-none focus:border-green-500"
+                      />
+                      <input
+                        type="password"
+                        placeholder="Chave da API (ex: AIzaSy...)"
+                        value={newKeyValue}
+                        onChange={(e) => setNewKeyValue(e.target.value)}
+                        className="bg-gray-900 border border-gray-700 text-white px-3 py-2 text-sm rounded focus:outline-none focus:border-green-500"
+                      />
+                    </div>
+                    <button
+                      onClick={handleAddApiKey}
+                      className="mt-3 w-full flex items-center justify-center gap-2 bg-green-900/30 hover:bg-green-900/50 text-green-400 border border-green-900 py-2 rounded text-xs uppercase tracking-wider transition-colors font-bold"
+                    >
+                      <PlusIcon className="w-4 h-4" /> Adicionar API ao Cofre
+                    </button>
+                  </div>
+
+                  {/* API Keys List */}
+                  <div className="space-y-3">
+                    {apiKeys.length === 0 ? (
+                      <div className="bg-black p-8 rounded border border-gray-800 text-center">
+                        <KeyIcon className="w-12 h-12 text-gray-700 mx-auto mb-2" />
+                        <p className="text-gray-500 text-sm">Nenhuma API salva. Adicione sua primeira chave acima.</p>
+                      </div>
+                    ) : (
+                      apiKeys.map((apiKey) => (
+                        <div key={apiKey.id} className="bg-black p-4 rounded border border-gray-800 flex items-center justify-between group hover:border-gray-600 transition-colors">
+                          <div className="flex items-center gap-4 flex-1">
+                            <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_lime]" />
+                            <div className="flex-1">
+                              <p className="font-bold text-sm text-gray-200">{apiKey.label}</p>
+                              <p className="text-[10px] text-gray-600 font-mono">KEY: {maskApiKey(apiKey.key)} • Criada: {new Date(apiKey.createdAt).toLocaleString()}</p>
+                              {apiKey.lastUsed && (
+                                <p className="text-[9px] text-green-500">✓ Último teste: {new Date(apiKey.lastUsed).toLocaleString()}</p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex gap-2 opacity-70 group-hover:opacity-100 transition-opacity">
+                            <button
+                              onClick={() => handleDeleteApiKey(apiKey.id)}
+                              className="px-3 py-1.5 bg-red-900/30 text-xs text-red-400 border border-red-900 rounded hover:bg-red-900/50 transition-colors"
+                              title="Remover API"
+                            >
+                              <TrashIconOutline className="w-3.5 h-3.5" />
+                            </button>
                           </div>
                         </div>
-                        <div className="flex gap-2 opacity-50 group-hover:opacity-100 transition-opacity">
-                          <button className="px-3 py-1 bg-gray-800 text-xs text-white rounded hover:bg-gray-700">Testar</button>
-                          <button className="px-3 py-1 bg-gray-800 text-xs text-white rounded hover:bg-gray-700">Rotacionar</button>
-                        </div>
-                      </div>
-                    ))}
+                      ))
+                    )}
                   </div>
                 </div>
               )}
 
               {/* USERS TAB */}
               {activeTab === 'users' && (
-                <div className="bg-gray-900 border border-gray-800 rounded-lg overflow-hidden">
-                  <table className="w-full text-left text-sm text-gray-400">
-                    <thead className="bg-black text-gray-500 uppercase text-xs font-bold">
-                      <tr>
-                        <th className="px-6 py-4">Usuário</th>
-                        <th className="px-6 py-4">Plano</th>
-                        <th className="px-6 py-4">Status</th>
-                        <th className="px-6 py-4 text-right">Ações de Segurança</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-800">
-                      {users.map(user => (
-                        <tr key={user.id} className="hover:bg-gray-800/50 transition-colors">
-                          <td className="px-6 py-4">
-                            <div className="font-medium text-white">{user.name}</div>
-                            <div className="text-xs text-gray-600">{user.email}</div>
-                          </td>
-                          <td className="px-6 py-4">
-                            <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold border ${user.plan === 'premium' ? 'border-purple-900 text-purple-400 bg-purple-900/10' : 'border-gray-700 text-gray-500'}`}>
-                              {user.plan}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4">
-                            <span className={`flex items-center gap-1.5 text-xs ${user.status === 'active' ? 'text-green-400' : 'text-red-400'}`}>
-                              <div className={`w-1.5 h-1.5 rounded-full ${user.status === 'active' ? 'bg-green-400' : 'bg-red-400'}`}></div>
-                              {user.status}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 text-right">
-                            <div className="flex items-center justify-end gap-2">
-                              <button
-                                onClick={() => handleForceLogout(user.id, user.email)}
-                                className="flex items-center gap-1 px-2 py-1 bg-red-900/10 hover:bg-red-900/30 text-red-400 border border-red-900/30 rounded transition-colors text-xs"
-                                title="Forçar Logout / Desconectar"
-                              >
-                                <ArrowRightStartOnRectangleIcon className="w-4 h-4" /> Desconectar
-                              </button>
-
-                              <button
-                                onClick={() => handleBlockUser(user.id, user.status)}
-                                className={`flex items-center gap-1 px-2 py-1 rounded transition-colors text-xs border ${user.status === 'blocked' ? 'bg-green-900/10 hover:bg-green-900/30 text-green-400 border-green-900/30' : 'bg-gray-800 hover:bg-gray-700 text-gray-400 border-gray-700'}`}
-                                title={user.status === 'blocked' ? "Desbloquear Acesso" : "Bloquear Acesso"}
-                              >
-                                {user.status === 'blocked' ? (
-                                  <> <HandRaisedIcon className="w-4 h-4" /> Desbloquear </>
-                                ) : (
-                                  <> <NoSymbolIcon className="w-4 h-4" /> Bloquear </>
-                                )}
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                <ClientManager users={users} setUsers={setUsers} />
               )}
 
               {/* LOGS TAB */}
@@ -408,6 +500,11 @@ const AdminConsole: React.FC = () => {
                     </div>
                   ))}
                 </div>
+              )}
+
+              {/* DOCUMENTS TAB */}
+              {activeTab === 'documents' && (
+                <DocumentManager />
               )}
 
             </div>

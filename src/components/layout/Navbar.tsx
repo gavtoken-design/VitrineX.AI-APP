@@ -4,6 +4,7 @@ import Logo from '../ui/Logo';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { SunIcon, MoonIcon, GlobeAltIcon, Bars3Icon } from '@heroicons/react/24/outline';
+import NotificationDropdown from '../features/NotificationDropdown';
 
 interface NavbarProps {
   onMenuClick: () => void;
@@ -28,6 +29,8 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
         </div>
 
         <div className="flex items-center gap-4">
+
+          <NotificationDropdown />
 
           <div className="relative group">
             <button className="flex items-center gap-1.5 px-2 py-1.5 rounded-md hover:bg-background text-sm font-medium text-muted transition-colors pop-on-hover">

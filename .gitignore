@@ -45,12 +45,11 @@ RELEASE_INSTRUCTIONS.md
 validar_chave.html
 
 # Bloquear Docs e Scripts (Pedido do Usuário)
-*.md
-!README.md
-*.ps1
-*.log
-_Backups
-*.zip
+# Documentation allowed for private repo
+# *.md (Removed check)
+
+
 
 
 !backups/
+!vitrinex-architecture-export/*.md

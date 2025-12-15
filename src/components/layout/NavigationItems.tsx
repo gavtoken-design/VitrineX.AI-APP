@@ -25,9 +25,8 @@ export const NavItem: React.FC<NavItemProps> = ({ name, label, icon, activeModul
     <li id={id}>
       <button
         onClick={handleClick}
-        // UX UPDATE: 
-        // Aplicado padding exato de 12px vertical e 16px horizontal para área de toque generosa.
-        className={`flex items-center p-[12px_16px] w-full text-left transition-all duration-200 group relative rounded-xl
+        // Mobile: larger padding (16px), Desktop: standard (12px)
+        className={`flex items-center p-4 md:p-[12px_16px] w-full text-left transition-all duration-200 group relative rounded-xl
           ${isActive
             ? 'text-primary font-semibold bg-primary/10 shadow-sm'
             : 'text-muted hover:text-title hover:bg-gray-100 dark:hover:bg-gray-800/50 active:bg-gray-200 dark:active:bg-gray-700'
@@ -35,10 +34,10 @@ export const NavItem: React.FC<NavItemProps> = ({ name, label, icon, activeModul
         title={label}
       >
         {isActive && (
-          // O indicador ativo é diferente em mobile vs desktop, mas aqui usamos a classe `md:block` para controlar.
-          <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 bg-primary rounded-r-full shadow-[0_0_8px_rgba(var(--color-primary),0.6)] hidden md:block"></span>
+          // Mobile: full left border, Desktop: small indicator
+          <span className="absolute left-0 top-0 bottom-0 w-1 md:top-1/2 md:-translate-y-1/2 md:h-6 md:w-1 bg-primary rounded-r-full shadow-[0_0_8px_rgba(var(--color-primary),0.6)]"></span>
         )}
-        <Icon name={icon} className={`h-6 w-6 md:h-5 md:w-5 mr-3 transition-colors ${isActive ? 'text-primary' : 'text-muted group-hover:text-title'}`} />
+        <Icon name={icon} className={`h-6 w-6 md:h-5 md:w-5 mr-3 md:mr-3 transition-colors ${isActive ? 'text-primary' : 'text-muted group-hover:text-title'}`} />
         <span className="text-base md:text-sm tracking-tight font-medium">{label}</span>
       </button>
     </li>

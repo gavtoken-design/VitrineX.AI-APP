@@ -132,25 +132,28 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onSpeak, onDownload,
           {!isUser && (
             <div className="flex items-center gap-2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
               <button
-                onClick={handleSpeak}
-                className={`p-1.5 rounded-md transition-colors ${isPlaying ? 'text-primary bg-primary/10' : 'text-muted hover:text-primary hover:bg-gray-100'}`}
-                title="Ouvir (TTS)"
+                onClick={() => onShare && onShare(message.text)}
+                className="p-1.5 rounded-full hover:bg-surface transition-colors text-muted hover:text-body"
+                aria-label="Copiar mensagem"
+                title="Copiar texto para área de transferência"
+              >
+                <ClipboardDocumentIcon className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => onSpeak && onSpeak(message.text)}
+                className="p-1.5 rounded-full hover:bg-surface transition-colors text-muted hover:text-body"
+                aria-label="Ouvir mensagem"
+                title="Ouvir mensagem com Text-to-Speech"
               >
                 <SpeakerWaveIcon className="w-4 h-4" />
               </button>
               <button
                 onClick={() => onDownload && onDownload(message.text)}
-                className="p-1.5 text-muted hover:text-primary hover:bg-gray-100 rounded-md transition-colors"
-                title="Baixar Texto (.txt)"
+                className="p-1.5 rounded-full hover:bg-surface transition-colors text-muted hover:text-body"
+                aria-label="Baixar mensagem"
+                title="Baixar mensagem como arquivo .txt"
               >
                 <ArrowDownTrayIcon className="w-4 h-4" />
-              </button>
-              <button
-                onClick={handleCopy}
-                className="p-1.5 text-muted hover:text-primary hover:bg-gray-100 rounded-md transition-colors"
-                title="Copiar/Compartilhar"
-              >
-                <ClipboardDocumentIcon className="w-4 h-4" />
               </button>
             </div>
           )}

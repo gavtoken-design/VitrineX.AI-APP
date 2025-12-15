@@ -180,8 +180,8 @@ const Settings: React.FC = () => {
 
           <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800 flex items-start gap-3">
             <InformationCircleIcon className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-            <p className="text-xs text-blue-700 dark:text-blue-300">
-              Recursos avançados como <strong>Geração de Vídeo (Veo)</strong> e <strong>Imagens de Alta Qualidade</strong> exigem uma chave de API de um projeto Google Cloud com o faturamento ativo.
+            <p className="text-sm text-muted mt-2">
+              Cole sua chave de API do Google Gemini para ativar as funcionalidades de IA.
             </p>
           </div>
 

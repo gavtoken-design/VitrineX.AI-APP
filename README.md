@@ -1,254 +1,125 @@
 <div align="center">
-  <img src="public/icon.svg" alt="VitrineX AI Logo" width="120" height="120" />
 
-  # 🚀 VitrineX AI
-  
-  ### Sua Agência de Marketing Movida por Inteligência Artificial
-  
-  [![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org/)
-  [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-  [![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
-  [![Google Gemini](https://img.shields.io/badge/Google%20Gemini-8E75B2?style=for-the-badge&logo=google&logoColor=white)](https://deepmind.google/technologies/gemini/)
-  [![PWA](https://img.shields.io/badge/PWA-5A0FC8?style=for-the-badge&logo=pwa&logoColor=white)](https://web.dev/progressive-web-apps/)
+# 🌌 **VITRINEX AI** 
+### *The Future of Automated Marketing Operations*
 
-  <p align="center">
-    Plataforma completa de automação de marketing que transforma a maneira como pequenas e médias empresas criam conteúdo. Desde a geração de textos persuasivos até a criação de imagens visuais impressionantes, tudo potencializado pela API do Google Gemini.
-  </p>
+![React](https://img.shields.io/badge/REACT_CORE-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![TypeScript](https://img.shields.io/badge/TYPESCRIPT_5-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
+![Gemini 2.0](https://img.shields.io/badge/GEMINI_2.0_THINKING-8E75B2?style=for-the-badge&logo=google&logoColor=white)
+![Status](https://img.shields.io/badge/SYSTEM_STATUS-OPERATIONAL-00ff00?style=for-the-badge&logo=azure-pipelines&logoColor=white)
 
-  [🌐 Demo ao Vivo](https://vitrinex.online) • [📖 Documentação](#-funcionalidades) • [🚀 Como Usar](#-como-usar)
+---
+
+### **"O Marketing do Amanhã, Disponível Hoje."**
+
+> Uma plataforma **Enterprise-Grade** que funde design líquido, inteligência cognitiva e automação autônoma para redefinir como empresas se comunicam.
+
+[🌐 LIVE SYSTEM](https://vitrinex.online) • [🔐 ADMIN CONSOLE](#-master-control) • [🧠 COGNITIVE ENGINE](#-ai-core)
 
 </div>
 
 ---
 
-## ✨ Funcionalidades Principais
+## ⚡ **Destaques da Arquitetura (System Highlights)**
 
-### 🤖 **Gerador de Conteúdo Inteligente**
-Crie legendas para Instagram, artigos de blog, e-mails de vendas e roteiros para vídeos em segundos usando IA avançada.
+Este projeto não é apenas um app. É um **Ecossistema de Inteligência**.
 
-### 🎨 **Creative Studio**
-Gere imagens exclusivas usando prompts de IA. Inclui **Modelos Sazonais** (Natal, Ano Novo, Black Friday) para criação rápida e profissional.
-
-### 📈 **Caçador de Tendências (Trend Hunter)**
-Descubra o que está em alta no seu nicho ou região e receba sugestões instantâneas de conteúdo para surfar na onda das tendências.
-
-### 📅 **Smart Scheduler**
-Calendário visual para organizar e planejar suas publicações futuras com interface intuitiva.
-
-### 📱 **PWA (Progressive Web App)**
-Instale o aplicativo no seu celular iOS ou Android. Interface otimizada com barra de navegação inferior e performance nativa.
-
-### 🗂️ **Biblioteca de Conteúdo**
-Salve e organize todos os seus criativos gerados em um só lugar, com sistema de tags e busca avançada.
-
-### 💬 **Chatbot Inteligente**
-Assistente de IA integrado para tirar dúvidas, gerar ideias e auxiliar na criação de estratégias de marketing.
+| Módulo | Status | Tecnologia |
+| :--- | :---: | :--- |
+| **⚛️ Quantum UI** | 🟢 Ativo | *React 18 + Liquid Motion Framer* |
+| **🧠 Neural Core** | 🟢 Ativo | *Gemini 2.0 Thinking + Flash Proxy* |
+| **🛡️ Iron Vault** | 🟢 Ativo | *Client-Side Encryption (Zero-Knowledge)* |
+| **📱 Omni PWA** | 🟢 Ativo | *Offline-First Service Workers* |
 
 ---
 
-## 🛠️ Tecnologias Utilizadas
+## 🚀 **Funcionalidades de Elite (Feature Set)**
 
-<table>
-  <tr>
-    <td align="center" width="96">
-      <img src="https://skillicons.dev/icons?i=react" width="48" height="48" alt="React" />
-      <br>React
-    </td>
-    <td align="center" width="96">
-      <img src="https://skillicons.dev/icons?i=typescript" width="48" height="48" alt="TypeScript" />
-      <br>TypeScript
-    </td>
-    <td align="center" width="96">
-      <img src="https://skillicons.dev/icons?i=vite" width="48" height="48" alt="Vite" />
-      <br>Vite
-    </td>
-    <td align="center" width="96">
-      <img src="https://skillicons.dev/icons?i=tailwind" width="48" height="48" alt="Tailwind" />
-      <br>Tailwind CSS
-    </td>
-  </tr>
-</table>
+### 🧠 **1. A.I. STRATEGY ENGINE**
+> *Não apenas gera texto. Pensa.*
 
-### Stack Completa:
-- **Frontend**: React.js com TypeScript
-- **Build Tool**: Vite
-- **Estilização**: Tailwind CSS (Design System Moderno & Responsivo)
-- **IA / LLM**: Google Gemini API (`gemini-2.5-flash`, `gemini-3-pro`)
-- **Gerenciamento de Estado**: Zustand & TanStack Query
-- **PWA**: Vite PWA Plugin
-- **Armazenamento**: Local Storage (privacidade total)
+Utiliza o modelo **Gemini 2.0 Thinking** para atuar como um *Senior Marketing Strategist*.
+- **Diagnóstico Profundo:** Analisa o perfil do negócio e cria planos táticos.
+- **Multi-Agent Simulation:** Simula reações de público-alvo antes de sugerir campanhas.
+- **Adaptive Learning:** Aprende com o estilo da marca (Tone of Voice).
 
----
+### 🎨 **2. CREATIVE STUDIO X**
+> *Pixel-Perfect. Always.*
 
-## 🎯 Diferenciais
+Geração de imagens de alta fidelidade com prompts otimizados via engenharia reversa.
+- **Sazonalidade Automática:** Templates que mudam sozinhos (Ex: Natal -> Ano Novo).
+- **Smart Framing:** Ajuste automático para Stories (9:16) ou Feed (1:1).
+- **Estilo Líquido:** Interface que flui como água enquanto você cria.
 
-✅ **100% Offline-First**: Funciona sem backend, garantindo privacidade total  
-✅ **PWA Nativo**: Experiência de app nativo em qualquer dispositivo  
-✅ **Multi-Modal AI**: Texto, imagem, vídeo e áudio em uma única plataforma  
-✅ **Modelos Sazonais**: Templates prontos para datas comemorativas  
-✅ **Interface Moderna**: Design premium com dark mode e animações suaves  
-✅ **Zero Configuração**: Pronto para usar em minutos  
+### 📡 **3. TREND HUNTER (RAG System)**
+> *O Oráculo do Marketing.*
+
+Sistema RAG (Retrieval-Augmented Generation) que varre a web em tempo real.
+- **Live Scouting:** Detecta micro-tendências antes de viralizarem.
+- **Grounding Verification:** Cita fontes reais para garantir veracidade.
+- **Viral Score:** Prevê o potencial de engajamento de um tópico.
+
+### 🎛️ **4. MASTER ADMIN CONSOLE**
+> *Controle Total. Poder Absoluto.*
+
+Painel administrativo estilo "Mission Control" para gestão da plataforma.
+- **User Management:** Controle de acesso, planos e bloqueios.
+- **API Vault:** Cofre criptografado para gestão de chaves Gemini.
+- **System Health:** Monitoramento em tempo real de latência e erros.
+- **Logs de Auditoria:** Rastreamento completo de ações (Security-First).
 
 ---
 
-## 🚀 Como Usar
+## 🖼️ **Visual Showcase**
 
-### Opção 1: Acessar Online
-Visite [vitrinex.online](https://vitrinex.online) e comece a usar imediatamente!
+> *A interface foi desenhada seguindo os princípios de "Antigravity Physics" — elementos que flutuam, respondem ao toque e possuem inércia visual.*
 
-### Opção 2: Instalar como PWA
-1. Acesse [vitrinex.online](https://vitrinex.online) pelo navegador do celular
-2. Toque em **"Adicionar à Tela de Início"**
-3. Use como aplicativo nativo!
+### 🌌 **The Dashboard**
+*Centro de comando com glassmorphism avançado e dados em tempo real.*
+![Dashboard](https://placehold.co/800x450/111827/4ade80?text=DASHBOARD+LIQUID+UI&font=montserrat)
 
-### Opção 3: Rodar Localmente
-```bash
-# Clone o repositório
-git clone https://github.com/seu-usuario/vitrinex-ai.git
-cd vitrinex-ai
+### 🤖 **AI Neural Interface**
+*Onde a mágica acontece. Chatbot multimodal com memória de contexto.*
+![AI Interface](https://placehold.co/800x450/111827/a78bfa?text=NEURAL+INTERFACE&font=montserrat)
 
-# Instale as dependências
-npm install
+---
 
-# Configure sua chave API (opcional)
-# Crie um arquivo .env na raiz:
-echo "VITE_GEMINI_API_KEY=sua_chave_aqui" > .env
+## 🛠️ **Protocolos de Engenharia (Dev Protocols)**
 
-# Inicie o servidor de desenvolvimento
-npm run dev
+Seguimos a **REGRA DE OURO ANTIGRAVITY** para manter a fluidez:
+1.  **Layout** (Estrutura Sólida)
+2.  **Fluxo** (Hierarquia Visual)
+3.  **Estado** (Lógica de Controle)
+4.  **Animação** (Física de Movimento)
+5.  **Estilo** (Acabamento Visual)
 
-# Acesse http://localhost:3000
+```typescript
+// Exemplo de Implementação do Core AI
+interface CognitiveProcess {
+  model: 'gemini-2.0-thinking';
+  mode: 'STRATEGIC' | 'TACTICAL';
+  safety: 'BLOCK_NONE';
+}
 ```
 
 ---
 
-## 🔑 Configuração da API
+## 🔒 **Privacidade & Segurança**
 
-### Obter Chave do Google Gemini:
-1. Acesse [Google AI Studio](https://aistudio.google.com/apikey)
-2. Faça login com sua conta Google
-3. Clique em **"Create API Key"**
-4. Copie a chave gerada
-
-### Configurar no App:
-1. Acesse **Configurações** no menu lateral
-2. Cole sua chave API no campo **"Motor de Inteligência (Gemini)"**
-3. Clique em **"Testar Conexão"**
-4. Clique em **"Salvar Chave"**
-5. ✅ Pronto! O motor de IA está ativo
-
----
-
-## 📸 Screenshots
-
-<div align="center">
-  <img src="https://via.placeholder.com/800x450/4f46e5/ffffff?text=Dashboard" alt="Dashboard" width="45%" />
-  <img src="https://via.placeholder.com/800x450/7c3aed/ffffff?text=Creative+Studio" alt="Creative Studio" width="45%" />
-</div>
-
-<div align="center">
-  <img src="https://via.placeholder.com/800x450/ec4899/ffffff?text=Content+Generator" alt="Content Generator" width="45%" />
-  <img src="https://via.placeholder.com/800x450/06b6d4/ffffff?text=Trend+Hunter" alt="Trend Hunter" width="45%" />
-</div>
-
----
-
-## 🎨 Design System
-
-O VitrineX AI utiliza um design system moderno e consistente:
-
-- **Cores Primárias**: Gradientes vibrantes (Indigo → Purple)
-- **Tipografia**: Inter, Roboto (Google Fonts)
-- **Componentes**: Reutilizáveis e acessíveis
-- **Animações**: Micro-interações suaves
-- **Responsivo**: Mobile-first design
-
----
-
-## 📱 PWA Features
-
-- ✅ Instalável em qualquer dispositivo
-- ✅ Funciona offline (cache inteligente)
-- ✅ Notificações push (em breve)
-- ✅ Atualizações automáticas
-- ✅ Performance nativa
-
----
-
-## 🗺️ Roadmap
-
-### ✅ Concluído
-- [x] Gerador de conteúdo com IA
-- [x] Creative Studio com modelos sazonais
-- [x] Trend Hunter integrado
-- [x] PWA completo
-- [x] Biblioteca de conteúdo
-- [x] Chatbot inteligente
-- [x] Smart Scheduler
-
-### 🚧 Em Desenvolvimento
-- [ ] Integração com redes sociais (Instagram, Facebook)
-- [ ] Analytics e métricas de performance
-- [ ] Colaboração em equipe
-- [ ] Templates de campanhas completas
-- [ ] Geração de vídeos com IA
-
-### 💡 Planejado
-- [ ] App mobile nativo (React Native)
-- [ ] Integração com ferramentas de design (Canva, Figma)
-- [ ] Marketplace de templates
-- [ ] API pública para desenvolvedores
-
----
-
-## 🤝 Contribuindo
-
-Contribuições são sempre bem-vindas! Se você tem uma ideia de melhoria ou nova funcionalidade:
-
-1. Faça um Fork do projeto
-2. Crie uma Branch para sua Feature (`git checkout -b feature/NovaFeature`)
-3. Commit suas mudanças (`git commit -m 'Adicionando Nova Feature'`)
-4. Push para a Branch (`git push origin feature/NovaFeature`)
-5. Abra um Pull Request
-
----
-
-## 📄 Licença
-
-Distribuído sob a licença MIT. Veja `LICENSE` para mais informações.
-
----
-
-## 📞 Contato
-
-**Jean Carlos** - Desenvolvedor
-
-- 🌐 Website: [vitrinex.online](https://vitrinex.online)
-- 📧 Email: contato@vitrinex.online
-- 💼 LinkedIn: [seu-linkedin](https://linkedin.com/in/seu-perfil)
-- 🐦 Twitter: [@vitrinexai](https://twitter.com/vitrinexai)
-
----
-
-## 🙏 Agradecimentos
-
-- [Google Gemini](https://deepmind.google/technologies/gemini/) - API de IA
-- [React](https://reactjs.org/) - Framework UI
-- [Vite](https://vitejs.dev/) - Build tool
-- [Tailwind CSS](https://tailwindcss.com/) - Framework CSS
-- [Heroicons](https://heroicons.com/) - Ícones
-- Comunidade Open Source
+Este projeto opera sob uma filosofia **"Trust No One"**:
+- **Zero Backend Dependence:** A lógica crítica roda no cliente ou via Edge Proxies.
+- **Local Storage Encrypted:** Dados sensíveis nunca saem do dispositivo do usuário sem permissão.
+- **API Key Rotation:** Sistema de rotação de chaves para evitar quotas excedidas.
 
 ---
 
 <div align="center">
-  <sub>Desenvolvido com 💜 por Jean (VitrineX)</sub>
-  
-  <br><br>
-  
-  ⭐ Se este projeto te ajudou, considere dar uma estrela!
-  
-  <br>
-  
-  [⬆ Voltar ao topo](#-vitrinex-ai)
+
+### **VITRINEX AI**
+*Engineering the Future of Digital Presence.*
+
+Developed by **Jean Carlos** • Powered by **Google DeepMind**
+
+[⬆ Voltar ao Topo](#-vitrinex-ai)
+
 </div>

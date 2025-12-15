@@ -335,18 +335,24 @@ const CreativeStudio: React.FC = () => {
                 <button
                   key={tpl.id}
                   onClick={() => applyTemplate(tpl)}
-                  className="relative group overflow-hidden rounded-xl border border-border hover:border-primary liquid-transition hover-lift icon-fluid-squeeze text-left h-24"
+                  className="relative group overflow-hidden rounded-xl border-2 border-border hover:border-primary liquid-transition hover-lift hover:scale-105 text-left h-28 shadow-lg hover:shadow-xl hover:shadow-primary/20"
                 >
-                  {/* Background Image (Hidden Link usage) */}
+                  {/* Background Image with Higher Opacity */}
                   <div
-                    className="absolute inset-0 bg-cover bg-center opacity-40 group-hover:opacity-60 transition-opacity duration-500"
+                    className="absolute inset-0 bg-cover bg-center opacity-60 group-hover:opacity-90 transition-all duration-700"
                     style={{ backgroundImage: `url(${tpl.referenceImage})` }}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+                  {/* Gradient Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/50 to-transparent" />
 
-                  <div className="relative p-3 z-10 flex flex-col justify-end h-full">
-                    <div className="text-xl mb-1 filter drop-shadow-lg icon-fluid-breathe">{tpl.icon}</div>
-                    <div className="text-xs font-bold text-white leading-tight drop-shadow-md">{tpl.label}</div>
+                  {/* Shimmer Effect */}
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                  </div>
+
+                  <div className="relative p-4 z-10 flex flex-col justify-end h-full">
+                    <div className="text-2xl mb-1 filter drop-shadow-lg icon-fluid-breathe animate-bounce-slow">{tpl.icon}</div>
+                    <div className="text-sm font-bold text-white leading-tight drop-shadow-md">{tpl.label}</div>
                   </div>
                 </button>
               ))}
