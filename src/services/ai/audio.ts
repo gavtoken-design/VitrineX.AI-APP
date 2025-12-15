@@ -52,6 +52,7 @@ export async function decodeAudioData(data: Uint8Array, ctx: AudioContext, sampl
     return buffer;
 }
 
+
 export function createBlob(data: Float32Array): Blob {
     const l = data.length;
     const int16 = new Int16Array(l);
@@ -62,4 +63,47 @@ export function createBlob(data: Float32Array): Blob {
         data: btoa(String.fromCharCode(...new Uint8Array(int16.buffer))),
         mimeType: 'audio/pcm;rate=16000',
     };
+}
+
+export function bufferToWav(buffer: AudioBuffer): globalThis.Blob {
+    const numOfChan = buffer.numberOfChannels;
+    const length = buffer.length * numOfChan * 2 + 44;
+    const bufferArray = new ArrayBuffer(length);
+    const view = new DataView(bufferArray);
+    let pos = 0;
+
+    const setUint16 = (data: number) => { view.setUint16(pos, data, true); pos += 2; };
+    const setUint32 = (data: number) => { view.setUint32(pos, data, true); pos += 4; };
+
+    setUint32(0x46464952); // "RIFF"
+    setUint32(36 + buffer.length * 2 * numOfChan);
+    setUint32(0x45564157); // "WAVE"
+    setUint32(0x20746d66); // "fmt "
+    setUint32(16);
+    setUint16(1); // PCM
+    setUint16(numOfChan);
+    setUint32(buffer.sampleRate);
+    setUint32(buffer.sampleRate * 2 * numOfChan);
+    setUint16(numOfChan * 2);
+    setUint16(16);
+    setUint32(0x61746164); // "data"
+    setUint32(buffer.length * 2 * numOfChan);
+
+    let offset = 44;
+    for (let i = 0; i < buffer.length; i++) {
+        for (let channel = 0; channel < numOfChan; channel++) {
+            const sample = Math.max(-1, Math.min(1, buffer.getChannelData(channel)[i]));
+            view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
+            offset += 2;
+        }
+    }
+    return new globalThis.Blob([view], { type: 'audio/wav' });
+}
+
+export async function base64AudioToWavBlob(base64: string): Promise<globalThis.Blob> {
+    const audioBytes = decode(base64);
+    // Use a standard sample rate, or detect/parameterize if needed. Gemini usually 24000Hz.
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
+    const audioBuffer = await decodeAudioData(audioBytes, audioContext, 24000, 1);
+    return bufferToWav(audioBuffer);
 }

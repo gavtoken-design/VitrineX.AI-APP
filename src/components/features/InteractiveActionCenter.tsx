@@ -10,7 +10,8 @@ import {
   generateImage,
   generateSpeech,
   generateVideo,
-  queryFileSearchStore
+  queryFileSearchStore,
+  base64AudioToWavBlob
 } from '../../services/ai';
 import {
   CommandLineIcon,
@@ -18,7 +19,8 @@ import {
   SpeakerWaveIcon,
   VideoCameraIcon,
   MagnifyingGlassIcon,
-  SparklesIcon
+  SparklesIcon,
+  ArrowDownTrayIcon
 } from '@heroicons/react/24/outline';
 import { IMAGE_SIZES, VIDEO_RESOLUTIONS } from '../../constants';
 
@@ -70,12 +72,11 @@ const InteractiveActionCenter: React.FC = () => {
           break;
 
         case 'audio_generation':
-          // Logic mapping to adjust_module_settings -> audio_generation
           const audioBase64 = await generateSpeech(prompt, voice);
           if (audioBase64) {
-            // Create a playable blob URL (simplified for mock, actual playback in AudioTools module)
-            // For InteractiveActionCenter, just return success text
-            outputText = "Áudio gerado. (Reprodução disponível no módulo Audio Tools)";
+            const wavBlob = await base64AudioToWavBlob(audioBase64);
+            outputUrl = URL.createObjectURL(wavBlob);
+            outputText = "Áudio gerado com sucesso.";
           } else {
             outputText = "Falha ao gerar áudio.";
           }
@@ -252,11 +253,27 @@ const InteractiveActionCenter: React.FC = () => {
                 )}
 
                 {mediaUrl && (
-                  <div className="mb-6 rounded-lg overflow-hidden border border-gray-700 bg-black/50 flex justify-center">
-                    {selectedModule === 'image_generation' ? (
+                  <div className="mb-6 rounded-lg overflow-hidden border border-gray-700 bg-black/50 flex justify-center p-4">
+                    {selectedModule === 'image_generation' && (
                       <img src={mediaUrl} alt="Generated" className="max-h-96 w-auto object-contain" />
-                    ) : (
+                    )}
+                    {selectedModule === 'video_generation' && (
                       <video src={mediaUrl} controls className="max-h-96 w-full" />
+                    )}
+                    {selectedModule === 'audio_generation' && (
+                      <div className="w-full flex flex-col items-center gap-3">
+                        <div className="w-full bg-surface p-4 rounded-xl border border-border">
+                          <audio src={mediaUrl} controls className="w-full h-10" />
+                        </div>
+                        <a
+                          href={mediaUrl}
+                          download={`generated-audio-${Date.now()}.wav`}
+                          className="flex items-center gap-2 px-4 py-2 bg-primary/20 text-primary hover:bg-primary/30 rounded-lg transition-colors text-sm font-semibold border border-primary/20"
+                        >
+                          <ArrowDownTrayIcon className="w-4 h-4" />
+                          Baixar Áudio (.wav)
+                        </a>
+                      </div>
                     )}
                   </div>
                 )}

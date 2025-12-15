@@ -3,7 +3,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { generateSpeech, decode, decodeAudioData } from '../../services/ai';
 import { useToast } from '../../contexts/ToastContext';
 import Button from '../ui/Button';
-import { SpeakerWaveIcon } from '@heroicons/react/24/outline';
+import { SpeakerWaveIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline'; // FIX: Imported ArrowDownTrayIcon
 
 interface VoiceoverControlProps {
   text: string;
@@ -88,10 +88,25 @@ const VoiceoverControl: React.FC<VoiceoverControlProps> = ({ text }) => {
 
   return (
     <div className="mt-4 pt-4 border-t border-gray-700">
-      <Button onClick={handleGenerateVoiceover} isLoading={loading} variant="outline" size="sm">
-        <SpeakerWaveIcon className="w-4 h-4 mr-2" />
-        Gerar Narração
-      </Button>
+      <div className="flex items-center gap-2">
+        <Button onClick={handleGenerateVoiceover} isLoading={loading} variant="outline" size="sm">
+          <SpeakerWaveIcon className="w-4 h-4 mr-2" />
+          Gerar Narração
+        </Button>
+
+        {audioUrl && (
+          <a
+            href={audioUrl}
+            download={`voiceover-${Date.now()}.wav`}
+            className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-primary bg-primary/10 hover:bg-primary/20 rounded-lg transition-colors border border-primary/20"
+            title="Baixar Áudio"
+          >
+            <ArrowDownTrayIcon className="w-4 h-4" />
+            Baixar
+          </a>
+        )}
+      </div>
+
       {audioUrl && !loading && (
         <audio ref={audioRef} controls src={audioUrl} className="w-full mt-3 h-10" />
       )}

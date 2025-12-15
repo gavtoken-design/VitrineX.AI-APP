@@ -42,7 +42,66 @@ const SUGGESTIONS = [
   "Refine este parágrafo para um nível mais executivo: [Cole o texto]"
 ];
 
-const DEFAULT_SYSTEM_INSTRUCTION = `Sua função principal é atuar como um Arquiteto de Marketing Digital e Copywriter Sênior. Você utiliza ferramentas para gerar imagens, textos persuasivos e estratégias de campanha. Para agendamentos, instrua o usuário a utilizar o Calendário Visual (SmartScheduler) da plataforma.`;
+const DEFAULT_SYSTEM_INSTRUCTION = `Você é um CONSULTOR ESTRATÉGICO DE MARKETING DIGITAL e ARQUITETO DE CONTEÚDO, não apenas um assistente de perguntas e respostas.
+
+## SEU PAPEL PRINCIPAL
+Orientar decisões estratégicas usando contexto do usuário, conhecimento do app VitrineX e expertise em marketing digital.
+
+## COMO VOCÊ DEVE SE COMPORTAR
+
+1. **INFERIR OBJETIVOS** antes de responder
+   - Analise o que o usuário REALMENTE quer alcançar
+   - Identifique o objetivo de negócio por trás da pergunta
+   - Exemplo: Se perguntam "como fazer post", infira se querem engajamento, vendas ou branding
+
+2. **SUGERIR AÇÕES CONCRETAS** ao invés de explicar conceitos
+   - Priorize: "Faça X usando Y" em vez de "X é importante porque..."
+   - Inclua passos específicos com módulos do VitrineX
+   - Exemplo: "Use o TrendHunter > busque 'seu nicho' > copie os 3 top tópicos > cole no Gerador"
+
+3. **CORRIGIR ESCOLHAS RUINS** proativamente
+   - Se o usuário pedir algo subótimo, AVISE e SUGIRA melhor abordagem
+   - Exemplo: "Criar 30 posts manualmente é ineficiente. Use o Calendário + Biblioteca para automatizar."
+
+4. **PRIORIZAR DECISÕES, NÃO PERGUNTAS**
+   - Ao invés de "Você quer A ou B?", diga "Faça A porque [razão]. Se precisar de B, use [módulo]"
+   - Seja assertivo baseado em boas práticas
+
+## CONHECIMENTO QUE VOCÊ TEM
+
+- **VitrineX**: Todos os módulos (Dashboard, Gerador, Estúdio, TrendHunter, Chatbot, etc.)
+- **Marketing**: Funis, copywriting, SEO, ads, redes sociais
+- **Contexto do Usuário**: Perfil de negócio, histórico da conversa, objetivos declarados
+
+## QUANDO USAR FERRAMENTAS DO VITRINEX
+
+- **TrendHunter**: Para validar ideias ou encontrar oportunidades
+- **Gerador de Conteúdo**: Criação de textos (modo Thinking para estratégias)
+- **Estúdio Criativo**: Imagens/vídeos (sempre lemb
+rar de aplicar logo)
+- **Calendário**: Agendamento e planejamento visual
+- **RAG (Base de Conhecimento)**: Quando precisar de informações técnicas do app
+
+## EXEMPLOS DE COMPORTAMENTO ESPERADO
+
+❌ **RUIM** (assistente genérico):
+User: "Como faço um post viral?"
+Bot: "Posts virais geralmente têm gatilhos emocionais, são compartilháveis e..."
+
+✅ **BOM** (consultor estratégico):
+User: "Como faço um post viral?"
+Bot: "Vamos criar uma estratégia de viral:
+1. Use TrendHunter > busque tendências do seu nicho
+2. Identifique o ângulo emocional (humor/inspiração/choque)
+3. Gere 5 variações no Gerador (Modo Thinking ativado)
+4. No Estúdio, crie imagem 9:16 com texto grande e cor vibrante
+5. Agende para horário de pico (18h-21h)
+Qual é seu nicho para eu buscar tendências agora?"
+
+---
+
+**REGRA DE OURO**: Sempre que possível, transforme perguntas em planos de ação usando funcionalidades do VitrineX.`;
+const DEFAULT_INITIAL_GREETING = 'Olá! Sou seu Consultor Estratégico de Marketing. Vamos criar algo que converte hoje?';
 
 const STORAGE_KEY = 'vitrinex_chat_history';
 
@@ -53,6 +112,8 @@ const Chatbot: React.FC = () => {
 
   const [showBrainSettings, setShowBrainSettings] = useState(false);
   const [systemInstruction, setSystemInstruction] = useState(DEFAULT_SYSTEM_INSTRUCTION);
+  const [initialGreeting, setInitialGreeting] = useState(localStorage.getItem('vitrinex_initial_greeting') || DEFAULT_INITIAL_GREETING);
+  const [hasPlayedGreeting, setHasPlayedGreeting] = useState(false);
 
   const [attachedFile, setAttachedFile] = useState<{ name: string, type: string, data: string | Part } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -87,7 +148,7 @@ const Chatbot: React.FC = () => {
     } else {
       setMessages([{
         role: 'model',
-        text: `Olá! Sou seu Assistente de IA Empresarial. Como posso ajudar hoje?`,
+        text: initialGreeting,
         timestamp: new Date().toISOString(),
       }]);
     }
@@ -232,7 +293,7 @@ const Chatbot: React.FC = () => {
       localStorage.removeItem(STORAGE_KEY);
       setMessages([{
         role: 'model',
-        text: `Olá! Sou seu Assistente de IA Empresarial. Como posso ajudar hoje?`,
+        text: initialGreeting,
         timestamp: new Date().toISOString(),
       }]);
       setArtifacts([]);
@@ -320,6 +381,37 @@ const Chatbot: React.FC = () => {
     });
   }, [addToast]);
 
+  // Auto-play greeting on first load + Request permissions
+  useEffect(() => {
+    if (messages.length > 0 && !hasPlayedGreeting) {
+      setHasPlayedGreeting(true);
+
+      // Request permissions notification
+      addToast({
+        type: 'info',
+        title: 'Permissões necessárias',
+        message: 'Este app precisa de acesso ao áudio e localização para funcionar melhor. Clique em "Permitir" quando solicitado.'
+      });
+
+      // Request microphone permission
+      navigator.mediaDevices?.getUserMedia({ audio: true }).catch(() => {
+        console.log('Audio permission denied');
+      });
+
+      // Request geolocation permission
+      navigator.geolocation?.getCurrentPosition(() => { }, () => {
+        console.log('Location permission denied');
+      });
+
+      // Play greeting TTS after short delay
+      setTimeout(() => {
+        if (initialGreeting && initialGreeting.trim()) {
+          handleTTS(initialGreeting);
+        }
+      }, 1500);
+    }
+  }, [messages, hasPlayedGreeting, initialGreeting, handleTTS, addToast]);
+
   return (
     <div className={`flex h-full bg-background relative overflow-hidden rounded-tl-xl border-l border-t border-border`}>
       {/* BRAIN SETTINGS MODAL */}
@@ -334,18 +426,31 @@ const Chatbot: React.FC = () => {
                 <XMarkIcon className="w-5 h-5 text-muted" />
               </button>
             </div>
-            <div className="p-6 flex-1 overflow-y-auto">
+            <div className="p-6 flex-1 overflow-y-auto space-y-4">
+              <Textarea
+                id="initial-greeting"
+                label="Frase Inicial (TTS Automático)"
+                value={initialGreeting}
+                onChange={(e) => setInitialGreeting(e.target.value)}
+                rows={2}
+                placeholder="Ex: Bem-vindo ao VitrineX! Vamos criar algo incrível hoje?"
+                className="text-sm"
+              />
               <Textarea
                 id="system-instruction"
-                label="Instrução do Sistema"
+                label="Instrução do Sistema (Comportamento do Agente)"
                 value={systemInstruction}
                 onChange={(e) => setSystemInstruction(e.target.value)}
-                rows={15}
+                rows={12}
                 className="text-sm font-mono"
               />
             </div>
             <div className="p-4 bg-background border-t border-border flex justify-end">
-              <Button variant="primary" onClick={() => { setShowBrainSettings(false); addToast({ type: 'success', message: 'Cérebro da IA atualizado.' }); }}>
+              <Button variant="primary" onClick={() => {
+                localStorage.setItem('vitrinex_initial_greeting', initialGreeting);
+                setShowBrainSettings(false);
+                addToast({ type: 'success', message: 'Cérebro da IA atualizado.' });
+              }}>
                 Salvar e Fechar
               </Button>
             </div>

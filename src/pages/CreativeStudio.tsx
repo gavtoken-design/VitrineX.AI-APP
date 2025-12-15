@@ -17,8 +17,11 @@ import {
   SparklesIcon,
   AdjustmentsHorizontalIcon,
   EyeIcon,
-  PencilSquareIcon
+  PencilSquareIcon,
+  PaintBrushIcon
 } from '@heroicons/react/24/outline';
+import BrandAssetsManager, { LogoSettings } from '../components/features/BrandAssetsManager';
+import { applyWatermark } from '../utils/imageProcessing';
 import {
   GEMINI_IMAGE_PRO_MODEL,
   GEMINI_IMAGE_FLASH_MODEL,
@@ -57,6 +60,15 @@ const CreativeStudio: React.FC = () => {
 
   const [savedItemName, setSavedItemName] = useState<string>('');
   const [savedItemTags, setSavedItemTags] = useState<string>('');
+
+  // Branding State
+  const [logoSettings, setLogoSettings] = useState<LogoSettings>({
+    file: null,
+    previewUrl: null,
+    position: 'bottom-right',
+    opacity: 0.8,
+    scale: 1.0
+  });
 
   const { addToast } = useToast();
   const userId = 'mock-user-123';
@@ -265,6 +277,26 @@ const CreativeStudio: React.FC = () => {
     }
   }, [generatedMediaUrl, addToast]);
 
+  const handleApplyBranding = async () => {
+    if (!generatedMediaUrl || mediaType !== 'image') return;
+    if (!logoSettings.file) {
+      addToast({ type: 'warning', message: 'Faça upload de uma logo primeiro.' });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const brandedUrl = await applyWatermark(generatedMediaUrl, logoSettings);
+      setGeneratedMediaUrl(brandedUrl);
+      addToast({ type: 'success', message: 'Identidade Visual aplicada!' });
+    } catch (e) {
+      console.error(e);
+      addToast({ type: 'error', message: 'Erro ao aplicar logo.' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     return () => { if (previewUrl) URL.revokeObjectURL(previewUrl); };
   }, [previewUrl]);
@@ -446,6 +478,9 @@ const CreativeStudio: React.FC = () => {
             </div>
           </div>
 
+          {/* Brand Assets Manager */}
+          <BrandAssetsManager settings={logoSettings} onSettingsChange={setLogoSettings} />
+
         </div>
 
         {/* Right Preview Panel */}
@@ -503,6 +538,12 @@ const CreativeStudio: React.FC = () => {
                   variant="secondary"
                   className="w-full md:w-auto"
                 />
+                {mediaType === 'image' && logoSettings.previewUrl && (
+                  <Button onClick={handleApplyBranding} variant="outline" size="sm" isLoading={loading}>
+                    <PaintBrushIcon className="w-4 h-4 mr-2" />
+                    Aplicar Identidade
+                  </Button>
+                )}
                 {generatedMediaUrl && (
                   <MediaActionsToolbar mediaUrl={generatedMediaUrl} fileName="creative.png" />
                 )}
@@ -512,7 +553,7 @@ const CreativeStudio: React.FC = () => {
 
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 

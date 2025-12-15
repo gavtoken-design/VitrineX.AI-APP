@@ -8,12 +8,14 @@ import LoadingSpinner from '../components/ui/LoadingSpinner';
 import { getUserProfile, updateUserProfile } from '../services/core/db';
 import { testGeminiConnection } from '../services/ai/gemini';
 import { UserProfile } from '../types';
-import { DEFAULT_BUSINESS_PROFILE, HARDCODED_API_KEY } from '../constants';
+import { DEFAULT_BUSINESS_PROFILE, HARDCODED_API_KEY, SUBSCRIPTION_CURRENCY, SUBSCRIPTION_PRICE_PROMO, SUBSCRIPTION_PRICE_FULL } from '../constants';
 // FIX: Add missing import for Cog6ToothIcon
-import { KeyIcon, ServerStackIcon, InformationCircleIcon, ArrowDownOnSquareIcon, PaintBrushIcon, GlobeAltIcon, SunIcon, MoonIcon, UserCircleIcon, Cog6ToothIcon } from '@heroicons/react/24/outline';
+import { KeyIcon, ServerStackIcon, InformationCircleIcon, ArrowDownOnSquareIcon, PaintBrushIcon, GlobeAltIcon, SunIcon, MoonIcon, UserCircleIcon, Cog6ToothIcon, CheckCircleIcon, MegaphoneIcon } from '@heroicons/react/24/outline';
 import { useToast } from '../contexts/ToastContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import Logo from '../components/ui/Logo';
+import { useNavigate } from '../hooks/useNavigate';
 
 const Settings: React.FC = () => {
   // Profile State
@@ -33,6 +35,7 @@ const Settings: React.FC = () => {
   const { addToast } = useToast();
   const { theme, toggleTheme } = useTheme();
   const { language, setLanguage } = useLanguage();
+  const { navigateTo } = useNavigate();
   const userId = 'mock-user-123';
 
   useEffect(() => {
@@ -215,6 +218,50 @@ const Settings: React.FC = () => {
         </div>
       </div>
 
+      {/* Subscription Plan Section */}
+      <div className="bg-surface p-8 rounded-xl shadow-card border border-border relative overflow-hidden group">
+        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+          <MegaphoneIcon className="w-32 h-32 text-primary rotate-12" />
+        </div>
+
+        <div className="relative z-10">
+          <h3 className="text-xl font-semibold text-title mb-6 flex items-center gap-2">
+            <ServerStackIcon className="w-5 h-5 text-primary" /> Meu Plano
+          </h3>
+
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-background rounded-lg p-6 border border-border">
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-sm font-bold tracking-wider text-primary uppercase">Plano Pro (Early Adopter)</span>
+                <span className="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-green-200">ATIVO</span>
+              </div>
+              <h4 className="text-3xl font-bold text-title mb-1">
+                {SUBSCRIPTION_CURRENCY} {SUBSCRIPTION_PRICE_PROMO} <span className="text-sm font-normal text-muted">/mês</span>
+              </h4>
+              <p className="text-sm text-muted line-through opacity-70">
+                De: {SUBSCRIPTION_CURRENCY} {SUBSCRIPTION_PRICE_FULL}
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center gap-2 text-sm text-title">
+                <CheckCircleIcon className="w-4 h-4 text-green-500" /> <span>Acesso Ilimitado ao TrendHunter Deeper</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-title">
+                <CheckCircleIcon className="w-4 h-4 text-green-500" /> <span>Geração de Vídeo (Veo) & Imagens 4K</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-title">
+                <CheckCircleIcon className="w-4 h-4 text-green-500" /> <span>Modo "Thinking" (Raciocínio Profundo)</span>
+              </div>
+            </div>
+
+            <Button variant="outline" className="h-fit whitespace-nowrap">
+              Gerenciar Assinatura
+            </Button>
+          </div>
+        </div>
+      </div>
+
       {/* Business Profile Section */}
       <div className="bg-surface p-8 rounded-xl shadow-card border border-border">
         <h3 className="text-xl font-semibold text-title mb-6 flex items-center gap-2">
@@ -386,6 +433,21 @@ const Settings: React.FC = () => {
             </Button>
           </div>
         </div>
+      </div>
+
+      {/* Admin Access - Discreet */}
+      <div className="flex justify-center pt-10 pb-6 opacity-40 hover:opacity-100 transition-opacity duration-500">
+        <button
+          onClick={() => navigateTo('Admin')}
+          className="group relative p-3 rounded-full hover:bg-white/5 dark:hover:bg-white/5 transition-all duration-500"
+          aria-label="Access Admin Console"
+        >
+          <div className="transform group-hover:rotate-[360deg] transition-transform duration-1000 ease-in-out">
+            <Logo showText={false} className="w-6 h-6 grayscale group-hover:grayscale-0 transition-all duration-500" />
+          </div>
+          {/* Subtle Glow */}
+          <div className="absolute inset-0 rounded-full bg-primary/20 blur-xl scale-0 group-hover:scale-150 transition-transform duration-700 ease-out" />
+        </button>
       </div>
 
     </div>

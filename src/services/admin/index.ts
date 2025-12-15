@@ -1,4 +1,5 @@
 import { AdminLog, UserProfile, AdminConfig } from '../../types';
+import { remoteAdminService } from './backend';
 
 // Mock Data Logs
 let logs: AdminLog[] = [
@@ -29,7 +30,7 @@ let mockUsers: UserProfile[] = [
     { id: 'user-3', email: 'spammer@bot.com', name: 'Spam Bot', plan: 'free', status: 'blocked', businessProfile: { name: 'Spam', industry: 'None', targetAudience: 'All', visualStyle: 'None' } },
 ];
 
-export const adminService = {
+const mockAdminService = {
     authenticate: async (pin: string): Promise<boolean> => {
         // Simula validação de PIN (Em prod, isso seria hash validated no backend)
         await new Promise(r => setTimeout(r, 800));
@@ -96,3 +97,8 @@ export const adminService = {
         return `backup_v1_${Date.now()}.enc`;
     }
 };
+
+// Switch de Implementação
+// Se uma URL de backend estiver configurada em backend.ts, usa o serviço remoto.
+// Caso contrário, usa o mock local para desenvolvimento/testes.
+export const adminService = remoteAdminService.isEnabled() ? remoteAdminService : mockAdminService;

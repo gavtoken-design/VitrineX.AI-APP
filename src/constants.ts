@@ -39,6 +39,12 @@ export const MOCK_API_DELAY = 1500;
 // User provided API Key from environment variables
 export const HARDCODED_API_KEY = (import.meta as any).env.VITE_GEMINI_API_KEY || '';
 
+// Pricing & Subscription Configuration
+export const SUBSCRIPTION_PRICE_FULL = '197,00';
+export const SUBSCRIPTION_PRICE_PROMO = '148,90';
+export const SUBSCRIPTION_CURRENCY = 'R$';
+
+
 // --- Seasonal Templates (Christmas & New Year) ---
 export const SEASONAL_TEMPLATES = [
   {
