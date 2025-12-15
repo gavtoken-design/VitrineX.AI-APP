@@ -1,0 +1,9 @@
+{
+  "name": "VitrineX AI – Automação de Marketing com IA",
+  "description": "Aplicativo completo de marketing com IA que cria conteúdos, anúncios, campanhas, tendências, criativos, vídeos, organiza calendário e publica automaticamente em redes sociais.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}

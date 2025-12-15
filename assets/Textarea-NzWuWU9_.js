@@ -1,0 +1,2 @@
+import{k as e}from"./index-CYQb2vCA.js";const m=({label:r,id:s,className:o="",...t})=>e.jsxs("div",{className:"mb-4",children:[r&&e.jsx("label",{htmlFor:s,className:"block text-sm font-medium text-title mb-1.5",children:r}),e.jsx("textarea",{id:s,className:`block w-full px-3 py-2.5 bg-surface border border-gray-200 rounded-lg shadow-sm text-body placeholder-muted 
+        focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors sm:text-sm resize-y ${o}`,...t})]});export{m as T};

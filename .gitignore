@@ -1,0 +1,54 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+.env
+.env.*
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Deploy files
+winscp.log
+*.txt
+upload*.ps1
+deploy*.ps1
+temp_*
+
+# Documentation (keep only README.md)
+CHECKLIST_FINAL.md
+DEPLOYMENT_HOSTINGER.md
+DEPLOY_CREDENCIAIS.md
+DEPLOY_FINAL.md
+DEPLOY_PUTTY_SFTP.md
+RESUMO_FINAL.md
+SOLUCAO_MOTOR_IA.md
+STATUS_FINAL.md
+RELEASE_INSTRUCTIONS.md
+validar_chave.html
+
+# Bloquear Docs e Scripts (Pedido do Usuário)
+*.md
+!README.md
+*.ps1
+*.log
+_Backups
+site.zip
+

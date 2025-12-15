@@ -1,0 +1,41 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../backend"
+		},
+		{
+			"path": "../components"
+		},
+		{
+			"path": "../contexts"
+		},
+		{
+			"path": "../electron"
+		},
+		{
+			"path": "../hooks"
+		},
+		{
+			"path": "../i18n"
+		},
+		{
+			"path": "../pages"
+		},
+		{
+			"path": "../services"
+		},
+		{
+			"path": "../stores"
+		},
+		{
+			"path": "../types"
+		},
+		{
+			"path": "../utils"
+		}
+	],
+	"settings": {}
+}

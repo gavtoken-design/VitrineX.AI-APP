@@ -1,0 +1,3 @@
+import{h as m,k as r}from"./index-CYQb2vCA.js";const n=m.forwardRef(({label:e,id:o,error:s,className:t="",...a},c)=>r.jsxs("div",{className:"mb-4",children:[e&&r.jsx("label",{htmlFor:o,className:"block text-sm font-medium text-title mb-1.5",children:e}),r.jsx("input",{id:o,ref:c,className:`block w-full px-3 py-2.5 bg-surface border rounded-lg shadow-sm text-body placeholder-muted transition-colors
+          ${s?"border-error focus:ring-error focus:border-error":"border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary"} 
+          focus:outline-none sm:text-sm ${t}`,...a}),s&&r.jsx("p",{className:"mt-1 text-xs text-error",children:s})]}));export{n as I};
