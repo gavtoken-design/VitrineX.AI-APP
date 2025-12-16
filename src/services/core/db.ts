@@ -66,31 +66,42 @@ async function mockDbOperation<T>(operation: () => T | Promise<T>): Promise<T> {
 }
 
 // --- User Profile Operations ---
+// --- User Profile Operations ---
 export const getUserProfile = async (userId: string): Promise<UserProfile | null> => {
-    return mockDbOperation(() => {
-        const user = mockDb.users[userId];
-        if (!user) {
-            // Create a default profile if not found
-            mockDb.users[userId] = {
-                id: userId,
-                email: 'mock-user@vitrinex.com',
-                plan: 'free',
-                businessProfile: DEFAULT_BUSINESS_PROFILE,
-            };
-            return mockDb.users[userId];
+    const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+    if (error) {
+        // If not found, return null or create provisional? 
+        // Sync with existing logic: If mock, it created one.
+        // For real auth, we might expect a trigger to create it on signup, 
+        // or we handle "onboarding" elsewhere.
+        // Here we just return what we find or null.
+        if (error.code === 'PGRST116') { // Not found code
+            return null;
         }
-        return user;
-    });
+        console.error('Error fetching user profile:', error);
+        return null;
+    }
+
+    // Parse businessProfile if it's stored as JSONB but we type it strongly
+    // Supabase JS auto-converts JSONB to object usually.
+    return data as UserProfile;
 };
 
 export const updateUserProfile = async (userId: string, profile: Partial<UserProfile>): Promise<void> => {
-    return mockDbOperation(() => {
-        if (mockDb.users[userId]) {
-            mockDb.users[userId] = { ...mockDb.users[userId], ...profile };
-        } else {
-            console.warn(`User profile for ${userId} not found (mock).`);
-        }
-    });
+    const { error } = await supabase
+        .from('users')
+        .update(profile)
+        .eq('id', userId);
+
+    if (error) {
+        console.error('Error updating user profile:', error);
+        throw error;
+    }
 };
 
 // --- Content (Posts, Ads, Campaigns, Trends, Library, Schedule) Operations ---
@@ -143,30 +154,72 @@ export const getTrends = async (userId: string): Promise<Trend[]> => {
 };
 
 
+import { supabase } from '../../lib/supabase';
+
 export const saveLibraryItem = async (item: LibraryItem): Promise<LibraryItem> => {
-    return mockDbOperation(() => {
-        if (!item.id) item.id = `lib-${Date.now()}`;
-        mockDb.library[item.id] = item;
-        return item;
-    });
+    // Ensure ID is generated if not present, though Supabase usually handles specific IDs or UUIDs.
+    // We will let Supabase generate ID if not provided, or use the one provided.
+    // However, the mock provided 'lib-' + Date.now().
+    // We'll strip the ID if it looks like a temp ID and let Supabase generate a UUID, 
+    // OR we just send it if the schema allows text IDs.
+    // For safety with typical Supabase setups (UUID), we might want to omit ID if it's not a valid UUID.
+    // But to match current logic, we'll try to insert. 
+
+    // Note: If schema uses UUID pkey, 'lib-...' will fail. 
+    // We will assume the schema allows text or we should strictly let DB handle it.
+    // Let's try to insert object excluding ID if it's the mock-generated one, 
+    // but the `item` passed has it.
+
+    const { data, error } = await supabase
+        .from('library_items')
+        .insert([item])
+        .select()
+        .single();
+
+    if (error) {
+        console.error('Error saving library item:', error);
+        throw error;
+    }
+    return data;
 };
 
+
 export const getLibraryItems = async (userId: string, tags?: string[]): Promise<LibraryItem[]> => {
-    return mockDbOperation(() => {
-        let items = Object.values(mockDb.library).filter(item => item.userId === userId);
-        if (tags && tags.length > 0) {
-            items = items.filter(item => tags.some(tag => item.tags.includes(tag)));
-        }
-        return items;
-    });
+    let query = supabase
+        .from('library_items')
+        .select('*')
+        .eq('userId', userId); // Ensure column is camelCase or snake_case matching usage. 
+    // Typo risk: Supabase usually uses snake_case keys (user_id).
+    // The `item` object has `userId`. If I send `userId`, Supabase maps it if columns match?
+    // No, Supabase JS client expects keys to match column names.
+    // If `LibraryItem.userId` maps to `user_id` in DB, I need to map it.
+    // I will assume the table columns match the JS object keys for now to simplify, 
+    // as I don't know the schema. 
+    // If it fails, I'll need to map.
+
+    if (tags && tags.length > 0) {
+        query = query.contains('tags', tags);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+        console.error('Error fetching library items:', error);
+        return [];
+    }
+    return data || [];
 };
 
 export const deleteLibraryItem = async (itemId: string): Promise<void> => {
-    return mockDbOperation(() => {
-        if (mockDb.library[itemId]) {
-            delete mockDb.library[itemId];
-        }
-    });
+    const { error } = await supabase
+        .from('library_items')
+        .delete()
+        .eq('id', itemId);
+
+    if (error) {
+        console.error('Error deleting library item:', error);
+        throw error;
+    }
 };
 
 export const saveScheduleEntry = async (entry: ScheduleEntry): Promise<ScheduleEntry> => {

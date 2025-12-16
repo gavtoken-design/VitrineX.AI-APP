@@ -51,8 +51,7 @@ export const useNavItems = () => {
   return [
     {
       section: 'sidebar.overview', items: [
-        { id: "nav-dashboard", name: "Dashboard" as ModuleName, label: t('sidebar.dashboard'), icon: 'dashboard' as IconName },
-        { id: "nav-ai-manager", name: "AIManager" as ModuleName, label: t('sidebar.ai_assistant'), icon: 'aiManager' as IconName }
+        { id: "nav-dashboard", name: "Dashboard" as ModuleName, label: t('sidebar.dashboard'), icon: 'dashboard' as IconName }
       ]
     },
     {
@@ -70,15 +69,9 @@ export const useNavItems = () => {
       ]
     },
     {
-      section: 'sidebar.communication', items: [
-        { name: "Chatbot" as ModuleName, label: t('sidebar.ai_chat'), icon: 'chat' as IconName }
-      ]
-    },
-    {
       section: 'sidebar.tools', items: [
         { name: "AudioTools" as ModuleName, label: t('sidebar.audio_tools'), icon: 'audio' as IconName },
         { name: "CodePlayground" as ModuleName, label: t('sidebar.code_playground'), icon: 'code' as IconName },
-        { name: "LocalFinder" as ModuleName, label: t('sidebar.local_finder'), icon: 'map' as IconName },
         { name: "CalendarManager" as ModuleName, label: t('sidebar.calendar_manager'), icon: 'calendarAlt' as IconName }
       ]
     },

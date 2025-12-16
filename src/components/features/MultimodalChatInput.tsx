@@ -129,7 +129,7 @@ const MultimodalChatInput: React.FC<MultimodalChatInputProps> = ({
           placeholder={isListening ? "Ouvindo..." : "Digite uma mensagem ou '/' para comandos..."}
           className="w-full bg-transparent text-body placeholder-muted text-base px-3 py-2.5 max-h-[160px] resize-none focus:outline-none"
           rows={1}
-          disabled={isTextLoading || disabled || isListening}
+          disabled={disabled || isListening}
         />
 
         {!isListening && (
@@ -137,8 +137,8 @@ const MultimodalChatInput: React.FC<MultimodalChatInputProps> = ({
             type="submit"
             disabled={!textValue.trim() || isTextLoading || disabled}
             className={`p-2.5 rounded-xl mb-0.5 transition-all duration-200 flex-shrink-0 ${!textValue.trim() || isTextLoading || disabled
-                ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed'
-                : 'bg-primary text-white hover:bg-primary/90 shadow-sm'
+              ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed'
+              : 'bg-primary text-white hover:bg-primary/90 shadow-sm'
               }`}
           >
             <PaperAirplaneIcon className="w-5 h-5" />
@@ -150,8 +150,8 @@ const MultimodalChatInput: React.FC<MultimodalChatInputProps> = ({
           onClick={handleVoiceToggle}
           disabled={disabled && !isListening}
           className={`p-2.5 rounded-xl mb-0.5 transition-all duration-200 flex-shrink-0 ${isListening
-              ? 'bg-red-500 text-white shadow-lg'
-              : 'bg-gray-100 dark:bg-gray-800 text-gray-600 hover:bg-primary hover:text-white'
+            ? 'bg-red-500 text-white shadow-lg'
+            : 'bg-gray-100 dark:bg-gray-800 text-gray-600 hover:bg-primary hover:text-white'
             }`}
         >
           {isListening ? (

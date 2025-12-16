@@ -2,7 +2,7 @@
 import * as React from 'react';
 import { useState } from 'react';
 import { ChatMessage as ChatMessageType } from '../../types';
-import { SparklesIcon, UserIcon, ClipboardDocumentIcon, WrenchScrewdriverIcon, SpeakerWaveIcon, ArrowDownTrayIcon, ShareIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
+import { SparklesIcon, UserIcon, ClipboardDocumentIcon, WrenchScrewdriverIcon, SpeakerWaveIcon, StopIcon, ArrowDownTrayIcon, ShareIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
 
 interface ChatMessageProps {
   message: ChatMessageType;
@@ -142,10 +142,14 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onSpeak, onDownload,
               <button
                 onClick={() => onSpeak && onSpeak(message.text)}
                 className="p-1.5 rounded-full hover:bg-surface transition-colors text-muted hover:text-body"
-                aria-label="Ouvir mensagem"
-                title="Ouvir mensagem com Text-to-Speech"
+                aria-label={isPlaying ? "Parar leitura" : "Ouvir mensagem"}
+                title={isPlaying ? "Parar leitura" : "Ouvir mensagem com Text-to-Speech"}
               >
-                <SpeakerWaveIcon className="w-4 h-4" />
+                {isPlaying ? (
+                  <StopIcon className="w-4 h-4 text-primary animate-pulse" />
+                ) : (
+                  <SpeakerWaveIcon className="w-4 h-4" />
+                )}
               </button>
               <button
                 onClick={() => onDownload && onDownload(message.text)}

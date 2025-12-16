@@ -13,6 +13,9 @@ import {
   queryFileSearchStore,
   base64AudioToWavBlob
 } from '../../services/ai';
+import { useAuth } from '../../contexts/AuthContext';
+import { saveLibraryItem } from '../../services/core/db';
+import ParticleEffect from '../ui/particle-effect-for-hero';
 import {
   CommandLineIcon,
   PhotoIcon,
@@ -27,6 +30,7 @@ import { IMAGE_SIZES, VIDEO_RESOLUTIONS } from '../../constants';
 type ModuleType = 'content_generation' | 'image_generation' | 'audio_generation' | 'file_search' | 'video_generation';
 
 const InteractiveActionCenter: React.FC = () => {
+  const { user } = useAuth();
   const [selectedModule, setSelectedModule] = useState<ModuleType>('content_generation');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<string | null>(null);
@@ -98,6 +102,34 @@ const InteractiveActionCenter: React.FC = () => {
       setResult(outputText);
       setMediaUrl(outputUrl || null);
 
+      // AUTO-SAVE to Library
+      if (outputText || outputUrl) {
+        try {
+          // Use real user ID from context if available, else fallback or error?
+          // The component should probably be wrapped in Auth check or useAuth should return user.
+          // Since we are inside AppContent which has Login check, user should exist.
+          const userId = user?.id || 'anonymous';
+          let itemType: 'text' | 'image' | 'audio' | 'video' = 'text';
+
+          if (selectedModule === 'image_generation') itemType = 'image';
+          else if (selectedModule === 'video_generation') itemType = 'video';
+          else if (selectedModule === 'audio_generation') itemType = 'audio';
+
+          await saveLibraryItem({
+            id: `lib-${Date.now()}`,
+            userId: userId,
+            name: `Gerado (${selectedModule}) - ${prompt.substring(0, 20)}`,
+            file_url: outputUrl || outputText, // Save URL for media, or text content for text
+            type: itemType,
+            tags: ['interactive-center', selectedModule, 'auto-save'],
+            createdAt: new Date().toISOString()
+          });
+          // Note: Toast handled by saveLibraryItem? No, we might want to notify user.
+        } catch (saveErr) {
+          console.warn('Auto-save failed:', saveErr);
+        }
+      }
+
     } catch (err) {
       console.error(err);
       setError(err instanceof Error ? err.message : String(err));
@@ -115,13 +147,15 @@ const InteractiveActionCenter: React.FC = () => {
   ];
 
   return (
-    <div className="bg-lightbg rounded-xl border border-gray-800 shadow-xl overflow-hidden">
-      <div className="bg-darkbg/50 border-b border-gray-800 p-4 flex items-center gap-2">
+    <div className="bg-lightbg rounded-xl border border-gray-800 shadow-xl overflow-hidden relative group">
+      <ParticleEffect className="opacity-30 group-hover:opacity-50 transition-opacity duration-500" />
+
+      <div className="bg-darkbg/50 border-b border-gray-800 p-4 flex items-center gap-2 relative z-10">
         <SparklesIcon className="w-5 h-5 text-accent" />
         <h3 className="font-bold text-textdark">Central de Comando Interativa</h3>
       </div>
 
-      <div className="flex flex-col md:flex-row">
+      <div className="flex flex-col md:flex-row relative z-10">
         {/* Sidebar Selector */}
         <div className="w-full md:w-64 bg-darkbg/30 border-r border-gray-800 p-2 flex flex-row md:flex-col gap-1 overflow-x-auto md:overflow-visible">
           {modules.map((m) => {

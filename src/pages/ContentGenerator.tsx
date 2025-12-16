@@ -9,9 +9,11 @@ import MediaActionsToolbar from '../components/features/MediaActionsToolbar'; //
 import { ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 import { generateText, generateImage } from '../services/ai';
 import { savePost } from '../services/core/firestore';
+import { saveLibraryItem } from '../services/core/db';
 import { Post } from '../types';
 import { GEMINI_FLASH_MODEL, GEMINI_IMAGE_FLASH_MODEL, PLACEHOLDER_IMAGE_BASE64 } from '../constants';
 import { useToast } from '../contexts/ToastContext';
+import HowToUse from '../components/ui/HowToUse';
 
 const ContentGenerator: React.FC = () => {
   const [prompt, setPrompt] = useState<string>('');
@@ -95,6 +97,33 @@ const ContentGenerator: React.FC = () => {
         createdAt: new Date().toISOString(),
       };
       setGeneratedPost(newPost);
+
+      // AUTO-SAVE: Salvar na biblioteca
+      try {
+        await saveLibraryItem({
+          id: `lib-${Date.now()}`,
+          userId,
+          name: `Post - ${postContent.substring(0, 30)}`,
+          file_url: postContent,
+          type: 'text',
+          tags: ['content-generator', 'post', 'text'],
+          createdAt: new Date().toISOString()
+        });
+        if (imageResponse.imageUrl) {
+          await saveLibraryItem({
+            id: `lib-img-${Date.now()}`,
+            userId,
+            name: `Imagem - ${postContent.substring(0, 30)}`,
+            file_url: imageResponse.imageUrl,
+            type: 'image',
+            tags: ['content-generator', 'post', 'image'],
+            createdAt: new Date().toISOString()
+          });
+        }
+      } catch (saveError) {
+        console.warn('Failed to auto-save to library:', saveError);
+      }
+
       addToast({ type: 'success', title: 'Conteúdo Gerado', message: 'Texto e imagem foram gerados com sucesso.' });
 
     } catch (err) {
@@ -156,6 +185,25 @@ const ContentGenerator: React.FC = () => {
   return (
     <div className="container mx-auto py-8 lg:py-10">
       <h2 className="text-3xl font-bold text-textdark mb-8">Content Generator</h2>
+
+      <HowToUse
+        title="Como Gerar Conteúdo"
+        steps={[
+          "Digite uma descrição do conteúdo que deseja criar",
+          "Escolha entre gerar 1 post ou uma semana completa de posts",
+          "Ative 'Thinking Mode' para raciocínio avançado (opcional)",
+          "Clique em 'Gerar' e aguarde",
+          "Revise o texto e imagem gerados",
+          "Use 'Regenerar Imagem' se quiser uma imagem diferente",
+          "Salve na biblioteca quando estiver satisfeito"
+        ]}
+        tips={[
+          "Seja específico na descrição para melhores resultados",
+          "Use 'Thinking Mode' para conteúdos complexos ou estratégicos",
+          "Você pode baixar o texto como .txt separadamente",
+          "Todos os posts são salvos automaticamente na biblioteca"
+        ]}
+      />
 
       <div className="bg-lightbg p-6 rounded-lg shadow-sm border border-gray-800 mb-8">
         <h3 className="text-xl font-semibold text-textlight mb-5">Gerar Novo Conteúdo</h3>

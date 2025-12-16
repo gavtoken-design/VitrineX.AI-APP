@@ -10,6 +10,7 @@ import { getUserProfile } from '../services/core/firestore';
 import { Trend, BusinessProfile } from '../types';
 import { useNavigate } from '../hooks/useNavigate';
 import { GEMINI_FLASH_MODEL, DEFAULT_BUSINESS_PROFILE } from '../constants';
+import HowToUse from '../components/ui/HowToUse';
 import {
   LightBulbIcon,
   MapPinIcon,
@@ -131,36 +132,36 @@ const TrendHunter: React.FC = () => {
 
     const prompt = `Você é um analista de tendências de mercado experiente.
 
-PALAVRA-CHAVE PESQUISADA: "${query.trim()}"
+  PALAVRA - CHAVE PESQUISADA: "${query.trim()}"
 LOCALIZAÇÃO: ${locationText}
 OBJETIVO DO CLIENTE: ${objectiveLabel}
 PERFIL DO NEGÓCIO: ${userProfile.name} (${userProfile.industry}) - Público: ${userProfile.targetAudience}
 
-Analise a tendência dessa palavra-chave e retorne um JSON com a seguinte estrutura EXATA:
+Analise a tendência dessa palavra - chave e retorne um JSON com a seguinte estrutura EXATA:
 
 {
   "score": [número de 0 a 100 indicando relevância da keyword],
-  "resumo": "[resumo de 2-3 parágrafos sobre a tendência atual dessa keyword na localização especificada]",
-  "motivadores": ["motivador1", "motivador2", "motivador3", "motivador4", "motivador5"],
-  "leituraCenario": "[análise de 1-2 frases sobre o potencial de monetização]",
-  "buscasSemelhantes": ["termo1", "termo2", "termo3", "termo4", "termo5", "termo6"],
-  "interpretacaoBuscas": "[interpretação do que essas buscas indicam sobre a intenção do público]",
-  "sugestaoConteudo": {
+    "resumo": "[resumo de 2-3 parágrafos sobre a tendência atual dessa keyword na localização especificada]",
+      "motivadores": ["motivador1", "motivador2", "motivador3", "motivador4", "motivador5"],
+        "leituraCenario": "[análise de 1-2 frases sobre o potencial de monetização]",
+          "buscasSemelhantes": ["termo1", "termo2", "termo3", "termo4", "termo5", "termo6"],
+            "interpretacaoBuscas": "[interpretação do que essas buscas indicam sobre a intenção do público]",
+              "sugestaoConteudo": {
     "oque": "[descrição detalhada do tipo de conteúdo a criar]",
-    "formato": "[formato recomendado: Reels, Carrossel, Stories, Blog, etc]"
+      "formato": "[formato recomendado: Reels, Carrossel, Stories, Blog, etc]"
   },
   "sugestaoProduto": {
     "tipo": "[tipo de produto digital sugerido]",
-    "temas": ["tema1 que converte", "tema2 que converte", "tema3 que converte"]
+      "temas": ["tema1 que converte", "tema2 que converte", "tema3 que converte"]
   },
   "sugestaoCampanha": {
     "estrategia": "[estratégia de campanha em 2-3 frases]",
-    "cta": "[CTA pronto para usar entre aspas]"
+      "cta": "[CTA pronto para usar entre aspas]"
   },
   "conclusao": {
     "avaliacao": "[avaliação final da keyword em 1-2 frases]",
-    "idealPara": ["perfil1", "perfil2", "perfil3"],
-    "melhorEstrategia": "[melhor estratégia resumida]"
+      "idealPara": ["perfil1", "perfil2", "perfil3"],
+        "melhorEstrategia": "[melhor estratégia resumida]"
   }
 }
 
@@ -169,7 +170,6 @@ IMPORTANTE: Retorne APENAS o JSON válido, sem texto adicional antes ou depois.`
     try {
       const response = await generateText(prompt, {
         model: GEMINI_FLASH_MODEL,
-        responseMimeType: 'application/json',
         tools: [{ googleSearch: {} }]
       });
 
@@ -177,7 +177,7 @@ IMPORTANTE: Retorne APENAS o JSON válido, sem texto adicional antes ou depois.`
       let parsed: TrendResultStructured;
       try {
         // Limpar possíveis caracteres extras
-        const cleanedResponse = response.replace(/```json\n?|\n?```/g, '').trim();
+        const cleanedResponse = response.replace(/```json\n ?|\n ? ```/g, '').trim();
         parsed = JSON.parse(cleanedResponse);
       } catch (parseError) {
         console.error('Failed to parse JSON:', parseError, response);
@@ -188,7 +188,7 @@ IMPORTANTE: Retorne APENAS o JSON válido, sem texto adicional antes ou depois.`
 
       // Salvar tendência no banco
       const trendToSave: Trend = {
-        id: `trend-${Date.now()}`,
+        id: `trend - ${Date.now()} `,
         userId,
         query: query.trim(),
         score: parsed.score,
@@ -244,7 +244,7 @@ IMPORTANTE: Retorne APENAS o JSON válido, sem texto adicional antes ou depois.`
               strokeWidth="6"
               fill="transparent"
               strokeDasharray={`${(score / 100) * 220} 220`}
-              className={`${color.replace('bg-', 'text-')}`}
+              className={`${color.replace('bg-', 'text-')} `}
             />
           </svg>
           <span className="absolute inset-0 flex items-center justify-center text-2xl font-bold text-white">{score}</span>
@@ -265,8 +265,26 @@ IMPORTANTE: Retorne APENAS o JSON válido, sem texto adicional antes ou depois.`
           <MagnifyingGlassIcon className="w-8 h-8 text-primary" />
           Caçador de Tendências
         </h2>
-        <p className="text-muted mt-1">Análise completa de tendências para seu negócio</p>
+        <p className="text-muted mt-1">Descubra tendências e oportunidades de mercado com Google Search + IA</p>
       </div>
+
+      <HowToUse
+        title="Como Pesquisar Tendências"
+        steps={[
+          "Digite uma palavra-chave ou tema para pesquisar",
+          "Clique em 'Buscar Tendências'",
+          "A IA busca no Google e analisa os resultados",
+          "Aguarde a análise (pode levar alguns segundos)",
+          "Revise as tendências, insights e oportunidades",
+          "Use as informações para planejar conteúdo"
+        ]}
+        tips={[
+          "Seja específico: 'marketing digital 2024' é melhor que 'marketing'",
+          "Use para pesquisa de mercado, análise de concorrentes",
+          "Combine com seu perfil de negócio para insights personalizados",
+          "Resultados são baseados em dados reais do Google"
+        ]}
+      />
 
       {error && (
         <div className="bg-red-900/50 border border-red-500 text-red-300 px-4 py-3 rounded-lg mb-6">
@@ -318,10 +336,10 @@ IMPORTANTE: Retorne APENAS o JSON válido, sem texto adicional antes ou depois.`
               <button
                 key={obj.id}
                 onClick={() => setObjective(obj.id)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${objective === obj.id
+                className={`px - 4 py - 2 rounded - lg text - sm font - medium transition - all flex items - center gap - 2 ${objective === obj.id
                     ? 'bg-primary text-white'
                     : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-                  }`}
+                  } `}
               >
                 <span>{obj.icon}</span>
                 {obj.label}

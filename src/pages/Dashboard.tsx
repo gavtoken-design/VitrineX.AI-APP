@@ -9,13 +9,17 @@ import { useNavigate } from '../hooks/useNavigate';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useToast } from '../contexts/ToastContext';
 import { useTutorial, TutorialStep } from '../contexts/TutorialContext'; // Import Tutorial Hook
+import { useAuth } from '../contexts/AuthContext';
 import { testGeminiConnection } from '../services/ai/gemini';
 import {
   DocumentTextIcon,
   MegaphoneIcon,
   CalendarDaysIcon,
   ChartBarIcon,
-  BoltIcon
+  BoltIcon,
+  SparklesIcon,
+  ExclamationTriangleIcon,
+  Cog6ToothIcon
 } from '@heroicons/react/24/outline';
 
 interface SummaryCardProps {
@@ -27,35 +31,64 @@ interface SummaryCardProps {
 }
 
 const SummaryCard: React.FC<SummaryCardProps> = ({ title, value, description, icon: Icon, isLoading }) => (
-  <div className="liquid-card liquid-transition liquid-light-gradient p-6">
+  <div className="glass-card p-6 transition-all duration-300 hover:scale-105">
     <div className="flex justify-between items-start mb-4">
-      <div className="w-full">
-        <p className="text-sm font-medium text-muted liquid-text-embedded">{title}</p>
-        {isLoading ? (
-          <Skeleton className="h-9 w-16 mt-1" />
-        ) : (
-          <p className="text-3xl font-bold text-title mt-1 tracking-tight animate-fade-in liquid-text-glow">{value}</p>
-        )}
+      <div className="glass-icon-bg p-3">
+        <Icon className="w-5 h-5 text-cyan-300" />
       </div>
-      <div className="p-2.5 bg-primary/10 rounded-lg text-primary icon-fluid-breathe icon-fluid-squeeze icon-fluid-glow icon-fluid-morph icon-fluid-gradient">
-        <Icon className="w-5 h-5 icon-fluid-viscous" />
-      </div>
+      <span className="growth-badge">+15%</span>
     </div>
-    <div className="flex items-center">
+    <div>
       {isLoading ? (
-        <Skeleton className="h-4 w-32" />
+        <>
+          <Skeleton className="h-4 w-24 mb-2" />
+          <Skeleton className="h-9 w-16" />
+        </>
       ) : (
         <>
-          <span className="text-xs font-medium text-success bg-success/10 px-2 py-0.5 rounded-full mr-2">Active</span>
-          <p className="text-xs text-muted">{description}</p>
+          <p className="text-sm text-gray-300 mb-1">{title}</p>
+          <p className="text-3xl font-bold text-white">{value}</p>
         </>
       )}
     </div>
   </div>
 );
 
+interface ActivityCardProps {
+  icon: React.ElementType;
+  title: string;
+  description: string;
+  timestamp: string;
+  gradientFrom: string;
+  gradientTo: string;
+}
+
+const ActivityCard: React.FC<ActivityCardProps> = ({
+  icon: Icon,
+  title,
+  description,
+  timestamp,
+  gradientFrom,
+  gradientTo
+}) => (
+  <div className="glass-card p-3 flex items-center justify-between hover:scale-[1.02] transition-transform duration-200">
+    <div className="flex items-center space-x-4">
+      <div className={`p-3 rounded-full bg-gradient-to-br ${gradientFrom} ${gradientTo} flex-shrink-0`}>
+        <Icon className="w-5 h-5 text-white" />
+      </div>
+      <div>
+        <p className="font-semibold text-white">{title}</p>
+        <p className="text-sm text-gray-400">{description}</p>
+      </div>
+    </div>
+    <span className="text-xs text-gray-400">{timestamp}</span>
+  </div>
+);
+
+
 const Dashboard: React.FC = () => {
-  const userId = 'mock-user-123'; // In real app, get from auth context
+  const { user } = useAuth(); // Use real user
+  const userId = user?.id || 'mock-user-123'; // Fallback if somehow null but should be handled by App.tsx
   const { data, isLoading, isError, error } = useDashboardData(userId);
   const { navigateTo } = useNavigate();
   const { t, language } = useLanguage();
@@ -203,10 +236,6 @@ const Dashboard: React.FC = () => {
             <span>{t('dashboard.btn_ad')}</span>
             <MegaphoneIcon className="w-5 h-5 opacity-70 group-hover:opacity-100" />
           </Button>
-          <Button onClick={() => navigateTo('AIManager')} variant="outline" size="lg" className="w-full justify-between group">
-            <span>{t('dashboard.btn_strategy')}</span>
-            <ChartBarIcon className="w-5 h-5 opacity-70 group-hover:opacity-100" />
-          </Button>
           <Button onClick={() => navigateTo('TrendHunter')} variant="ghost" size="lg" className="w-full justify-start border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600">
             {t('dashboard.btn_market')}
           </Button>
@@ -216,6 +245,42 @@ const Dashboard: React.FC = () => {
           <Button onClick={() => navigateTo('SmartScheduler')} variant="ghost" size="lg" className="w-full justify-start border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600">
             {t('dashboard.btn_schedule')}
           </Button>
+        </div>
+      </section>
+
+      {/* Recent Activity Section */}
+      <section className="mt-8">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-xl font-bold text-white">Atividades Recentes</h3>
+          <a className="text-blue-400 text-sm font-semibold hover:underline cursor-pointer">
+            Ver Todas
+          </a>
+        </div>
+        <div className="space-y-3">
+          <ActivityCard
+            icon={BoltIcon}
+            title="API Conectada"
+            description="Sincronização do sistema concluída com sucesso"
+            timestamp="2m"
+            gradientFrom="from-blue-400"
+            gradientTo="to-indigo-600"
+          />
+          <ActivityCard
+            icon={SparklesIcon}
+            title="Conteúdo Gerado"
+            description="Novo lote de campanha pronto para revisão"
+            timestamp="1h"
+            gradientFrom="from-purple-400"
+            gradientTo="to-pink-500"
+          />
+          <ActivityCard
+            icon={ExclamationTriangleIcon}
+            title="Alerta de Orçamento"
+            description="Campanha #4 próxima do limite diário"
+            timestamp="3h"
+            gradientFrom="from-yellow-400"
+            gradientTo="to-orange-500"
+          />
         </div>
       </section>
     </div>

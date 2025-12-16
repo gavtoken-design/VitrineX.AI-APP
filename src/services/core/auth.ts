@@ -1,79 +1,67 @@
 import { UserProfile, OrganizationMembership } from '../../types';
-import { getUserProfile } from './db'; // Will be moved to ../core/db
-// import { getUserProfile } from './db'; // Future proofing? No, let's point to current until we move it.
-// Actually, I am moving dbService to core/db.ts next. So I should point to './db'.
+import { supabase } from '../../lib/supabase';
 
-export const BACKEND_URL = 'http://localhost:3000';
+// Re-export methods for components that might use them directly, 
+// though they should prefer AuthContext.
+// Keeping interface compatible where possible.
 
-let currentUserId: string | null = 'mock-user-123';
-let currentUserProfile: UserProfile | null = null;
+export const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
 
-let currentUserOrganizations: OrganizationMembership[] = [
-    {
-        organization: {
-            id: 'mock-org-default',
-            name: 'Minha Organização',
-            fileSearchStoreName: undefined
-        },
-        role: 'ADMIN'
+export const loginWithGoogle = async (): Promise<void> => {
+    const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+            redirectTo: window.location.origin, // Redirect back to app
+        }
+    });
+
+    if (error) {
+        console.error('Error logging in with Google:', error);
+        throw error;
     }
-];
-
-export const getAuthToken = async (): Promise<string> => {
-    return 'mock-auth-token';
-};
-
-export const loginWithGoogle = async (): Promise<UserProfile> => {
-    console.log('Initiating Mock Google login...');
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    const mockUser = {
-        uid: 'mock-user-123',
-        email: 'demo@vitrinex.ai',
-        displayName: 'Usuário Demo'
-    }
-    currentUserId = mockUser.uid;
-    currentUserProfile = {
-        id: mockUser.uid,
-        email: mockUser.email,
-        name: mockUser.displayName,
-        plan: 'premium',
-        businessProfile: {
-            name: 'Minha Empresa', industry: 'Marketing Digital', targetAudience: 'Pequenas e Médias Empresas', visualStyle: 'moderno'
-        },
-    };
-    console.log('User logged in successfully (MOCKED):', currentUserId);
-    return currentUserProfile;
+    // Session is handled by onAuthStateChange in AuthContext
 };
 
 export const logout = async (): Promise<void> => {
-    console.log('Logging out (MOCKED)...');
-    currentUserId = null;
-    currentUserProfile = null;
-    console.log('User logged out.');
-};
-
-export const getCurrentUser = async (): Promise<UserProfile | null> => {
-    if (currentUserId && !currentUserProfile) {
-        // NOTE: getUserProfile will be in ./db when we move it, or ../dbService if not moved yet.
-        // Trying dynamic import or assume I move db same time.
-        try {
-            const { getUserProfile } = await import('./db'); // Keep old path for now or ../core/db if I move it now.
-            const profile = await getUserProfile(currentUserId);
-            if (profile) {
-                currentUserProfile = profile;
-            }
-        } catch (e) {
-            console.warn("Could not load dbService", e);
-        }
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+        console.error('Error logging out:', error);
+        throw error;
     }
-    return currentUserProfile;
 };
 
-export const getActiveOrganization = (): OrganizationMembership | undefined => {
-    return currentUserOrganizations.length > 0 ? currentUserOrganizations[0] : undefined;
+export const getAuthToken = async (): Promise<string | null> => {
+    const { data: { session } } = await supabase.auth.getSession();
+    return session?.access_token || null;
+};
+
+// Deprecated: Use AuthContext for current user
+// Kept for compatibility during migration if needed, but updated logic.
+export const getCurrentUser = async (): Promise<UserProfile | null> => {
+    // This is better served by AuthContext which caches profile.
+    // If called directly, we fetch.
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return null;
+
+    // Import dynamically to avoid circular deps if any, or just import db.
+    // Ideally moved to db.ts, but keeping here for now.
+    const { getUserProfile } = await import('./db');
+    return getUserProfile(user.id);
+};
+
+// Mock organizations for now until we have an 'organizations' table
+// or 'memberships' table in Supabase.
+// Assuming we start with "Single User" organization for MVP.
+export const getActiveOrganization = (): OrganizationMembership => {
+    return {
+        organization: {
+            id: 'default-org',
+            name: 'Minha Organização',
+        },
+        role: 'ADMIN'
+    };
 };
 
 export const getActiveOrganizationId = (): string => {
-    const activeOrg: OrganizationMembership | undefined = getActiveOrganization();
-    return activeOrg ? activeOrg.organization.id : 'mock-org-default';
+    return 'default-org';
 };

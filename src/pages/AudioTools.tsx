@@ -5,6 +5,8 @@ import Button from '../components/ui/Button';
 import Textarea from '../components/ui/Textarea';
 import { useToast } from '../contexts/ToastContext';
 import { generateSpeech, decode, decodeAudioData, base64AudioToWavBlob } from '../services/ai';
+import { saveLibraryItem } from '../services/core/db';
+import HowToUse from '../components/ui/HowToUse';
 
 const AudioTools: React.FC = () => {
   const [text, setText] = useState('');
@@ -67,6 +69,21 @@ const AudioTools: React.FC = () => {
       sourceRef.current = source;
 
       addToast({ type: 'success', message: 'Áudio gerado e reproduzido!' });
+
+      // AUTO-SAVE: Salvar áudio na biblioteca
+      try {
+        await saveLibraryItem({
+          id: `lib-${Date.now()}`,
+          userId: 'mock-user-123',
+          name: `Áudio - ${text.substring(0, 30)}`,
+          file_url: base64Audio,
+          type: 'audio',
+          tags: ['audio-tools', 'tts', 'audio'],
+          createdAt: new Date().toISOString()
+        });
+      } catch (saveError) {
+        console.warn('Failed to auto-save to library:', saveError);
+      }
     } catch (error: any) {
       addToast({ type: 'error', message: `Erro: ${error.message}` });
     } finally {

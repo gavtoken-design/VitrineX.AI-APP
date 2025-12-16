@@ -6,6 +6,8 @@ import Textarea from '../components/ui/Textarea';
 import Input from '../components/ui/Input';
 import { useToast } from '../contexts/ToastContext';
 import { generateText } from '../services/ai';
+import { saveLibraryItem } from '../services/core/db';
+import HowToUse from '../components/ui/HowToUse';
 import { GEMINI_PRO_MODEL } from '../constants';
 
 const CodePlayground: React.FC = () => {
@@ -112,6 +114,22 @@ O código deve ser copy-paste ready.`;
 
       setGeneratedCode(cleanCode);
       setShowPreview(true);
+
+      // AUTO-SAVE: Salvar HTML na biblioteca
+      try {
+        await saveLibraryItem({
+          id: `lib-${Date.now()}`,
+          userId: 'mock-user-123',
+          name: `HTML - ${prompt.substring(0, 30)}`,
+          file_url: cleanCode,
+          type: 'text',
+          tags: ['code-playground', 'html', 'code'],
+          createdAt: new Date().toISOString()
+        });
+      } catch (saveError) {
+        console.warn('Failed to auto-save to library:', saveError);
+      }
+
       addToast({ type: 'success', message: 'Código HTML gerado com sucesso!' });
     } catch (error: any) {
       addToast({ type: 'error', message: `Erro ao gerar código: ${error.message}` });
@@ -160,10 +178,28 @@ O código deve ser copy-paste ready.`;
           </div>
           <div>
             <h1 className="text-3xl font-bold text-title">Gerador de HTML com IA</h1>
-            <p className="text-muted">Transforme conteúdo em código profissional automaticamente.</p>
+            <p className="text-muted">Crie páginas HTML completas com IA</p>
           </div>
         </div>
       </div>
+
+      <HowToUse
+        title="Como Usar o Code Playground"
+        steps={[
+          "Descreva a página HTML que deseja criar",
+          "Seja específico sobre layout, cores e funcionalidades",
+          "Clique em 'Gerar Código HTML'",
+          "Aguarde a geração",
+          "Visualize o resultado no preview",
+          "Use 'Baixar', 'Copiar' ou 'Enviar' conforme necessário"
+        ]}
+        tips={[
+          "O código é salvo automaticamente na biblioteca",
+          "Você pode editar o código manualmente se quiser",
+          "Ideal para landing pages, formulários ou protótipos",
+          "Use 'Enviar' para compartilhar via email"
+        ]}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Input Section */}

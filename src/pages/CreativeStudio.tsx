@@ -8,6 +8,7 @@ import LoadingSpinner from '../components/ui/LoadingSpinner';
 import SaveToLibraryButton from '../components/features/SaveToLibraryButton';
 import MediaActionsToolbar from '../components/features/MediaActionsToolbar';
 import { generateImage, editImage, generateVideo, analyzeImage } from '../services/ai';
+import { saveLibraryItem } from '../services/core/db';
 import { downloadImage } from '../utils/mediaUtils';
 import {
   ArrowDownTrayIcon,
@@ -37,6 +38,7 @@ import {
   SEASONAL_TEMPLATES // Importado
 } from '../constants';
 import { useToast } from '../contexts/ToastContext';
+import HowToUse from '../components/ui/HowToUse';
 
 type MediaType = 'image' | 'video';
 
@@ -170,6 +172,21 @@ const CreativeStudio: React.FC = () => {
         });
         if (!response.imageUrl) throw new Error('A API não retornou imagem.');
         setGeneratedMediaUrl(response.imageUrl);
+
+        // AUTO-SAVE: Salvar imagem na biblioteca
+        try {
+          await saveLibraryItem({
+            id: `lib-${Date.now()}`,
+            userId,
+            name: `Gerado - ${prompt.substring(0, 30)}`,
+            file_url: response.imageUrl,
+            type: 'image',
+            tags: ['creative-studio', 'image', 'generated'],
+            createdAt: new Date().toISOString()
+          });
+        } catch (saveError) {
+          console.warn('Failed to auto-save to library:', saveError);
+        }
       } else {
         const response = await generateVideo(prompt, {
           model: VEO_FAST_GENERATE_MODEL,
@@ -181,6 +198,21 @@ const CreativeStudio: React.FC = () => {
         });
         if (!response) throw new Error('A API não retornou vídeo.');
         setGeneratedMediaUrl(response);
+
+        // AUTO-SAVE: Salvar vídeo na biblioteca
+        try {
+          await saveLibraryItem({
+            id: `lib-${Date.now()}`,
+            userId,
+            name: `Vídeo gerado - ${prompt.substring(0, 30)}`,
+            file_url: response,
+            type: 'video',
+            tags: ['creative-studio', 'video', 'generated'],
+            createdAt: new Date().toISOString()
+          });
+        } catch (saveError) {
+          console.warn('Failed to auto-save to library:', saveError);
+        }
       }
       setSavedItemName(`Gerado ${mediaType} - ${prompt.substring(0, 20)}...`);
       addToast({ type: 'success', title: 'Sucesso', message: 'Mídia gerada com sucesso.' });
@@ -215,10 +247,44 @@ const CreativeStudio: React.FC = () => {
 
       try {
         if (mediaType === 'image') {
-          // Feature: Use Gemini 2.5 Flash Image for editing via text prompt
-          const response = await editImage(prompt, base64Data, mimeType, GEMINI_IMAGE_FLASH_MODEL);
-          if (!response.imageUrl) throw new Error('Falha na edição da imagem.');
+          // PASSO 1: Analisar a imagem carregada
+          addToast({ type: 'info', message: 'Analisando imagem...' });
+          const analysisPrompt = `Analise esta imagem em detalhes: elementos visuais, cores, composição, estilo, objetos presentes.`;
+          const imageAnalysis = await analyzeImage(base64Data, mimeType, analysisPrompt);
+
+          // PASSO 2: Criar prompt enriquecido com análise + instrução do usuário
+          const enrichedPrompt = `Baseado nesta análise da imagem original:
+${imageAnalysis}
+
+Instrução do usuário: ${prompt}
+
+Crie uma nova imagem que atenda à instrução do usuário, mantendo coerência com os elementos identificados na análise.`;
+
+          // PASSO 3: Gerar nova imagem
+          addToast({ type: 'info', message: 'Gerando nova imagem...' });
+          const response = await generateImage(enrichedPrompt, {
+            model: GEMINI_IMAGE_PRO_MODEL,
+            aspectRatio: imageAspectRatio,
+            imageSize: imageSize,
+          });
+
+          if (!response.imageUrl) throw new Error('Falha na geração da imagem.');
           setGeneratedMediaUrl(response.imageUrl);
+
+          // AUTO-SAVE: Salvar automaticamente na biblioteca
+          try {
+            await saveLibraryItem({
+              id: `lib-${Date.now()}`,
+              userId,
+              name: `Editado - ${prompt.substring(0, 30)}`,
+              file_url: response.imageUrl,
+              type: 'image',
+              tags: ['creative-studio', 'image', 'edited'],
+              createdAt: new Date().toISOString()
+            });
+          } catch (saveError) {
+            console.warn('Failed to auto-save to library:', saveError);
+          }
         } else {
           // Video editing (generation with start image)
           const response = await generateVideo(prompt, {
@@ -228,9 +294,24 @@ const CreativeStudio: React.FC = () => {
           });
           if (!response) throw new Error('Falha na edição do vídeo.');
           setGeneratedMediaUrl(response);
+
+          // AUTO-SAVE: Salvar vídeo na biblioteca
+          try {
+            await saveLibraryItem({
+              id: `lib-${Date.now()}`,
+              userId,
+              name: `Vídeo - ${prompt.substring(0, 30)}`,
+              file_url: response,
+              type: 'video',
+              tags: ['creative-studio', 'video'],
+              createdAt: new Date().toISOString()
+            });
+          } catch (saveError) {
+            console.warn('Failed to auto-save to library:', saveError);
+          }
         }
         setSavedItemName(`Editado - ${prompt.substring(0, 20)}`);
-        addToast({ type: 'success', message: 'Edição concluída.' });
+        addToast({ type: 'success', message: 'Nova imagem criada com sucesso!' });
       } catch (err) {
         setError(getFriendlyErrorMessage(err, 'edição'));
         addToast({ type: 'error', message: 'Erro na edição.' });
@@ -239,11 +320,16 @@ const CreativeStudio: React.FC = () => {
       }
     };
     reader.readAsDataURL(file);
-  }, [file, previewUrl, prompt, mediaType, videoAspectRatio, videoResolution, addToast]);
+  }, [file, previewUrl, prompt, mediaType, imageAspectRatio, imageSize, videoAspectRatio, videoResolution, addToast]);
 
   const handleAnalyzeMedia = useCallback(async () => {
     if (!file) {
       addToast({ type: 'warning', message: 'Carregue um arquivo para analisar.' });
+      return;
+    }
+
+    if (!prompt.trim()) {
+      addToast({ type: 'warning', message: 'Descreva o que você quer saber sobre a imagem.' });
       return;
     }
 
@@ -255,7 +341,8 @@ const CreativeStudio: React.FC = () => {
     reader.onloadend = async () => {
       if (typeof reader.result !== 'string') return;
       const base64Data = reader.result.split(',')[1];
-      const analysisPrompt = prompt.trim() || "Analise detalhadamente esta imagem/vídeo.";
+      // Use o prompt do usuário diretamente (baseado na imagem)
+      const analysisPrompt = prompt.trim();
 
       try {
         const analysis = await analyzeImage(base64Data, file.type, analysisPrompt);
@@ -314,6 +401,25 @@ const CreativeStudio: React.FC = () => {
           <p className="text-muted mt-1">Crie, Edite e Analise mídias com o poder do Gemini 2.5 e Veo.</p>
         </div>
       </div>
+
+      <HowToUse
+        title="Como Usar o Estúdio Criativo"
+        steps={[
+          "Escolha entre Imagem ou Vídeo no topo",
+          "Para gerar do zero: Digite uma descrição e clique 'Gerar'",
+          "Para editar: Faça upload de um arquivo e descreva a edição",
+          "Para analisar: Faça upload e descreva o que quer saber",
+          "Configure proporção e tamanho/resolução conforme necessário",
+          "Aguarde a geração (pode levar alguns segundos)",
+          "Use templates sazonais para inspiração rápida"
+        ]}
+        tips={[
+          "Imagens com análise: A IA analisa primeiro e cria baseado nisso",
+          "Todos os arquivos são salvos automaticamente na biblioteca",
+          "Use 'Aplicar Identidade' para adicionar sua logo",
+          "Templates sazonais já vêm com prompts otimizados"
+        ]}
+      />
 
       {error && (
         <div className="bg-red-900/20 border border-red-500/50 text-red-400 px-4 py-3 rounded-lg mb-6 flex items-center gap-2">
@@ -462,7 +568,7 @@ const CreativeStudio: React.FC = () => {
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               rows={4}
-              placeholder={file ? "Ex: 'Adicione um filtro neon', 'Remova o fundo', 'Descreva a imagem'" : "Ex: 'Um robô futurista em uma cidade cyberpunk'"}
+              placeholder={file ? "Ex: 'O que há nesta imagem?', 'Identifique os elementos principais', 'Sugira melhorias'" : "Ex: 'Um robô futurista em uma cidade cyberpunk'"}
               className="text-sm"
             />
 
@@ -501,9 +607,9 @@ const CreativeStudio: React.FC = () => {
               </div>
             ) : generatedMediaUrl ? (
               mediaType === 'image' ? (
-                <img src={generatedMediaUrl} alt="Result" className="max-w-full max-h-full object-contain shadow-2xl" />
+                <img src={generatedMediaUrl} alt="Resultado" className="max-w-full max-h-full object-contain shadow-2xl" />
               ) : (
-                <video src={generatedMediaUrl} controls className="max-w-full max-h-full shadow-2xl" />
+                <video src={generatedMediaUrl} controls className="max-w-full max-h-full shadow-2xl" title="Vídeo gerado" />
               )
             ) : generatedAnalysis ? (
               <div className="p-8 max-w-2xl w-full h-full overflow-y-auto">
