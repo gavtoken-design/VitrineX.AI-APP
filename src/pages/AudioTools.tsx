@@ -6,9 +6,23 @@ import Textarea from '../components/ui/Textarea';
 import { useToast } from '../contexts/ToastContext';
 import { generateSpeech, decode, decodeAudioData, base64AudioToWavBlob } from '../services/ai';
 import { saveLibraryItem } from '../services/core/db';
+import { uploadFile } from '../services/media/storage';
 import HowToUse from '../components/ui/HowToUse';
+import { useAuth } from '../contexts/AuthContext';
+
+// Utility: Convert Base64 audio to File for storage upload
+const base64ToAudioFile = async (base64: string): Promise<File> => {
+  const response = await fetch(`data:audio/wav;base64,${base64}`);
+  const blob = await response.blob();
+  return new File(
+    [blob],
+    `audio-${Date.now()}.wav`,
+    { type: 'audio/wav' }
+  );
+};
 
 const AudioTools: React.FC = () => {
+  const { user } = useAuth();
   const [text, setText] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const { addToast } = useToast();
@@ -71,18 +85,20 @@ const AudioTools: React.FC = () => {
       addToast({ type: 'success', message: 'Áudio gerado e reproduzido!' });
 
       // AUTO-SAVE: Salvar áudio na biblioteca
-      try {
-        await saveLibraryItem({
-          id: `lib-${Date.now()}`,
-          userId: 'mock-user-123',
-          name: `Áudio - ${text.substring(0, 30)}`,
-          file_url: base64Audio,
-          type: 'audio',
-          tags: ['audio-tools', 'tts', 'audio'],
-          createdAt: new Date().toISOString()
-        });
-      } catch (saveError) {
-        console.warn('Failed to auto-save to library:', saveError);
+      if (user) {
+        try {
+          await saveLibraryItem({
+            id: `lib-${Date.now()}`,
+            userId: user.id,
+            name: `Áudio - ${text.substring(0, 30)}`,
+            file_url: base64Audio,
+            type: 'audio',
+            tags: ['audio-tools', 'tts', 'audio'],
+            createdAt: new Date().toISOString()
+          });
+        } catch (saveError) {
+          console.warn('Failed to auto-save to library:', saveError);
+        }
       }
     } catch (error: any) {
       addToast({ type: 'error', message: `Erro: ${error.message}` });
@@ -132,14 +148,55 @@ const AudioTools: React.FC = () => {
           </Button>
 
           {generatedAudioBase64 && (
-            <Button
-              onClick={handleDownloadMP3}
-              variant="secondary"
-              className="flex-1 sm:flex-none"
-            >
-              <ArrowDownTrayIcon className="w-4 h-4 mr-2" />
-              Baixar WAV
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+              <Button
+                onClick={handleDownloadMP3}
+                variant="secondary"
+                className="flex-1 sm:flex-none"
+              >
+                <ArrowDownTrayIcon className="w-4 h-4 mr-2" />
+                Baixar WAV
+              </Button>
+
+              <Button
+                onClick={async () => {
+                  if (!user) {
+                    addToast({ type: 'error', message: 'Você precisa estar logado para salvar.' });
+                    return;
+                  }
+                  if (!generatedAudioBase64) {
+                    addToast({ type: 'error', message: 'Nenhum áudio para salvar.' });
+                    return;
+                  }
+
+                  try {
+                    // 1️⃣ Convert Base64 to File
+                    const audioFile = await base64ToAudioFile(generatedAudioBase64);
+
+                    // 2️⃣ Upload to Supabase Storage
+                    const uploadedItem = await uploadFile(audioFile, user.id, 'audio');
+
+                    // 3️⃣ Save to Database using the public URL
+                    await saveLibraryItem({
+                      ...uploadedItem,
+                      name: `Narrativa: ${text.substring(0, 30)}`,
+                      userId: user.id,
+                      tags: ['audio-tools', 'tts', 'audio']
+                    });
+
+                    addToast({ type: 'success', message: 'Áudio salvo na biblioteca com sucesso!' });
+                  } catch (error: any) {
+                    console.error(error);
+                    addToast({ type: 'error', message: 'Erro ao salvar áudio na biblioteca.' });
+                  }
+                }}
+                variant="outline"
+                className="flex-1 sm:flex-none border-green-500 text-green-600 hover:bg-green-50"
+              >
+                <MusicalNoteIcon className="w-4 h-4 mr-2" />
+                Salvar na Biblioteca
+              </Button>
+            </div>
           )}
         </div>
 

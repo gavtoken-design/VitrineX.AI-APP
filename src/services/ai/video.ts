@@ -1,4 +1,4 @@
-import { VEO_FAST_GENERATE_MODEL } from '../../constants';
+import { VEO_GENERATE_MODEL } from '../../constants';
 import { getGenAIClient } from './gemini';
 import { proxyFetch } from '../core/api';
 
@@ -11,7 +11,7 @@ export interface GenerateVideoOptions {
 }
 
 export const generateVideo = async (prompt: string, options?: GenerateVideoOptions): Promise<string> => {
-    const modelId = options?.model || VEO_FAST_GENERATE_MODEL;
+    const modelId = options?.model || VEO_GENERATE_MODEL;
 
     try {
         const response = await proxyFetch<{ videoUri: string }>('generate-video', 'POST', {

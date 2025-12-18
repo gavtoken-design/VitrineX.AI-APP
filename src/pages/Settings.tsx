@@ -17,6 +17,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import Logo from '../components/ui/Logo';
 import { useNavigate } from '../hooks/useNavigate';
+import { useAuth } from '../contexts/AuthContext';
 
 const Settings: React.FC = () => {
   // Profile State
@@ -37,7 +38,8 @@ const Settings: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
   const { language, setLanguage } = useLanguage();
   const { navigateTo } = useNavigate();
-  const userId = 'mock-user-123';
+  const { user } = useAuth();
+  const userId = user?.id || 'guest-user';
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -471,7 +473,7 @@ const Settings: React.FC = () => {
               onClick={() => {
                 const data = {
                   db: localStorage.getItem('vitrinex_mock_db'),
-                  apiKey: localStorage.getItem('vitrinex_gemini_api_key'),
+                  // apiKey removida por segurança: localStorage.getItem('vitrinex_gemini_api_key'),
                   date: new Date().toISOString()
                 };
                 const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });

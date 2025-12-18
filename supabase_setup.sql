@@ -90,3 +90,27 @@ create table if not exists public.posts (
 alter table public.posts enable row level security;
 create policy "Usuários veem seus posts" on public.posts for select using (auth.uid() = "userId");
 create policy "Usuários criam posts" on public.posts for insert with check (auth.uid() = "userId");
+
+-- 6. Configuração do Storage (Bucket 'media')
+-- Cria o bucket se não existir
+insert into storage.buckets (id, name, public)
+values ('media', 'media', true)
+on conflict (id) do nothing;
+
+-- Políticas de Segurança para o Storage
+
+-- Permitir acesso público para leitura (imagens geradas precisam ser acessíveis)
+create policy "Public Access"
+  on storage.objects for select
+  using ( bucket_id = 'media' );
+
+-- Permitir upload apenas para usuários autenticados
+create policy "Authenticated Upload"
+  on storage.objects for insert
+  with check ( bucket_id = 'media' and auth.role() = 'authenticated' );
+
+-- Permitir usuários deletarem seus próprios arquivos
+create policy "Users can delete own files"
+  on storage.objects for delete
+  using ( bucket_id = 'media' and auth.uid() = owner );
+

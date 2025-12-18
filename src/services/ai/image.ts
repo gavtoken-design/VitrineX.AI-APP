@@ -1,6 +1,7 @@
 import {
-    GEMINI_IMAGE_FLASH_MODEL,
-    GEMINI_IMAGE_PRO_MODEL,
+    IMAGEN_STANDARD_MODEL,
+    IMAGEN_ULTRA_MODEL,
+    GEMINI_IMAGE_MODEL,
 } from '../../constants';
 import { getGenAIClient } from './gemini';
 import { proxyFetch } from '../core/api';
@@ -13,7 +14,7 @@ export interface GenerateImageOptions {
 }
 
 export const generateImage = async (prompt: string, options?: GenerateImageOptions): Promise<{ imageUrl?: string; text?: string }> => {
-    const modelId = options?.model || GEMINI_IMAGE_FLASH_MODEL;
+    const modelId = options?.model || GEMINI_IMAGE_MODEL;
 
     // Image generation config for Imagen 3 via Gemini API
     // Note: The new SDK supports 'mediaResolution' or 'aspectRatio' in config depending on model version
@@ -22,7 +23,7 @@ export const generateImage = async (prompt: string, options?: GenerateImageOptio
         aspectRatio: options?.aspectRatio,
     };
 
-    if (modelId === GEMINI_IMAGE_PRO_MODEL && options?.imageSize) {
+    if (modelId === IMAGEN_ULTRA_MODEL && options?.imageSize) {
         // imageConfig.imageSize = options.imageSize; // If supported by API
     }
 
@@ -75,7 +76,7 @@ export const generateImage = async (prompt: string, options?: GenerateImageOptio
     }
 };
 
-export const editImage = async (prompt: string, base64ImageData: string, mimeType: string, modelId: string = GEMINI_IMAGE_FLASH_MODEL): Promise<{ imageUrl?: string; text?: string }> => {
+export const editImage = async (prompt: string, base64ImageData: string, mimeType: string, modelId: string = GEMINI_IMAGE_MODEL): Promise<{ imageUrl?: string; text?: string }> => {
     try {
         const response = await proxyFetch<any>('call-gemini', 'POST', {
             model: modelId,
@@ -121,7 +122,7 @@ export const editImage = async (prompt: string, base64ImageData: string, mimeTyp
     }
 };
 
-export const analyzeImage = async (base64ImageData: string, mimeType: string, prompt: string, modelId: string = GEMINI_IMAGE_PRO_MODEL): Promise<string> => {
+export const analyzeImage = async (base64ImageData: string, mimeType: string, prompt: string, modelId: string = IMAGEN_ULTRA_MODEL): Promise<string> => {
     try {
         const response = await proxyFetch<any>('call-gemini', 'POST', {
             model: modelId,

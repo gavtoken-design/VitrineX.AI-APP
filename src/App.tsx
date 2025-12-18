@@ -68,7 +68,7 @@ const queryClient = new QueryClient({
 });
 
 function AppContent() {
-  const { user, loading: authLoading } = useAuth(); // Use Auth Context
+  const { user, loading: authLoading, profile, signOut } = useAuth(); // Use Auth Context
   const [activeModule, setActiveModule] = useState<ModuleName>('LandingPage');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -79,16 +79,7 @@ function AppContent() {
   const [authError, setAuthError] = useState<string | null>(null);
   const [isAuthProcessing, setIsAuthProcessing] = useState(false);
 
-  // Note: We are now using Supabase Auth. 
-  // API Key check logic for Gemini is secondary to User Auth.
-  // We can keep the API check if we want to ensure user provides their own key even after login,
-  // or we can move it to Settings/Onboarding.
-  // For now, let's assume if user is logged in, they get access to the app, 
-  // and we show the API Key prompt inside the app if missing?
-  // Or we keep the "Gatekeeper" style.
-  // Let's migrate to: Login First -> Then check API Key (optional or required).
-
-  // Actually, let's keep it simple: Login Screen replaces the "Enter API Key" screen as the primary gate.
+  // ... (Login Logic) ...
 
   const handleLogin = async () => {
     // Check Supabase Config explicitly
@@ -137,6 +128,37 @@ function AppContent() {
       <div className="flex flex-col items-center justify-center h-screen bg-background">
         <LoadingSpinner className="w-8 h-8" />
         <p className="mt-4 text-body font-medium animate-pulse">Inicializando VitrineX AI...</p>
+      </div>
+    );
+  }
+
+  // --- CHECK BLOCKING STATUS ---
+  // Se o usuário está logado, verificamos apenas se ele está explicitamente BLOQUEADO.
+  // "Quando for cadastrado na supabase pode liberar" -> Acesso padrão permitido.
+  if (user && profile?.status === 'blocked') {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-background p-6 text-center">
+        <div className="p-10 bg-surface rounded-3xl shadow-2xl border border-red-500/20 max-w-md w-full">
+          <div className="flex justify-center mb-6">
+            <LockClosedIcon className="h-16 w-16 text-yellow-500" />
+          </div>
+          <h1 className="text-2xl font-bold text-title mb-3">Acesso Bloqueado</h1>
+          <p className="text-body mb-6">
+            Sua conta foi suspensa ou bloqueada pelo administrador. Entre em contato com o suporte.
+          </p>
+          <p className="text-xs text-muted mb-8">
+            ID do Usuário: <span className="font-mono bg-black/10 px-1 rounded">{user.id.slice(0, 8)}...</span>
+            <br />
+            Status Atual: <span className="font-bold text-yellow-600 uppercase">{profile?.status || 'INDEFINIDO'}</span>
+          </p>
+
+          <button
+            onClick={() => signOut()}
+            className="w-full px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-colors"
+          >
+            Sair Agora
+          </button>
+        </div>
       </div>
     );
   }

@@ -3,7 +3,7 @@ import { motion, Variants } from 'framer-motion';
 // Se estiveres a usar react-router-dom padrão, troca a linha abaixo por:
 // import { useNavigate } from 'react-router-dom';
 import { useNavigate } from '../hooks/useNavigate';
-import { ArrowRightIcon, SparklesIcon } from '@heroicons/react/24/outline';
+import { ArrowRightIcon, SparklesIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import Logo from '../components/ui/Logo';
 import AnoAI from '../components/ui/animated-shader-background';
 import { WHATSAPP_SUPPORT_LINK, PAYMENT_LINK } from '../constants';
@@ -40,6 +40,7 @@ export const LandingPage: React.FC = () => {
 
     const [showApiKey, setShowApiKey] = React.useState(false);
     const [apiKey, setApiKey] = React.useState('');
+    const [showPassword, setShowPassword] = React.useState(false);
 
     const handleSaveKey = () => {
         if (apiKey.trim()) {
@@ -125,13 +126,26 @@ export const LandingPage: React.FC = () => {
                             >
                                 <label className="text-xs text-left text-gray-400 ml-1">Insira sua Chave de Acesso / Licença</label>
                                 <div className="flex gap-2">
-                                    <input
-                                        type="password"
-                                        value={apiKey}
-                                        onChange={(e) => setApiKey(e.target.value)}
-                                        placeholder="AIzaSy..."
-                                        className="flex-1 bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500 transition-colors placeholder:text-gray-600"
-                                    />
+                                    <div className="relative flex-1">
+                                        <input
+                                            type={showPassword ? 'text' : 'password'}
+                                            value={apiKey}
+                                            onChange={(e) => setApiKey(e.target.value)}
+                                            placeholder="AIzaSy..."
+                                            className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500 transition-colors placeholder:text-gray-600 pr-10"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                                        >
+                                            {showPassword ? (
+                                                <EyeSlashIcon className="w-4 h-4" />
+                                            ) : (
+                                                <EyeIcon className="w-4 h-4" />
+                                            )}
+                                        </button>
+                                    </div>
                                     <button
                                         onClick={handleSaveKey}
                                         className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm font-semibold rounded-lg transition-colors border border-white/5"

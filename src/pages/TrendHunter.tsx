@@ -26,6 +26,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { useToast } from '../contexts/ToastContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '../contexts/AuthContext';
 
 // Tipos para resultado estruturado
 interface TrendResultStructured {
@@ -80,7 +81,8 @@ const TrendHunter: React.FC = () => {
   const { addToast } = useToast();
   const { language } = useLanguage();
 
-  const userId = 'mock-user-123';
+  const { user } = useAuth();
+  const userId = user?.id || 'guest-user';
 
   // Carregar perfil do cliente
   useEffect(() => {
@@ -337,8 +339,8 @@ IMPORTANTE: Retorne APENAS o JSON válido, sem texto adicional antes ou depois.`
                 key={obj.id}
                 onClick={() => setObjective(obj.id)}
                 className={`px - 4 py - 2 rounded - lg text - sm font - medium transition - all flex items - center gap - 2 ${objective === obj.id
-                    ? 'bg-primary text-white'
-                    : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                  ? 'bg-primary text-white'
+                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
                   } `}
               >
                 <span>{obj.icon}</span>

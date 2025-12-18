@@ -4,48 +4,68 @@ import { proxyFetch } from '../core/api';
 
 export const generateSpeech = async (text: string, voiceName: string = 'Kore'): Promise<string | undefined> => {
     try {
-        const response = await proxyFetch<any>('generate-speech', 'POST', {
-            text,
-            model: GEMINI_TTS_MODEL,
-            speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName } } },
-        });
-        return response.base64Audio;
-    } catch (error) {
-        console.warn("Backend proxy failed for generateSpeech, falling back to client-side SDK.", error);
+        const client = await getGenAIClient();
 
+        // STEP 1: Text Normalization (Gemini 3 Flash)
+        // Objective: Create a clean script for narration.
+        let narrationText = text;
         try {
-            const client = await getGenAIClient();
-
-            // Note: Speech generation via `generateContent` might require specific setup or experimental endpoint
-            // In new SDK, we pass configuration in the 'config' object.
-            const result = await client.models.generateContent({
-                model: GEMINI_TTS_MODEL,
-                contents: [{ role: 'user', parts: [{ text }] }],
-                config: {
-                    // @ts-ignore - Speech config structure for Gemini 3 / specific models
-                    responseModalities: ["AUDIO"],
-                    speechConfig: {
-                        voiceConfig: { prebuiltVoiceConfig: { voiceName } }
+            const textResponse = await client.models.generateContent({
+                model: 'gemini-3-flash-preview',
+                contents: [
+                    {
+                        role: 'system',
+                        parts: [{ text: 'Você é um especialista em redação para áudio. Sua tarefa é reescrever e adaptar o texto fornecido para que ele soe natural e fluido quando narrado em português brasileiro. Remova formatações visuais (markdown, listas com bolinhas), converte números extensos para texto quando apropriado para leitura, e melhore a pontuação para pausas de respiração. O resultado final deve ser APENAS o texto pronto para ser lido.' }]
+                    },
+                    {
+                        role: 'user',
+                        parts: [{ text }]
                     }
+                ],
+                config: {
+                    temperature: 0.2 // Low temperature for consistent formatting
                 }
             });
+            narrationText = textResponse.text;
+            console.log("Audio Script Generated:", narrationText);
+        } catch (textError) {
+            console.warn("Text normalization failed, proceeding with original text:", textError);
+        }
 
-            // Extract audio data from candidates
-            if (result.candidates && result.candidates.length > 0) {
-                const cand = result.candidates[0];
-                if (cand.content && cand.content.parts) {
-                    const part = cand.content.parts.find((p: any) => p.inlineData);
-                    if (part && part.inlineData) {
-                        return part.inlineData.data;
-                    }
+        // STEP 2: Audio Generation (Gemini 2.5 Flash Native Audio)
+        const audioResponse = await client.models.generateContent({
+            model: GEMINI_TTS_MODEL, // Centralized constant for version control
+            contents: [
+                {
+                    role: 'user',
+                    parts: [{ text: narrationText }]
+                }
+            ],
+            config: {
+                responseModalities: ["AUDIO"],
+                speechConfig: {
+                    voiceConfig: { prebuiltVoiceConfig: { voiceName: 'pt-BR-Neural2-A' } }
                 }
             }
+        });
 
-            return undefined;
-        } catch (innerError) {
-            console.error("Audio generation fallback failed:", innerError);
-            throw innerError;
+        // Robust audio data extraction
+        const audioPart = audioResponse.candidates?.[0]?.content?.parts?.find(
+            (p: any) => p.inlineData?.mimeType?.startsWith('audio/')
+        );
+
+        if (audioPart?.inlineData?.data) {
+            return audioPart.inlineData.data;
         }
+
+        console.warn("No audio part found in response:", audioResponse);
+        return undefined;
+
+
+
+    } catch (error) {
+        console.error("Audio generation pipeline failed:", error);
+        throw error;
     }
 };
 

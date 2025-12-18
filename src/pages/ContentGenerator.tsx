@@ -11,11 +11,15 @@ import { generateText, generateImage } from '../services/ai';
 import { savePost } from '../services/core/firestore';
 import { saveLibraryItem } from '../services/core/db';
 import { Post } from '../types';
-import { GEMINI_FLASH_MODEL, GEMINI_IMAGE_FLASH_MODEL, PLACEHOLDER_IMAGE_BASE64 } from '../constants';
+import { GEMINI_FLASH_MODEL, GEMINI_IMAGE_MODEL, PLACEHOLDER_IMAGE_BASE64 } from '../constants';
+import { uploadFile } from '../services/media/storage';
 import { useToast } from '../contexts/ToastContext';
 import HowToUse from '../components/ui/HowToUse';
 
+import { useAuth } from '../contexts/AuthContext';
+
 const ContentGenerator: React.FC = () => {
+  const { user } = useAuth();
   const [prompt, setPrompt] = useState<string>('');
   const [generatedPost, setGeneratedPost] = useState<Post | null>(null);
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string>(PLACEHOLDER_IMAGE_BASE64);
@@ -29,8 +33,8 @@ const ContentGenerator: React.FC = () => {
 
   const { addToast } = useToast();
 
-  // Mock user ID
-  const userId = 'mock-user-123';
+  // Use real user ID if available, otherwise check login
+  const userId = user?.id || 'guest-user';
 
   const generateContent = useCallback(async (isWeekly: boolean = false) => {
     if (!prompt.trim()) {
@@ -85,43 +89,71 @@ const ContentGenerator: React.FC = () => {
 
       setLoadingText(false);
 
-      const imageResponse = await generateImage(imageDescription, { model: GEMINI_IMAGE_FLASH_MODEL });
-      setGeneratedImageUrl(imageResponse.imageUrl || PLACEHOLDER_IMAGE_BASE64);
+      const imageResponse = await generateImage(imageDescription, { model: GEMINI_IMAGE_MODEL });
+
+      let finalImageUrl = imageResponse.imageUrl || PLACEHOLDER_IMAGE_BASE64;
+
+      // Upload to Storage if Base64 and User is logged in
+      if (imageResponse.imageUrl && imageResponse.imageUrl.startsWith('data:') && user) {
+        try {
+          const res = await fetch(imageResponse.imageUrl);
+          const blob = await res.blob();
+          const file = new File([blob], `post-image-${Date.now()}.png`, { type: 'image/png' });
+          const uploadedItem = await uploadFile(file, user.id, 'image');
+          finalImageUrl = uploadedItem.file_url;
+        } catch (uploadErr) {
+          console.error("Failed to upload generated image to storage:", uploadErr);
+        }
+      }
+
+      setGeneratedImageUrl(finalImageUrl);
       setLoadingImage(false);
 
       const newPost: Post = {
         id: `post-${Date.now()}`,
         userId: userId,
         content_text: postContent,
-        image_url: imageResponse.imageUrl || undefined,
+        image_url: finalImageUrl,
         createdAt: new Date().toISOString(),
       };
       setGeneratedPost(newPost);
 
-      // AUTO-SAVE: Salvar na biblioteca
-      try {
-        await saveLibraryItem({
-          id: `lib-${Date.now()}`,
-          userId,
-          name: `Post - ${postContent.substring(0, 30)}`,
-          file_url: postContent,
-          type: 'text',
-          tags: ['content-generator', 'post', 'text'],
-          createdAt: new Date().toISOString()
-        });
-        if (imageResponse.imageUrl) {
+      // AUTO-SAVE: Salvar na biblioteca (apenas se logado)
+      if (user) {
+        try {
+          // Save Text Content
           await saveLibraryItem({
-            id: `lib-img-${Date.now()}`,
-            userId,
-            name: `Imagem - ${postContent.substring(0, 30)}`,
-            file_url: imageResponse.imageUrl,
-            type: 'image',
-            tags: ['content-generator', 'post', 'image'],
+            id: `lib-${Date.now()}`,
+            userId: user.id,
+            name: `Post - ${postContent.substring(0, 30)}`,
+            file_url: postContent,
+            type: 'text',
+            tags: ['content-generator', 'post', 'text'],
             createdAt: new Date().toISOString()
           });
+
+          // Save Image Content (using the persistent URL)
+          if (finalImageUrl && finalImageUrl !== PLACEHOLDER_IMAGE_BASE64) {
+            const isBase64 = finalImageUrl.startsWith('data:');
+            // Only save to library if it's a URL (already uploaded) or if we accept base64 (which we try to avoid)
+            // Since we attempted upload above, finalImageUrl should be a URL if successful.
+            if (!isBase64) {
+              await saveLibraryItem({
+                id: `lib-img-${Date.now()}`,
+                userId: user.id,
+                name: `Imagem - ${postContent.substring(0, 30)}`,
+                file_url: finalImageUrl,
+                type: 'image',
+                tags: ['content-generator', 'post', 'image'],
+                createdAt: new Date().toISOString()
+              });
+            } else {
+              console.warn("Skipping auto-save of duplicate base64 image to library to prevent DB bloat.");
+            }
+          }
+        } catch (saveError) {
+          console.warn('Failed to auto-save to library:', saveError);
         }
-      } catch (saveError) {
-        console.warn('Failed to auto-save to library:', saveError);
       }
 
       addToast({ type: 'success', title: 'Conteúdo Gerado', message: 'Texto e imagem foram gerados com sucesso.' });
@@ -145,7 +177,7 @@ const ContentGenerator: React.FC = () => {
     setLoadingImage(true);
     try {
       const imageDescription = `An alternative image for: "${generatedPost.content_text.substring(0, 100)}..."`;
-      const imageResponse = await generateImage(imageDescription, { model: GEMINI_IMAGE_FLASH_MODEL });
+      const imageResponse = await generateImage(imageDescription, { model: GEMINI_IMAGE_MODEL });
       setGeneratedImageUrl(imageResponse.imageUrl || PLACEHOLDER_IMAGE_BASE64);
       // Update the stored post with the new image URL
       if (generatedPost) {

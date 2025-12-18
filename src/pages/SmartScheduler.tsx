@@ -8,6 +8,7 @@ import { getLibraryItems, getScheduleEntries, saveScheduleEntry, deleteScheduleE
 import { ScheduleEntry, LibraryItem } from '../types';
 import { PlusIcon, TrashIcon, CalendarDaysIcon, CheckCircleIcon, XCircleIcon, ClockIcon } from '@heroicons/react/24/outline';
 import { useToast } from '../contexts/ToastContext';
+import { useAuth } from '../contexts/AuthContext';
 
 const SmartScheduler: React.FC = () => {
   const [scheduledItems, setScheduledItems] = useState<ScheduleEntry[]>([]);
@@ -22,7 +23,8 @@ const SmartScheduler: React.FC = () => {
   const [newScheduleContentType, setNewScheduleContentType] = useState<ScheduleEntry['contentType']>('post');
   const [scheduling, setScheduling] = useState<boolean>(false);
 
-  const userId = 'mock-user-123';
+  const { user } = useAuth();
+  const userId = user?.id || 'guest-user';
   const { addToast } = useToast();
 
   const fetchSchedulerData = useCallback(async () => {

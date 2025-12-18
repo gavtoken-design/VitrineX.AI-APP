@@ -12,6 +12,7 @@ import { useMediaActions } from '../hooks/useMediaActions';
 import { TrashIcon, ArrowDownTrayIcon, ShareIcon, DocumentTextIcon, MusicalNoteIcon, CircleStackIcon, CloudArrowUpIcon, CalendarDaysIcon } from '@heroicons/react/24/outline';
 import { useNavigate } from '../hooks/useNavigate';
 import { useToast } from '../contexts/ToastContext';
+import { useAuth } from '../contexts/AuthContext';
 
 const ContentLibrary: React.FC = () => {
   const [libraryItems, setLibraryItems] = useState<LibraryItem[]>([]);
@@ -26,8 +27,8 @@ const ContentLibrary: React.FC = () => {
   const { navigateTo } = useNavigate();
   const { addToast } = useToast();
   const { handleDownload, handleShare, isProcessing } = useMediaActions();
-
-  const userId = 'mock-user-123';
+  const { user } = useAuth();
+  const userId = user?.id || 'guest-user';
 
   const fetchLibrary = useCallback(async (tags?: string[]) => {
     setLoading(true);

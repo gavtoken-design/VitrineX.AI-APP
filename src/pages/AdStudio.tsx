@@ -10,8 +10,10 @@ import MediaActionsToolbar from '../components/features/MediaActionsToolbar'; //
 import { generateText, generateImage } from '../services/ai';
 import { saveAd } from '../services/core/firestore';
 import { Ad } from '../types';
-import { GEMINI_PRO_MODEL, GEMINI_IMAGE_PRO_MODEL, PLACEHOLDER_IMAGE_BASE64 } from '../constants';
+import { GEMINI_PRO_MODEL, IMAGEN_ULTRA_MODEL, PLACEHOLDER_IMAGE_BASE64 } from '../constants';
 import { useToast } from '../contexts/ToastContext';
+import { uploadFile } from '../services/media/storage';
+import { useAuth } from '../contexts/AuthContext';
 
 type Platform = 'Instagram' | 'Facebook' | 'TikTok' | 'Google' | 'Pinterest';
 
@@ -29,9 +31,11 @@ const AdStudio: React.FC = () => {
   const [savedItemName, setSavedItemName] = useState<string>('');
   const [savedItemTags, setSavedItemTags] = useState<string>('');
 
-  const { addToast } = useToast();
 
-  const userId = 'mock-user-123';
+
+  const { addToast } = useToast();
+  const { user } = useAuth();
+  const userId = user?.id || 'guest-user';
 
   const handleGenerateAd = useCallback(async () => {
     if (!productDescription.trim() || !targetAudience.trim()) {
@@ -79,12 +83,28 @@ const AdStudio: React.FC = () => {
       setGeneratedAd(newAd);
 
       const imageResponse = await generateImage(adData.visual_description, {
-        model: GEMINI_IMAGE_PRO_MODEL,
+        model: IMAGEN_ULTRA_MODEL,
         aspectRatio: '1:1', // Common for most platforms
         imageSize: '1K',
       });
-      setGeneratedImageUrl(imageResponse.imageUrl || PLACEHOLDER_IMAGE_BASE64);
-      newAd.media_url = imageResponse.imageUrl || undefined; // Add image URL to ad object
+
+      let finalImageUrl = imageResponse.imageUrl || PLACEHOLDER_IMAGE_BASE64;
+
+      // Upload if Base64 and User Logged In
+      if (imageResponse.imageUrl && imageResponse.imageUrl.startsWith('data:') && user) {
+        try {
+          const res = await fetch(imageResponse.imageUrl);
+          const blob = await res.blob();
+          const file = new File([blob], `ad-creative-${Date.now()}.png`, { type: 'image/png' });
+          const uploadedItem = await uploadFile(file, user.id, 'image');
+          finalImageUrl = uploadedItem.file_url;
+        } catch (uploadErr) {
+          console.error("Failed to upload ad creative:", uploadErr);
+        }
+      }
+
+      setGeneratedImageUrl(finalImageUrl);
+      newAd.media_url = finalImageUrl; // Add PERSISTENT image URL to ad object
 
       addToast({ type: 'success', title: 'Anúncio Criado', message: 'Anúncio gerado com sucesso.' });
 

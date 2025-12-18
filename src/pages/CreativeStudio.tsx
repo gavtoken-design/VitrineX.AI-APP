@@ -9,6 +9,8 @@ import SaveToLibraryButton from '../components/features/SaveToLibraryButton';
 import MediaActionsToolbar from '../components/features/MediaActionsToolbar';
 import { generateImage, editImage, generateVideo, analyzeImage } from '../services/ai';
 import { saveLibraryItem } from '../services/core/db';
+import { uploadFile } from '../services/media/storage';
+import { useAuth } from '../contexts/AuthContext';
 import { downloadImage } from '../utils/mediaUtils';
 import {
   ArrowDownTrayIcon,
@@ -24,9 +26,10 @@ import {
 import BrandAssetsManager, { LogoSettings } from '../components/features/BrandAssetsManager';
 import { applyWatermark } from '../utils/imageProcessing';
 import {
-  GEMINI_IMAGE_PRO_MODEL,
-  GEMINI_IMAGE_FLASH_MODEL,
-  VEO_FAST_GENERATE_MODEL,
+  IMAGEN_ULTRA_MODEL,
+  IMAGEN_STANDARD_MODEL,
+  GEMINI_IMAGE_MODEL,
+  VEO_GENERATE_MODEL,
   PLACEHOLDER_IMAGE_BASE64,
   IMAGE_ASPECT_RATIOS,
   IMAGE_SIZES,
@@ -72,8 +75,10 @@ const CreativeStudio: React.FC = () => {
     scale: 1.0
   });
 
+
   const { addToast } = useToast();
-  const userId = 'mock-user-123';
+  const { user } = useAuth();
+  const userId = user?.id || 'guest-user';
 
   // --- Handlers ---
 
@@ -166,30 +171,47 @@ const CreativeStudio: React.FC = () => {
     try {
       if (mediaType === 'image') {
         const response = await generateImage(prompt, {
-          model: GEMINI_IMAGE_PRO_MODEL, // High quality generation
+          model: IMAGEN_ULTRA_MODEL, // Ultra quality generation
           aspectRatio: imageAspectRatio,
           imageSize: imageSize,
         });
         if (!response.imageUrl) throw new Error('A API não retornou imagem.');
-        setGeneratedMediaUrl(response.imageUrl);
+        let finalImageUrl = response.imageUrl;
+
+        // Upload to Storage if Base64 and User is logged in
+        if (response.imageUrl && response.imageUrl.startsWith('data:') && user) {
+          try {
+            const res = await fetch(response.imageUrl);
+            const blob = await res.blob();
+            const file = new File([blob], `creative-gen-${Date.now()}.png`, { type: 'image/png' });
+            const uploadedItem = await uploadFile(file, user.id, 'image');
+            finalImageUrl = uploadedItem.file_url;
+          } catch (uploadErr) {
+            console.error("Failed to upload generated image to storage:", uploadErr);
+          }
+        }
+
+        setGeneratedMediaUrl(finalImageUrl);
 
         // AUTO-SAVE: Salvar imagem na biblioteca
-        try {
-          await saveLibraryItem({
-            id: `lib-${Date.now()}`,
-            userId,
-            name: `Gerado - ${prompt.substring(0, 30)}`,
-            file_url: response.imageUrl,
-            type: 'image',
-            tags: ['creative-studio', 'image', 'generated'],
-            createdAt: new Date().toISOString()
-          });
-        } catch (saveError) {
-          console.warn('Failed to auto-save to library:', saveError);
+        if (user && finalImageUrl && !finalImageUrl.startsWith('data:')) {
+          try {
+            await saveLibraryItem({
+              id: `lib-${Date.now()}`,
+              userId: user.id,
+              name: `Gerado - ${prompt.substring(0, 30)}`,
+              file_url: finalImageUrl,
+              type: 'image',
+              tags: ['creative-studio', 'image', 'generated'],
+              createdAt: new Date().toISOString()
+            });
+          } catch (saveError) {
+            console.warn('Failed to auto-save to library:', saveError);
+          }
         }
       } else {
         const response = await generateVideo(prompt, {
-          model: VEO_FAST_GENERATE_MODEL,
+          model: VEO_GENERATE_MODEL,
           config: {
             numberOfVideos: 1,
             resolution: videoResolution as "720p" | "1080p",
@@ -263,32 +285,49 @@ Crie uma nova imagem que atenda à instrução do usuário, mantendo coerência 
           // PASSO 3: Gerar nova imagem
           addToast({ type: 'info', message: 'Gerando nova imagem...' });
           const response = await generateImage(enrichedPrompt, {
-            model: GEMINI_IMAGE_PRO_MODEL,
+            model: IMAGEN_ULTRA_MODEL,
             aspectRatio: imageAspectRatio,
             imageSize: imageSize,
           });
 
           if (!response.imageUrl) throw new Error('Falha na geração da imagem.');
-          setGeneratedMediaUrl(response.imageUrl);
+          let finalEditedUrl = response.imageUrl;
+
+          // Upload if Base64
+          if (response.imageUrl && response.imageUrl.startsWith('data:') && user) {
+            try {
+              const res = await fetch(response.imageUrl);
+              const blob = await res.blob();
+              const file = new File([blob], `creative-edit-${Date.now()}.png`, { type: 'image/png' });
+              const uploadedItem = await uploadFile(file, user.id, 'image');
+              finalEditedUrl = uploadedItem.file_url;
+            } catch (err) {
+              console.error("Failed to upload edited image:", err);
+            }
+          }
+
+          setGeneratedMediaUrl(finalEditedUrl);
 
           // AUTO-SAVE: Salvar automaticamente na biblioteca
-          try {
-            await saveLibraryItem({
-              id: `lib-${Date.now()}`,
-              userId,
-              name: `Editado - ${prompt.substring(0, 30)}`,
-              file_url: response.imageUrl,
-              type: 'image',
-              tags: ['creative-studio', 'image', 'edited'],
-              createdAt: new Date().toISOString()
-            });
-          } catch (saveError) {
-            console.warn('Failed to auto-save to library:', saveError);
+          if (user && finalEditedUrl && !finalEditedUrl.startsWith('data:')) {
+            try {
+              await saveLibraryItem({
+                id: `lib-${Date.now()}`,
+                userId: user.id,
+                name: `Editado - ${prompt.substring(0, 30)}`,
+                file_url: finalEditedUrl,
+                type: 'image',
+                tags: ['creative-studio', 'image', 'edited'],
+                createdAt: new Date().toISOString()
+              });
+            } catch (saveError) {
+              console.warn('Failed to auto-save to library:', saveError);
+            }
           }
         } else {
           // Video editing (generation with start image)
           const response = await generateVideo(prompt, {
-            model: VEO_FAST_GENERATE_MODEL,
+            model: VEO_GENERATE_MODEL,
             image: { imageBytes: base64Data, mimeType: mimeType },
             config: { resolution: videoResolution as any, aspectRatio: videoAspectRatio as any }
           });
