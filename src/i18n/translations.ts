@@ -87,7 +87,7 @@ export const translations: Translations = {
     'sidebar.config': 'Configurações',
     'sidebar.tools': 'Ferramentas',
     'sidebar.audio_tools': 'Ferramentas de Áudio',
-    'sidebar.code_playground': 'Playground de Código',
+    'sidebar.code_playground': 'Criador de Páginas Web',
     'sidebar.live_conversation': 'Conversa ao Vivo',
     'sidebar.local_finder': 'Buscador Local',
     'sidebar.calendar_manager': 'Gerenciador de Calendário',

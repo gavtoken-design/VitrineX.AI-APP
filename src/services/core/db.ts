@@ -1,73 +1,22 @@
 import { UserProfile, Post, Ad, Campaign, Trend, LibraryItem, ScheduleEntry } from '../../types';
-import { MOCK_API_DELAY, DEFAULT_BUSINESS_PROFILE } from '../../constants';
+import { supabase } from '../../lib/supabase';
 
-// Mock Database Service
-// This service simulates a backend database using local memory.
+// Real Supabase Database Service
+// Replaces the previous Mock Database Service.
 
-const DB_STORAGE_KEY = 'vitrinex_mock_db';
-
-const defaultMockDb = {
-    users: {
-        'mock-user-123': {
-            id: 'mock-user-123',
-            email: 'user@example.com',
-            plan: 'premium',
-            businessProfile: DEFAULT_BUSINESS_PROFILE,
-        } as UserProfile,
-    },
-    posts: {} as { [id: string]: Post },
-    ads: {} as { [id: string]: Ad },
-    campaigns: {} as { [id: string]: Campaign },
-    trends: {} as { [id: string]: Trend },
-    library: {} as { [id: string]: LibraryItem },
-    schedule: {} as { [id: string]: ScheduleEntry },
+// --- Helper for Errors ---
+const handleError = (context: string, error: any) => {
+    console.error(`Error in ${context}:`, error);
+    // Podemos relançar ou retornar null dependendo da estratégia.
+    // Aqui vamos relançar para que a UI possa mostrar o Toast de erro.
+    throw new Error(error.message || `Falha em ${context}`);
 };
 
-// Define the DB structure type
-type MockDbType = {
-    users: { [id: string]: UserProfile };
-    posts: { [id: string]: Post };
-    ads: { [id: string]: Ad };
-    campaigns: { [id: string]: Campaign };
-    trends: { [id: string]: Trend };
-    library: { [id: string]: LibraryItem };
-    schedule: { [id: string]: ScheduleEntry };
-};
-
-function loadDb(): MockDbType {
-    try {
-        const stored = localStorage.getItem(DB_STORAGE_KEY);
-        if (stored) {
-            // Need to cast the parsed object to MockDbType as JSON.parse returns any
-            return JSON.parse(stored) as MockDbType;
-        }
-    } catch (e) {
-        console.warn('Failed to load mock DB from local storage', e);
-    }
-    return defaultMockDb;
-}
-
-const mockDb = loadDb();
-
-function saveDb() {
-    try {
-        localStorage.setItem(DB_STORAGE_KEY, JSON.stringify(mockDb));
-    } catch (e) {
-        console.warn('Failed to save mock DB to local storage', e);
-    }
-}
-
-// Generic mock function to simulate DB operations
-async function mockDbOperation<T>(operation: () => T | Promise<T>): Promise<T> {
-    await new Promise(resolve => setTimeout(resolve, MOCK_API_DELAY));
-    const result = await operation();
-    saveDb();
-    return result;
-}
-
-// --- User Profile Operations ---
 // --- User Profile Operations ---
 export const getUserProfile = async (userId: string): Promise<UserProfile | null> => {
+    // Nota: O userId mock-user-123 causará erro aqui se não existir no Auth.
+    // O app deve garantir que o usuário esteja logado.
+
     const { data, error } = await supabase
         .from('users')
         .select('*')
@@ -75,20 +24,12 @@ export const getUserProfile = async (userId: string): Promise<UserProfile | null
         .single();
 
     if (error) {
-        // If not found, return null or create provisional? 
-        // Sync with existing logic: If mock, it created one.
-        // For real auth, we might expect a trigger to create it on signup, 
-        // or we handle "onboarding" elsewhere.
-        // Here we just return what we find or null.
         if (error.code === 'PGRST116') { // Not found code
             return null;
         }
-        console.error('Error fetching user profile:', error);
+        console.warn('Profile not found or error:', error);
         return null;
     }
-
-    // Parse businessProfile if it's stored as JSONB but we type it strongly
-    // Supabase JS auto-converts JSONB to object usually.
     return data as UserProfile;
 };
 
@@ -98,104 +39,118 @@ export const updateUserProfile = async (userId: string, profile: Partial<UserPro
         .update(profile)
         .eq('id', userId);
 
-    if (error) {
-        console.error('Error updating user profile:', error);
-        throw error;
-    }
+    if (error) handleError('updateUserProfile', error);
 };
 
-// --- Content (Posts, Ads, Campaigns, Trends, Library, Schedule) Operations ---
+// --- Content Operations ---
+
 export const savePost = async (post: Post): Promise<Post> => {
-    return mockDbOperation(() => {
-        if (!post.id) post.id = `post-${Date.now()}`;
-        mockDb.posts[post.id] = post;
-        return post;
-    });
-};
-
-export const getPosts = async (userId: string): Promise<Post[]> => {
-    return mockDbOperation(() => Object.values(mockDb.posts).filter(p => p.userId === userId));
-};
-
-export const saveAd = async (ad: Ad): Promise<Ad> => {
-    return mockDbOperation(() => {
-        if (!ad.id) ad.id = `ad-${Date.now()}`;
-        mockDb.ads[ad.id] = ad;
-        return ad;
-    });
-};
-
-export const getAds = async (userId: string): Promise<Ad[]> => {
-    return mockDbOperation(() => Object.values(mockDb.ads).filter(a => a.userId === userId));
-};
-
-export const saveCampaign = async (campaign: Campaign): Promise<Campaign> => {
-    return mockDbOperation(() => {
-        if (!campaign.id) campaign.id = `campaign-${Date.now()}`;
-        mockDb.campaigns[campaign.id] = campaign;
-        return campaign;
-    });
-};
-
-export const getCampaigns = async (userId: string): Promise<Campaign[]> => {
-    return mockDbOperation(() => Object.values(mockDb.campaigns).filter(c => c.userId === userId));
-};
-
-export const saveTrend = async (trend: Trend): Promise<Trend> => {
-    return mockDbOperation(() => {
-        if (!trend.id) trend.id = `trend-${Date.now()}`;
-        mockDb.trends[trend.id] = trend;
-        return trend;
-    });
-};
-
-export const getTrends = async (userId: string): Promise<Trend[]> => {
-    return mockDbOperation(() => Object.values(mockDb.trends).filter(t => t.userId === userId));
-};
-
-
-import { supabase } from '../../lib/supabase';
-
-export const saveLibraryItem = async (item: LibraryItem): Promise<LibraryItem> => {
-    // Ensure ID is generated if not present, though Supabase usually handles specific IDs or UUIDs.
-    // We will let Supabase generate ID if not provided, or use the one provided.
-    // However, the mock provided 'lib-' + Date.now().
-    // We'll strip the ID if it looks like a temp ID and let Supabase generate a UUID, 
-    // OR we just send it if the schema allows text IDs.
-    // For safety with typical Supabase setups (UUID), we might want to omit ID if it's not a valid UUID.
-    // But to match current logic, we'll try to insert. 
-
-    // Note: If schema uses UUID pkey, 'lib-...' will fail. 
-    // We will assume the schema allows text or we should strictly let DB handle it.
-    // Let's try to insert object excluding ID if it's the mock-generated one, 
-    // but the `item` passed has it.
-
     const { data, error } = await supabase
-        .from('library_items')
-        .insert([item])
+        .from('posts')
+        .upsert(post) // Upsert allows insert or update based on ID
         .select()
         .single();
 
-    if (error) {
-        console.error('Error saving library item:', error);
-        throw error;
-    }
-    return data;
+    if (error) handleError('savePost', error);
+    return data as Post;
 };
 
+export const getPosts = async (userId: string): Promise<Post[]> => {
+    const { data, error } = await supabase
+        .from('posts')
+        .select('*')
+        .eq('userId', userId)
+        .order('createdAt', { ascending: false });
+
+    if (error) handleError('getPosts', error);
+    return (data as Post[]) || [];
+};
+
+export const saveAd = async (ad: Ad): Promise<Ad> => {
+    const { data, error } = await supabase
+        .from('ads')
+        .upsert(ad)
+        .select()
+        .single();
+
+    if (error) handleError('saveAd', error);
+    return data as Ad;
+};
+
+export const getAds = async (userId: string): Promise<Ad[]> => {
+    const { data, error } = await supabase
+        .from('ads')
+        .select('*')
+        .eq('userId', userId)
+        .order('createdAt', { ascending: false });
+
+    if (error) handleError('getAds', error);
+    return (data as Ad[]) || [];
+};
+
+export const saveCampaign = async (campaign: Campaign): Promise<Campaign> => {
+    const { data, error } = await supabase
+        .from('campaigns')
+        .upsert(campaign)
+        .select()
+        .single();
+
+    if (error) handleError('saveCampaign', error);
+    return data as Campaign;
+};
+
+export const getCampaigns = async (userId: string): Promise<Campaign[]> => {
+    const { data, error } = await supabase
+        .from('campaigns')
+        .select('*')
+        .eq('userId', userId)
+        .order('createdAt', { ascending: false });
+
+    if (error) handleError('getCampaigns', error);
+    return (data as Campaign[]) || [];
+};
+
+export const saveTrend = async (trend: Trend): Promise<Trend> => {
+    const { data, error } = await supabase
+        .from('trends')
+        .upsert(trend)
+        .select()
+        .single();
+
+    if (error) handleError('saveTrend', error);
+    return data as Trend;
+};
+
+export const getTrends = async (userId: string): Promise<Trend[]> => {
+    const { data, error } = await supabase
+        .from('trends')
+        .select('*')
+        .eq('userId', userId)
+        .order('createdAt', { ascending: false });
+
+    if (error) handleError('getTrends', error);
+    return (data as Trend[]) || [];
+};
+
+// --- Library Operations ---
+
+export const saveLibraryItem = async (item: LibraryItem): Promise<LibraryItem> => {
+    const { data, error } = await supabase
+        .from('library_items')
+        .upsert(item)
+        .select()
+        .single();
+
+    if (error) handleError('saveLibraryItem', error);
+    return data as LibraryItem;
+};
 
 export const getLibraryItems = async (userId: string, tags?: string[]): Promise<LibraryItem[]> => {
     let query = supabase
         .from('library_items')
         .select('*')
-        .eq('userId', userId); // Ensure column is camelCase or snake_case matching usage. 
-    // Typo risk: Supabase usually uses snake_case keys (user_id).
-    // The `item` object has `userId`. If I send `userId`, Supabase maps it if columns match?
-    // No, Supabase JS client expects keys to match column names.
-    // If `LibraryItem.userId` maps to `user_id` in DB, I need to map it.
-    // I will assume the table columns match the JS object keys for now to simplify, 
-    // as I don't know the schema. 
-    // If it fails, I'll need to map.
+        .eq('userId', userId)
+        .order('createdAt', { ascending: false });
 
     if (tags && tags.length > 0) {
         query = query.contains('tags', tags);
@@ -203,11 +158,8 @@ export const getLibraryItems = async (userId: string, tags?: string[]): Promise<
 
     const { data, error } = await query;
 
-    if (error) {
-        console.error('Error fetching library items:', error);
-        return [];
-    }
-    return data || [];
+    if (error) handleError('getLibraryItems', error);
+    return (data as LibraryItem[]) || [];
 };
 
 export const deleteLibraryItem = async (itemId: string): Promise<void> => {
@@ -216,28 +168,38 @@ export const deleteLibraryItem = async (itemId: string): Promise<void> => {
         .delete()
         .eq('id', itemId);
 
-    if (error) {
-        console.error('Error deleting library item:', error);
-        throw error;
-    }
+    if (error) handleError('deleteLibraryItem', error);
 };
 
+// --- Schedule Operations ---
+
 export const saveScheduleEntry = async (entry: ScheduleEntry): Promise<ScheduleEntry> => {
-    return mockDbOperation(() => {
-        if (!entry.id) entry.id = `schedule-${Date.now()}`;
-        mockDb.schedule[entry.id] = entry;
-        return entry;
-    });
+    const { data, error } = await supabase
+        .from('schedule')
+        .upsert(entry)
+        .select()
+        .single();
+
+    if (error) handleError('saveScheduleEntry', error);
+    return data as ScheduleEntry;
 };
 
 export const getScheduleEntries = async (userId: string): Promise<ScheduleEntry[]> => {
-    return mockDbOperation(() => Object.values(mockDb.schedule).filter(s => s.userId === userId));
+    const { data, error } = await supabase
+        .from('schedule')
+        .select('*')
+        .eq('userId', userId)
+        .order('datetime', { ascending: true });
+
+    if (error) handleError('getScheduleEntries', error);
+    return (data as ScheduleEntry[]) || [];
 };
 
 export const deleteScheduleEntry = async (entryId: string): Promise<void> => {
-    return mockDbOperation(() => {
-        if (mockDb.schedule[entryId]) {
-            delete mockDb.schedule[entryId];
-        }
-    });
+    const { error } = await supabase
+        .from('schedule')
+        .delete()
+        .eq('id', entryId);
+
+    if (error) handleError('deleteScheduleEntry', error);
 };

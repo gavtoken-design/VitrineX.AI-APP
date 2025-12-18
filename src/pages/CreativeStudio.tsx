@@ -389,7 +389,7 @@ Crie uma nova imagem que atenda à instrução do usuário, mantendo coerência 
   }, [previewUrl]);
 
   return (
-    <div className="container mx-auto py-6 animate-fade-in">
+    <div className="container mx-auto py-6 pb-40 lg:pb-6 animate-fade-in">
 
       {/* Header */}
       <div className="flex items-center justify-between mb-8">

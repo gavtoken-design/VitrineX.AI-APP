@@ -11,7 +11,8 @@ import {
   generateSpeech,
   generateVideo,
   queryFileSearchStore,
-  base64AudioToWavBlob
+  base64AudioToWavBlob,
+  vitrinexTools
 } from '../../services/ai';
 import { useAuth } from '../../contexts/AuthContext';
 import { saveLibraryItem } from '../../services/core/db';
@@ -63,7 +64,10 @@ const InteractiveActionCenter: React.FC = () => {
             const kbResponse = await queryFileSearchStore(prompt);
             outputText = kbResponse.resposta; // Extract the string response
           } else {
-            outputText = await generateText(prompt);
+            outputText = await generateText(prompt, {
+              userId: user?.id,
+              tools: vitrinexTools
+            });
           }
           break;
 

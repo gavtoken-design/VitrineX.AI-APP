@@ -16,12 +16,14 @@ import { NotificationProvider } from './contexts/NotificationContext';
 import { TutorialProvider } from './contexts/TutorialContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { PlayIcon, UserCircleIcon } from '@heroicons/react/24/outline'; // Changed icon usage
+import { PlayIcon, UserCircleIcon, ChatBubbleLeftRightIcon, CreditCardIcon } from '@heroicons/react/24/outline'; // Changed icon usage
 import { testGeminiConnection } from './services/ai/gemini';
-import { HARDCODED_API_KEY } from './constants';
-import { loginWithGoogle } from './services/core/auth';
+import { HARDCODED_API_KEY, WHATSAPP_SUPPORT_LINK, PAYMENT_LINK } from './constants';
+import { loginWithGoogle, loginWithEmail, signUpWithEmail } from './services/core/auth';
+import { EnvelopeIcon, LockClosedIcon } from '@heroicons/react/24/outline';
 
 // Lazy load all page components for code splitting
+const LandingPage = React.lazy(() => import('./pages/LandingPage'));
 const Dashboard = React.lazy(() => import('./pages/Dashboard'));
 const ContentGenerator = React.lazy(() => import('./pages/ContentGenerator'));
 const AdStudio = React.lazy(() => import('./pages/AdStudio'));
@@ -38,6 +40,7 @@ const CodePlayground = React.lazy(() => import('./pages/CodePlayground'));
 
 
 export type ModuleName =
+  | 'LandingPage'
   | 'Dashboard'
   | 'ContentGenerator'
   | 'AdStudio'
@@ -66,8 +69,15 @@ const queryClient = new QueryClient({
 
 function AppContent() {
   const { user, loading: authLoading } = useAuth(); // Use Auth Context
-  const [activeModule, setActiveModule] = useState<ModuleName>('Dashboard');
+  const [activeModule, setActiveModule] = useState<ModuleName>('LandingPage');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Auth State
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [isAuthProcessing, setIsAuthProcessing] = useState(false);
 
   // Note: We are now using Supabase Auth. 
   // API Key check logic for Gemini is secondary to User Auth.
@@ -81,15 +91,26 @@ function AppContent() {
   // Actually, let's keep it simple: Login Screen replaces the "Enter API Key" screen as the primary gate.
 
   const handleLogin = async () => {
+    // Check Supabase Config explicitly
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const isConfigured = supabaseUrl && supabaseUrl !== 'https://placeholder.supabase.co';
+
+    if (!isConfigured) {
+      alert("Erro de Configuração: O Supabase não está configurado corretamente.\nPor favor, verifique o arquivo .env e adicione suas credenciais (VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY).");
+      return;
+    }
+
     try {
       await loginWithGoogle();
     } catch (error) {
       console.error("Login failed", error);
+      alert("Falha no Login: Não foi possível conectar ao provedor de autenticação.");
     }
   };
 
   const renderModule = () => {
     switch (activeModule) {
+      case 'LandingPage': return <LandingPage />;
       case 'Dashboard': return <Dashboard />;
       case 'ContentGenerator': return <ContentGenerator />;
       case 'AdStudio': return <AdStudio />;
@@ -123,20 +144,101 @@ function AppContent() {
   if (!user) {
     // LOGIN SCREEN
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-background p-6 text-center">
-        <div className="p-10 bg-surface rounded-3xl shadow-2xl border border-gray-100 dark:border-gray-800 max-w-md w-full">
-          <div className="flex justify-center mb-8">
-            <Logo className="h-20 w-20" showText={false} />
+      <div className="flex flex-col items-center justify-center min-h-screen bg-background p-4 md:p-6 text-center">
+        <div className="p-6 md:p-10 bg-surface rounded-2xl md:rounded-3xl shadow-xl md:shadow-2xl border border-gray-100 dark:border-gray-800 w-full max-w-sm md:max-w-md mx-auto">
+          <div className="flex justify-center mb-6 md:mb-8">
+            <Logo className="h-16 w-16 md:h-20 md:w-20" showText={false} />
           </div>
-          <h1 className="text-3xl font-bold text-title mb-4">Bem-vindo à VitrineX</h1>
-          <p className="text-body mb-8 leading-relaxed">
-            Faça login para acessar sua plataforma de IA.
+          <h1 className="text-2xl md:text-3xl font-bold text-title mb-2">Bem-vindo à VitrineX</h1>
+          <p className="text-body mb-6 leading-relaxed text-sm">
+            {isSignUp ? 'Crie sua conta para começar.' : 'Faça login para acessar sua plataforma.'}
           </p>
+
+          {/* Email/Password Form */}
+          <div className="space-y-4 mb-6 text-left">
+            {authError && (
+              <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-500 text-xs">
+                {authError}
+              </div>
+            )}
+
+            <div>
+              <label className="text-xs font-medium text-gray-500 ml-1 mb-1 block">E-mail</label>
+              <div className="relative">
+                <EnvelopeIcon className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="seu@email.com"
+                  className="w-full bg-background border border-border rounded-xl py-3 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-xs font-medium text-gray-500 ml-1 mb-1 block">Senha</label>
+              <div className="relative">
+                <LockClosedIcon className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full bg-background border border-border rounded-xl py-3 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                />
+              </div>
+            </div>
+
+            <button
+              onClick={async () => {
+                setAuthError(null);
+                setIsAuthProcessing(true);
+                try {
+                  if (isSignUp) {
+                    await signUpWithEmail(email, password);
+                    alert('Cadastro realizado! Verifique seu e-mail para confirmar a conta.');
+                    setIsSignUp(false);
+                  } else {
+                    await loginWithEmail(email, password);
+                  }
+                } catch (err: any) {
+                  console.error(err);
+                  setAuthError(err.message || 'Erro na autenticação.');
+                } finally {
+                  setIsAuthProcessing(false);
+                }
+              }}
+              disabled={isAuthProcessing}
+              className="w-full px-6 py-3.5 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/40 hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isAuthProcessing ? <LoadingSpinner className="w-5 h-5 border-white" /> : (isSignUp ? 'Criar Conta' : 'Entrar')}
+            </button>
+
+            <div className="text-center">
+              <button
+                onClick={() => { setIsSignUp(!isSignUp); setAuthError(null); }}
+                className="text-xs text-muted hover:text-primary transition-colors underline"
+              >
+                {isSignUp ? 'Já tem uma conta? Entre aqui' : 'Não tem conta? Cadastre-se'}
+              </button>
+            </div>
+          </div>
+
+          <div className="relative mb-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-200 dark:border-gray-800"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-surface text-muted text-xs uppercase">Ou continue com</span>
+            </div>
+          </div>
 
           <button
             onClick={handleLogin}
-            className="w-full px-6 py-3.5 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/40 hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2"
+            className="w-full px-6 py-3.5 bg-surface border border-border text-body font-medium rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-300 flex items-center justify-center gap-2 mb-4"
           >
+
             <UserCircleIcon className="w-5 h-5" />
             Entrar com Google
           </button>
@@ -144,6 +246,28 @@ function AppContent() {
           <p className="mt-6 text-xs text-muted">
             Ao continuar, você concorda com nossos Termos de Serviço e Política de Privacidade.
           </p>
+
+          {/* Links de Suporte e Pagamento */}
+          <div className="mt-8 flex flex-col md:flex-row gap-4 w-full border-t border-gray-100 dark:border-gray-800 pt-6">
+            <a
+              href={WHATSAPP_SUPPORT_LINK}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-green-600 bg-green-50 dark:bg-green-900/20 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/40 transition-colors"
+            >
+              <ChatBubbleLeftRightIcon className="w-4 h-4" />
+              Suporte WhatsApp
+            </a>
+            <a
+              href={PAYMENT_LINK}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
+            >
+              <CreditCardIcon className="w-4 h-4" />
+              Planos Premium
+            </a>
+          </div>
         </div>
       </div>
     );

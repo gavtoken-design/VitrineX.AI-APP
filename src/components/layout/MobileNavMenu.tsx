@@ -2,7 +2,7 @@ import * as React from 'react';
 import { ModuleName } from '../../App';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { NavItem, useNavItems } from './NavigationItems';
-import { XMarkIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, ArrowPathIcon, CreditCardIcon } from '@heroicons/react/24/outline';
 
 interface MobileNavMenuProps {
   isOpen: boolean;
@@ -38,9 +38,15 @@ const MobileNavMenu: React.FC<MobileNavMenuProps> = ({ isOpen, onClose, activeMo
         {/* Cabeçalho fixo no topo */}
         <div className="flex justify-between items-center p-4 border-b border-white/10 flex-shrink-0 liquid-light-gradient">
           <span className="font-bold text-lg text-title ml-2 liquid-text-glow">Menu</span>
-          <button onClick={onClose} className="p-2 text-muted hover:text-title hover:bg-primary/20 rounded-full liquid-transition icon-fluid-breathe icon-fluid-squeeze">
-            <XMarkIcon className="w-6 h-6 icon-fluid-viscous" />
-          </button>
+          <div className="flex items-center">
+            {/* Refresh button */}
+            <button onClick={() => window.location.reload()} className="p-2 text-muted hover:text-title hover:bg-primary/20 rounded-full liquid-transition icon-fluid-breathe icon-fluid-squeeze">
+              <ArrowPathIcon className="w-6 h-6 icon-fluid-viscous" />
+            </button>
+            <button onClick={onClose} className="p-2 text-muted hover:text-title hover:bg-primary/20 rounded-full liquid-transition icon-fluid-breathe icon-fluid-squeeze ml-2">
+              <XMarkIcon className="w-6 h-6 icon-fluid-viscous" />
+            </button>
+          </div>
         </div>
 
         {/* Área de navegação rolável - Usa flex-1 para ocupar o espaço restante */}
@@ -72,8 +78,8 @@ const MobileNavMenu: React.FC<MobileNavMenuProps> = ({ isOpen, onClose, activeMo
             <div className="h-24 flex-shrink-0"></div>
           </ul>
         </nav>
-      </aside>
-    </div>
+      </aside >
+    </div >
   );
 };
 

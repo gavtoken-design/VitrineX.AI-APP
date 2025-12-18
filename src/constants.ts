@@ -1,15 +1,19 @@
 
 // Gemini Model Names
-export const GEMINI_FLASH_MODEL = 'gemini-2.5-flash';
-export const GEMINI_LITE_MODEL = 'gemini-2.0-flash-lite';
+export const GEMINI_FLASH_MODEL = 'gemini-3-flash-preview';
+export const GEMINI_LITE_MODEL = 'gemini-3-flash-lite-preview';
 export const GEMINI_PRO_MODEL = 'gemini-3-pro-preview';
-export const GEMINI_IMAGE_FLASH_MODEL = 'gemini-2.5-flash-image';
-export const GEMINI_IMAGE_PRO_MODEL = 'gemini-3-pro-image-preview';
-export const VEO_FAST_GENERATE_MODEL = 'veo-3.1-fast-generate-preview';
-export const VEO_GENERATE_MODEL = 'veo-3.1-generate-preview';
-export const GEMINI_LIVE_AUDIO_MODEL = 'gemini-2.5-flash-native-audio-preview-09-2025';
-export const GEMINI_TTS_MODEL = 'gemini-2.5-flash-preview-tts';
-export const GEMINI_THINKING_MODEL = 'gemini-2.0-flash-thinking-exp-01-21';
+// Image Generation Models
+export const GEMINI_IMAGE_FLASH_MODEL = 'gemini-3-pro-image-preview'; // Alias para garantir estabilidade (Flash Image pode não estar disponível)
+export const GEMINI_IMAGE_PRO_MODEL = 'gemini-3-pro-image-preview'; // NANO BANANA PRO
+export const VEO_FAST_GENERATE_MODEL = 'veo-3.0-fast-generate';
+export const VEO_GENERATE_MODEL = 'veo-3.0-generate';
+export const GEMINI_LIVE_AUDIO_MODEL = 'gemini-2.5-flash-native-audio-preview-12-2025';
+export const GEMINI_TTS_MODEL = 'gemini-2.5-flash-tts'; // Fix 404: O modelo correto é 2.5 para TTS dedicado
+export const GEMINI_THINKING_MODEL = 'gemini-3-deep-think';
+
+
+
 
 // Default values
 export const DEFAULT_ASPECT_RATIO = '16:9';
@@ -43,6 +47,10 @@ export const HARDCODED_API_KEY = (import.meta as any).env.VITE_GEMINI_API_KEY ||
 export const SUBSCRIPTION_PRICE_FULL = '197,00';
 export const SUBSCRIPTION_PRICE_PROMO = '148,90';
 export const SUBSCRIPTION_CURRENCY = 'R$';
+
+// External Support & Payment Links
+export const WHATSAPP_SUPPORT_LINK = 'https://wa.me/message/Y35ZHKZWKRGZP1';
+export const PAYMENT_LINK = 'https://buy.stripe.com/cNibJ0aqfeUTaA66Pv6oo01';
 
 
 // --- Seasonal Templates (Christmas & New Year) ---

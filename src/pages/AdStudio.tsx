@@ -11,7 +11,6 @@ import { generateText, generateImage } from '../services/ai';
 import { saveAd } from '../services/core/firestore';
 import { Ad } from '../types';
 import { GEMINI_PRO_MODEL, GEMINI_IMAGE_PRO_MODEL, PLACEHOLDER_IMAGE_BASE64 } from '../constants';
-import { Type } from '@google/genai';
 import { useToast } from '../contexts/ToastContext';
 
 type Platform = 'Instagram' | 'Facebook' | 'TikTok' | 'Google' | 'Pinterest';
@@ -57,11 +56,11 @@ const AdStudio: React.FC = () => {
         model: GEMINI_PRO_MODEL,
         responseMimeType: 'application/json',
         responseSchema: {
-          type: Type.OBJECT,
+          type: 'OBJECT',
           properties: {
-            headline: { type: Type.STRING },
-            copy: { type: Type.STRING },
-            visual_description: { type: Type.STRING },
+            headline: { type: 'STRING' },
+            copy: { type: 'STRING' },
+            visual_description: { type: 'STRING' },
           },
           required: ['headline', 'copy', 'visual_description'],
         },

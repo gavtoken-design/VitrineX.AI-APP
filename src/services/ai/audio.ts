@@ -1,4 +1,3 @@
-import { Modality, Blob } from '@google/genai';
 import { GEMINI_TTS_MODEL } from '../../constants';
 import { getGenAIClient } from './gemini';
 import { proxyFetch } from '../core/api';
@@ -13,18 +12,40 @@ export const generateSpeech = async (text: string, voiceName: string = 'Kore'): 
         return response.base64Audio;
     } catch (error) {
         console.warn("Backend proxy failed for generateSpeech, falling back to client-side SDK.", error);
-        const ai = await getGenAIClient();
-        const response = await ai.models.generateContent({
-            model: GEMINI_TTS_MODEL,
-            contents: { parts: [{ text }] },
-            config: {
-                responseModalities: [Modality.AUDIO],
-                speechConfig: {
-                    voiceConfig: { prebuiltVoiceConfig: { voiceName } }
+
+        try {
+            const client = await getGenAIClient();
+
+            // Note: Speech generation via `generateContent` might require specific setup or experimental endpoint
+            // In new SDK, we pass configuration in the 'config' object.
+            const result = await client.models.generateContent({
+                model: GEMINI_TTS_MODEL,
+                contents: [{ role: 'user', parts: [{ text }] }],
+                config: {
+                    // @ts-ignore - Speech config structure for Gemini 3 / specific models
+                    responseModalities: ["AUDIO"],
+                    speechConfig: {
+                        voiceConfig: { prebuiltVoiceConfig: { voiceName } }
+                    }
+                }
+            });
+
+            // Extract audio data from candidates
+            if (result.candidates && result.candidates.length > 0) {
+                const cand = result.candidates[0];
+                if (cand.content && cand.content.parts) {
+                    const part = cand.content.parts.find((p: any) => p.inlineData);
+                    if (part && part.inlineData) {
+                        return part.inlineData.data;
+                    }
                 }
             }
-        });
-        return response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+
+            return undefined;
+        } catch (innerError) {
+            console.error("Audio generation fallback failed:", innerError);
+            throw innerError;
+        }
     }
 };
 
@@ -53,7 +74,7 @@ export async function decodeAudioData(data: Uint8Array, ctx: AudioContext, sampl
 }
 
 
-export function createBlob(data: Float32Array): Blob {
+export function createBlob(data: Float32Array): any {
     const l = data.length;
     const int16 = new Int16Array(l);
     for (let i = 0; i < l; i++) {
@@ -102,7 +123,6 @@ export function bufferToWav(buffer: AudioBuffer): globalThis.Blob {
 
 export async function base64AudioToWavBlob(base64: string): Promise<globalThis.Blob> {
     const audioBytes = decode(base64);
-    // Use a standard sample rate, or detect/parameterize if needed. Gemini usually 24000Hz.
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
     const audioBuffer = await decodeAudioData(audioBytes, audioContext, 24000, 1);
     return bufferToWav(audioBuffer);

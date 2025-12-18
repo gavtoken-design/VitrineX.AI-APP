@@ -146,7 +146,7 @@ const AudioTools: React.FC = () => {
         <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
           <p className="text-sm text-muted">
             <strong>Dica:</strong> Use textos naturais e bem pontuados para obter a melhor qualidade de áudio.
-            O modelo Gemini TTS suporta português brasileiro com alta naturalidade.
+            O motor de voz VitrineX suporta português brasileiro com alta naturalidade.
           </p>
         </div>
       </div>

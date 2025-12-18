@@ -21,31 +21,54 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // 1. Check active session
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            setSession(session);
-            setUser(session?.user ?? null);
-            if (session?.user) {
-                loadProfile(session.user.id);
-            } else {
-                setLoading(false);
+        let mounted = true;
+
+        const initAuth = async () => {
+            try {
+                const { data, error } = await supabase.auth.getSession();
+                if (error) throw error;
+
+                if (mounted) {
+                    setSession(data.session);
+                    setUser(data.session?.user ?? null);
+                    if (data.session?.user) {
+                        loadProfile(data.session.user.id);
+                    } else {
+                        setLoading(false);
+                    }
+                }
+            } catch (err) {
+                // Silently handle offline mode
+                if (mounted) setLoading(false);
             }
-        });
+        };
 
-        // 2. Listen for auth changes
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            setSession(session);
-            setUser(session?.user ?? null);
+        initAuth();
 
-            if (session?.user) {
-                loadProfile(session.user.id);
-            } else {
-                setProfile(null);
-                setLoading(false);
-            }
-        });
+        // Listen for auth changes safely
+        let subscription: any = null;
+        try {
+            const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+                if (!mounted) return;
+                setSession(session);
+                setUser(session?.user ?? null);
 
-        return () => subscription.unsubscribe();
+                if (session?.user) {
+                    loadProfile(session.user.id);
+                } else {
+                    setProfile(null);
+                    setLoading(false);
+                }
+            });
+            subscription = data.subscription;
+        } catch (e) {
+            // Silently handle realtime error
+        }
+
+        return () => {
+            mounted = false;
+            if (subscription?.unsubscribe) subscription.unsubscribe();
+        };
     }, []);
 
     const loadProfile = async (userId: string) => {

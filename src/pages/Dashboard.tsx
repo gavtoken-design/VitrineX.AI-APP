@@ -151,8 +151,8 @@ const Dashboard: React.FC = () => {
       const response = await testGeminiConnection();
       addToast({
         type: 'success',
-        title: 'API Conectada!',
-        message: `Resposta da IA: "${response.substring(0, 50)}..."`
+        title: 'Sistema Conectado!',
+        message: `O motor de criação está pronto para uso.`
       });
     } catch (e: any) {
       addToast({
@@ -224,7 +224,7 @@ const Dashboard: React.FC = () => {
           <Button onClick={handleApiTest} isLoading={testingApi} variant="ghost" size="lg" className="w-full justify-start border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 group">
             <span className="flex items-center gap-2 font-bold text-primary">
               <BoltIcon className="w-5 h-5 text-primary group-hover:text-primary/80 animate-pulse" />
-              Testar API (Hello World)
+              Verificar Conexão do Sistema
             </span>
           </Button>
 

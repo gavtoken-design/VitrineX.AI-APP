@@ -183,7 +183,7 @@ const ContentGenerator: React.FC = () => {
   }, [generatedPost, addToast]);
 
   return (
-    <div className="container mx-auto py-8 lg:py-10">
+    <div className="container mx-auto py-8 lg:py-10 pb-40 lg:pb-10">
       <h2 className="text-3xl font-bold text-textdark mb-8">Content Generator</h2>
 
       <HowToUse

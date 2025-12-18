@@ -56,10 +56,10 @@ const CodePlayground: React.FC = () => {
       return;
     }
 
-    const prompt = `Você é um EXPERT WEB DEVELOPER especializado em criar landing pages modernas, responsivas e de alta conversão.
+    const prompt = `Você é um EXPERT WEB DEVELOPER e DESIGNER premiado (Awwwards level), especializado em criar Landing Pages de Alta Conversão com estética "21.dev" / "Aceternity UI".
 
 ## TAREFA
-Gere um código HTML completo, profissional e production-ready baseado nas informações fornecidas.
+Gere um código HTML/CSS/JS (Single File) completo, deslumbrante e production-ready.
 
 ## CONTEÚDO FORNECIDO
 ${contentText ? `**Texto/Copy:**\n${contentText}\n` : ''}
@@ -69,36 +69,29 @@ ${uploadedImages.length > 0 ? `**Imagens Carregadas (${uploadedImages.length}):*
 ## TIPO DE PÁGINA SOLICITADA
 ${pageDescription}
 
+## ESTILO VISUAL & UX (Inspired by 21.dev)
+- **Aesthetic:** Dark mode default (ou light mode elegante se pedido), gradientes sutis, "glassmorphism", bordas finas com brilho.
+- **Animações:** Use CSS animations (@keyframes) para fade-in, slide-up, hover effects ricos, e elementos que reagem ao scroll se possível.
+- **Tipografia:** Use fontes modernas do Google Fonts (Inter, Plus Jakarta Sans, Outfit).
+- **Layout:** Bento grids, seções de Hero imersivas, cards flutuantes.
+
 ## INSTRUÇÕES PARA IMAGENS
 ${uploadedImages.length > 0 ? `- Use as ${uploadedImages.length} imagens fornecidas em base64 (já incluídas no src)
 - Distribua as imagens de forma estratégica na página
-- Adicione alt text descritivo para cada imagem
-- Use lazy loading quando apropriado` : '- Se precisar de imagens de placeholder, use https://placehold.co/'}
+- Adicione alt text descritivo para cada imagem` : '- Use https://placehold.co/ para placeholders elegantes se necessário'}
 
 ## REQUISITOS TÉCNICOS OBRIGATÓRIOS
-
-1. **HTML5 Semântico** - Use tags apropriadas (section, article, header, footer)
-2. **CSS Moderno** - Inline no \`<style>\` com:
-   - Flexbox/Grid para layout
-   - Gradientes e sombras suaves
-   - Animações CSS (hover, fade-in)
-   - Dark mode opcional
-3. **Responsivo** - Mobile-first com breakpoints
-4. **Performance** - Código otimizado e limpo
-5. **SEO** - Meta tags, alt em imagens, headings hierárquicos
-
-## DESIGN GUIDELINES
-- Paleta de cores harmoniosa e moderna
-- Tipografia elegante (use Google Fonts se necessário)
-- Espaçamento generoso (breathing room)
-- Call-to-Actions destacados
-- Micro-interações (hover effects)
+1. **HTML5 Semântico**
+2. **CSS Moderno (Internal <style>)**:
+   - Use variáveis CSS (:root) para cores.
+   - Flexbox e Grid para layouts complexos.
+   - Media queries para responsividade TOTAL (Mobile First).
+3. **Conversão**: Botões CTA (Call-to-Action) vibrantes e com efeitos de pulso ou brilho.
 
 ## OUTPUT FORMAT
 Retorne APENAS o código HTML completo, começando com \`<!DOCTYPE html>\`.
 ${uploadedImages.length > 0 ? `IMPORTANTE: Substitua os src das imagens por estas strings base64:\n${uploadedImages.map((img, i) => `Imagem ${i + 1}: src="${img.data.substring(0, 50)}..."`).join('\n')}` : ''}
-Não inclua explicações, markdown ou comentários fora do código.
-O código deve ser copy-paste ready.`;
+Sem comentários markdown. Apenas o código.`;
 
     setIsGenerating(true);
     try {
