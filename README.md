@@ -1,125 +1,106 @@
 <div align="center">
 
-# 🌌 **VITRINEX AI** 
-### *The Future of Automated Marketing Operations*
+# ✨ VitrineX AI
+### O Futuro do Marketing Automatizado com Inteligência Artificial
 
-![React](https://img.shields.io/badge/REACT_CORE-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
-![TypeScript](https://img.shields.io/badge/TYPESCRIPT_5-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
-![Gemini 2.0](https://img.shields.io/badge/GEMINI_2.0_THINKING-8E75B2?style=for-the-badge&logo=google&logoColor=white)
-![Status](https://img.shields.io/badge/SYSTEM_STATUS-OPERATIONAL-00ff00?style=for-the-badge&logo=azure-pipelines&logoColor=white)
+![Version](https://img.shields.io/badge/version-1.0.0-blue.svg?style=for-the-badge&color=0ea5e9)
+![Status](https://img.shields.io/badge/status-production_ready-success.svg?style=for-the-badge&color=22c55e)
+![Tech](https://img.shields.io/badge/tech-React_|_Vite_|_Tailwind-purple.svg?style=for-the-badge)
+![AI Power](https://img.shields.io/badge/AI-Gemini_2.0_Flash-orange.svg?style=for-the-badge)
 
----
+<br />
 
-### **"O Marketing do Amanhã, Disponível Hoje."**
-
-> Uma plataforma **Enterprise-Grade** que funde design líquido, inteligência cognitiva e automação autônoma para redefinir como empresas se comunicam.
-
-[🌐 LIVE SYSTEM](https://vitrinex.online) • [🔐 ADMIN CONSOLE](#-master-control) • [🧠 COGNITIVE ENGINE](#-ai-core)
+> *"Não apenas uma ferramenta, mas seu time de marketing inteiro em uma única plataforma. Crie, Agende e Domine."*
 
 </div>
 
----
+<br />
 
-## ⚡ **Destaques da Arquitetura (System Highlights)**
+## 🚀 Sobre o Projeto
 
-Este projeto não é apenas um app. É um **Ecossistema de Inteligência**.
+**VitrineX AI** é uma plataforma revolucionária de automação de marketing que funde **Design Líquido (Glassmorphism)** com o poder bruto da **IA Generativa**. 
 
-| Módulo | Status | Tecnologia |
-| :--- | :---: | :--- |
-| **⚛️ Quantum UI** | 🟢 Ativo | *React 18 + Liquid Motion Framer* |
-| **🧠 Neural Core** | 🟢 Ativo | *Gemini 2.0 Thinking + Flash Proxy* |
-| **🛡️ Iron Vault** | 🟢 Ativo | *Client-Side Encryption (Zero-Knowledge)* |
-| **📱 Omni PWA** | 🟢 Ativo | *Offline-First Service Workers* |
+Projetado para empreendedores e criadores que exigem excelência visual e eficiência extrema, o VitrineX transforma ideias abstratas em campanhas prontas para publicação em segundos.
 
 ---
 
-## 🚀 **Funcionalidades de Elite (Feature Set)**
+## 💎 Destaques Visuais & UX
 
-### 🧠 **1. A.I. STRATEGY ENGINE**
-> *Não apenas gera texto. Pensa.*
+A experiência do usuário foi forjada com os mais modernos padrões de design:
 
-Utiliza o modelo **Gemini 2.0 Thinking** para atuar como um *Senior Marketing Strategist*.
-- **Diagnóstico Profundo:** Analisa o perfil do negócio e cria planos táticos.
-- **Multi-Agent Simulation:** Simula reações de público-alvo antes de sugerir campanhas.
-- **Adaptive Learning:** Aprende com o estilo da marca (Tone of Voice).
-
-### 🎨 **2. CREATIVE STUDIO X**
-> *Pixel-Perfect. Always.*
-
-Geração de imagens de alta fidelidade com prompts otimizados via engenharia reversa.
-- **Sazonalidade Automática:** Templates que mudam sozinhos (Ex: Natal -> Ano Novo).
-- **Smart Framing:** Ajuste automático para Stories (9:16) ou Feed (1:1).
-- **Estilo Líquido:** Interface que flui como água enquanto você cria.
-
-### 📡 **3. TREND HUNTER (RAG System)**
-> *O Oráculo do Marketing.*
-
-Sistema RAG (Retrieval-Augmented Generation) que varre a web em tempo real.
-- **Live Scouting:** Detecta micro-tendências antes de viralizarem.
-- **Grounding Verification:** Cita fontes reais para garantir veracidade.
-- **Viral Score:** Prevê o potencial de engajamento de um tópico.
-
-### 🎛️ **4. MASTER ADMIN CONSOLE**
-> *Controle Total. Poder Absoluto.*
-
-Painel administrativo estilo "Mission Control" para gestão da plataforma.
-- **User Management:** Controle de acesso, planos e bloqueios.
-- **API Vault:** Cofre criptografado para gestão de chaves Gemini.
-- **System Health:** Monitoramento em tempo real de latência e erros.
-- **Logs de Auditoria:** Rastreamento completo de ações (Security-First).
+*   **💧 Liquid UI & Glassmorphism**: Interfaces que flutuam e reagem ao toque. Efeitos de vidro fosco, bordas brilhantes e profundidade 3D.
+*   **✨ Animações Fluidas**: Transições suaves, micro-interações e feedback visual instantâneo.
+*   **🌌 Modo Dark Nativo**: Um tema espacial profundo com estrelas cadentes e auroras, otimizado para longas sessões de trabalho.
+*   **⚡ Performance**: Otimizado com Vite para carregamento instantâneo e *Chunk Splitting* inteligente.
 
 ---
 
-## 🖼️ **Visual Showcase**
+## 🛠️ Funcionalidades Poderosas
 
-> *A interface foi desenhada seguindo os princípios de "Antigravity Physics" — elementos que flutuam, respondem ao toque e possuem inércia visual.*
+### 📝 Content Generator (Gerador de Conteúdo)
+Crie posts para Instagram, LinkedIn e Twitter com **IA Contextual**.
+-   Geração de Legendas Persuasivas.
+-   Sugestão de Hashtags Virais.
+-   Criação de Roteiros para Reels/TikTok.
 
-### 🌌 **The Dashboard**
-*Centro de comando com glassmorphism avançado e dados em tempo real.*
-![Dashboard](https://placehold.co/800x450/111827/4ade80?text=DASHBOARD+LIQUID+UI&font=montserrat)
+### 🎨 Ad Studio (Estúdio de Anúncios)
+Desenvolva criativos de alta conversão.
+-   Foco em AIDA (Atenção, Interesse, Desejo, Ação).
+-   Integração com **Imagen 3.0** para geração de imagens publicitárias.
 
-### 🤖 **AI Neural Interface**
-*Onde a mágica acontece. Chatbot multimodal com memória de contexto.*
-![AI Interface](https://placehold.co/800x450/111827/a78bfa?text=NEURAL+INTERFACE&font=montserrat)
+### 📈 Trend Hunter (Caçador de Tendências)
+Não adivinhe, saiba.
+-   Analisa o mercado em tempo real.
+-   Identifica tópicos quentes no seu nicho antes da concorrência.
+
+### 📅 Smart Scheduler (Agendamento Inteligente)
+-   Calendário visual "Drag & Drop".
+-   Sugestão dos melhores horários baseada em IA.
 
 ---
 
-## 🛠️ **Protocolos de Engenharia (Dev Protocols)**
+## 💻 Stack Tecnológico
 
-Seguimos a **REGRA DE OURO ANTIGRAVITY** para manter a fluidez:
-1.  **Layout** (Estrutura Sólida)
-2.  **Fluxo** (Hierarquia Visual)
-3.  **Estado** (Lógica de Controle)
-4.  **Animação** (Física de Movimento)
-5.  **Estilo** (Acabamento Visual)
+Construído com o que há de mais moderno no ecossistema web:
 
-```typescript
-// Exemplo de Implementação do Core AI
-interface CognitiveProcess {
-  model: 'gemini-2.0-thinking';
-  mode: 'STRATEGIC' | 'TACTICAL';
-  safety: 'BLOCK_NONE';
-}
+### Fron-end
+-   **React 18** + **TypeScript**: Robustez e tipagem estática.
+-   **Vite**: Build tool de próxima geração.
+-   **Tailwind CSS**: Estilização utilitária avançada.
+-   **Framer Motion**: Animações complexas e gestos.
+
+### Inteligência Artificial
+-   **Google Gemini 2.0 Flash**: Motor de texto de ultra-baixa latência.
+-   **Google Imagen 3.0**: Geração de imagens fotorealistas.
+
+### Backend & Dados
+-   **Supabase**: Banco de dados Realtime e Autenticação.
+-   **LocalStorage Fallback**: Funciona mesmo com conexão instável.
+
+---
+
+## 🚀 Como Começar
+
+```bash
+# Clone o repositório
+git clone https://github.com/seu-usuario/vitrinex-ai.git
+
+# Entre na pasta
+cd vitrinex-ai
+
+# Instale as dependências
+npm install
+
+# Inicie o servidor de desenvolvimento
+npm run dev
 ```
-
----
-
-## 🔒 **Privacidade & Segurança**
-
-Este projeto opera sob uma filosofia **"Trust No One"**:
-- **Zero Backend Dependence:** A lógica crítica roda no cliente ou via Edge Proxies.
-- **Local Storage Encrypted:** Dados sensíveis nunca saem do dispositivo do usuário sem permissão.
-- **API Key Rotation:** Sistema de rotação de chaves para evitar quotas excedidas.
 
 ---
 
 <div align="center">
 
-### **VITRINEX AI**
-*Engineering the Future of Digital Presence.*
+Desenvolvido com 💙 e ⚡ por **VitrineX Tech**
 
-Developed by **Jean Carlos** • Powered by **Google DeepMind**
-
-[⬆ Voltar ao Topo](#-vitrinex-ai)
+![Footer](https://capsule-render.vercel.app/api?type=waving&color=gradient&height=100&section=footer)
 
 </div>
