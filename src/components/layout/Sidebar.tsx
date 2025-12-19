@@ -14,6 +14,11 @@ interface SidebarProps {
   setActiveModule: (moduleName: ModuleName) => void;
 }
 
+import Link from 'next/link'; // Assuming Next.js or similar router, but here using module state
+import Logo3D from '../ui/Logo3D';
+
+// ... imports
+
 const Sidebar: React.FC<SidebarProps> = memo(({ activeModule, setActiveModule }) => {
   const navItems = useNavItems();
   const { t } = useLanguage();
@@ -31,6 +36,17 @@ const Sidebar: React.FC<SidebarProps> = memo(({ activeModule, setActiveModule })
         onMouseLeave={() => setOpen(false)}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
       >
+        {/* Logo Section */}
+        <div className={cn(
+          "h-20 flex items-center border-b border-border/50",
+          open ? "px-6 justify-start" : "px-0 justify-center"
+        )}>
+          <Logo3D
+            collapsed={!open}
+            onClick={() => setActiveModule('Dashboard')}
+          />
+        </div>
+
         <nav className="flex-1 min-h-0 overflow-y-auto pt-4 md:pt-6 pb-20 md:pb-24 px-2 md:px-3 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-200 dark:[&::-webkit-scrollbar-thumb]:bg-gray-700 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gray-300 dark:hover:[&::-webkit-scrollbar-thumb]:bg-gray-600">
           <ul className="flex flex-col">
             {navItems.map((section, sectionIndex) => (

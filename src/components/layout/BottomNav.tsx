@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { memo } from 'react';
 import { ModuleName } from '../../App';
-import { HomeIcon, SparklesIcon, PhotoIcon, Cog6ToothIcon } from '@heroicons/react/24/outline';
-import { HomeIcon as HomeSolid, SparklesIcon as SparklesSolid, PhotoIcon as PhotoSolid, Cog6ToothIcon as CogSolid } from '@heroicons/react/24/solid';
+import { HomeIcon, SparklesIcon, PhotoIcon, Bars3Icon } from '@heroicons/react/24/outline';
+import { HomeIcon as HomeSolid, SparklesIcon as SparklesSolid, PhotoIcon as PhotoSolid, Bars3Icon as Bars3Solid } from '@heroicons/react/24/solid';
 
 interface BottomNavProps {
     activeModule: ModuleName;
@@ -16,14 +16,14 @@ const BottomNav: React.FC<BottomNavProps> = memo(({ activeModule, setActiveModul
         { id: 'Dashboard', label: 'Início', icon: HomeIcon, solidIcon: HomeSolid },
         { id: 'CreativeStudio', label: 'Criar', icon: SparklesIcon, solidIcon: SparklesSolid, isPrimary: true },
         { id: 'ContentLibrary', label: 'Galeria', icon: PhotoIcon, solidIcon: PhotoSolid },
-        { id: 'Settings', label: 'Ajustes', icon: Cog6ToothIcon, solidIcon: CogSolid },
+        { id: 'Menu', label: 'Menu', icon: Bars3Icon, solidIcon: Bars3Solid },
     ];
 
     return (
         <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 backdrop-blur-2xl bg-surface/90 shadow-[0_-4px_30px_rgba(0,0,0,0.5)] border-t border-white/10 pb-safe pointer-events-auto">
             <div className="flex justify-around items-center h-16 max-w-md mx-auto px-2">
                 {navItems.map((item) => {
-                    const isActive = activeModule === item.id;
+                    const isActive = activeModule === item.id; // Menu won't be active module usually, but that's fine
                     const Icon = isActive ? item.solidIcon : item.icon;
 
                     if (item.id === 'CreativeStudio') {
@@ -46,7 +46,7 @@ const BottomNav: React.FC<BottomNavProps> = memo(({ activeModule, setActiveModul
                     return (
                         <button
                             key={item.id}
-                            onClick={() => setActiveModule(item.id as ModuleName)}
+                            onClick={() => item.id === 'Menu' ? onMoreClick() : setActiveModule(item.id as ModuleName)}
                             className={`flex flex-col items-center justify-center w-16 h-full space-y-1 transition-all duration-200 active:scale-95 ${isActive ? 'text-primary' : 'text-muted hover:text-body'
                                 }`}
                         >
