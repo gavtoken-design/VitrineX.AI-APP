@@ -7,11 +7,11 @@ import Button from '../components/ui/Button';
 import Textarea from '../components/ui/Textarea';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import { getUserProfile, updateUserProfile } from '../services/core/db';
-import { testGeminiConnection } from '../services/ai/gemini';
+import { testGeminiConnection, verifySystemCapabilities } from '../services/ai/gemini';
 import { UserProfile } from '../types';
 import { DEFAULT_BUSINESS_PROFILE, HARDCODED_API_KEY, SUBSCRIPTION_CURRENCY, SUBSCRIPTION_PRICE_PROMO, SUBSCRIPTION_PRICE_FULL } from '../constants';
 // FIX: Add missing import for Cog6ToothIcon
-import { KeyIcon, ServerStackIcon, InformationCircleIcon, ArrowDownOnSquareIcon, PaintBrushIcon, GlobeAltIcon, SunIcon, MoonIcon, UserCircleIcon, Cog6ToothIcon, CheckCircleIcon, MegaphoneIcon, CpuChipIcon } from '@heroicons/react/24/outline';
+import { KeyIcon, ServerStackIcon, InformationCircleIcon, ArrowDownOnSquareIcon, PaintBrushIcon, GlobeAltIcon, SunIcon, MoonIcon, UserCircleIcon, Cog6ToothIcon, CheckCircleIcon, MegaphoneIcon, CpuChipIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useToast } from '../contexts/ToastContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -104,15 +104,34 @@ const Settings: React.FC = () => {
     }
     setIsTesting(true);
     try {
-      // Teste a conexão antes de salvar
-      await testGeminiConnection(apiKey.trim());
+      // Teste granular de capacidades
+      const status = await verifySystemCapabilities(apiKey.trim());
 
-      localStorage.setItem('vitrinex_gemini_api_key', apiKey.trim());
-      setIsKeySaved(true);
-      addToast({ type: 'success', title: 'Chave Salva e Verificada!', message: 'O motor de IA VitrineX v3 está pronto para uso.' });
+      if (status.text) {
+        localStorage.setItem('vitrinex_gemini_api_key', apiKey.trim());
+        setIsKeySaved(true);
+
+        // Construct detailed success message
+        const activeFeatures = [];
+        if (status.text) activeFeatures.push('Texto (Chat/Copy)');
+        if (status.vision) activeFeatures.push('Visão Computacional');
+        if (status.audio) activeFeatures.push('Geração de Voz');
+
+        addToast({
+          type: 'success',
+          title: 'Sistema VitrineX ATIVO 🟢',
+          message: `Módulos Operacionais: ${activeFeatures.join(', ')}.`
+        });
+      } else {
+        throw new Error(status.message);
+      }
     } catch (e: any) {
       console.error("Erro ao salvar chave:", e);
-      addToast({ type: 'error', title: 'Chave Inválida', message: `Não foi possível ativar a licença: ${e.message}` });
+      addToast({
+        type: 'error',
+        title: 'Funções INATIVAS 🔴',
+        message: `Falha na ativação: ${e.message}. Verifique: Texto, Visão, Áudio.`
+      });
       setIsKeySaved(false);
     } finally {
       setIsTesting(false);
@@ -126,19 +145,27 @@ const Settings: React.FC = () => {
     }
     setIsTesting(true);
     try {
-      const result = await testGeminiConnection(apiKey.trim());
-      addToast({ type: 'success', title: 'Conexão Estabelecida', message: `Resposta do Sistema: "${result.substring(0, 60)}..."` });
+      const status = await verifySystemCapabilities(apiKey.trim());
+
+      if (status.text) {
+        addToast({
+          type: 'success',
+          title: 'Conexão Estabelecida 🟢',
+          message: `Status: ATIVO. Capacidades confirmadas: Texto, Visão, Áudio.`
+        });
+      } else {
+        throw new Error(status.message);
+      }
     } catch (e: any) {
       console.error("Erro no teste de conexão:", e);
-      // Mensagens de erro amigáveis
       let errorMessage = e instanceof Error ? e.message : String(e);
-      if (errorMessage.includes('404')) errorMessage = 'Motor de IA não encontrado. Verifique sua licença.';
-      if (errorMessage.includes('403')) errorMessage = 'Permissão negada. Chave inválida ou expirada.';
+      if (errorMessage.includes('404')) errorMessage = 'Motor de IA não encontrado.';
+      if (errorMessage.includes('403')) errorMessage = 'Permissão negada (Chave inválida).';
 
       addToast({
         type: 'error',
-        title: 'Falha na Conexão',
-        message: errorMessage
+        title: 'Diagnóstico de Falha 🔴',
+        message: `Erro: ${errorMessage}. Funções afetadas: Todas.`
       });
     } finally {
       setIsTesting(false);

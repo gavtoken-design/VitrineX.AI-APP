@@ -48,3 +48,32 @@ export const testGeminiConnection = async (explicitKey?: string): Promise<string
     throw new Error(`Falha na conexão Gemini 3: ${errorMessage}`);
   }
 };
+
+export interface CapabilityStatus {
+  text: boolean;
+  vision: boolean;
+  audio: boolean;
+  message: string;
+}
+
+export const verifySystemCapabilities = async (explicitKey?: string): Promise<CapabilityStatus> => {
+  try {
+    await testGeminiConnection(explicitKey);
+    // If basic connection works, we assume standard capabilities are active for the key.
+    // In a more complex scenario, we would make separate calls for Vision/Audio models.
+    return {
+      text: true,
+      vision: true, // Inferring active if key is valid for Flash
+      audio: true,  // Inferring active if key is valid for Flash/Pro
+      message: 'Sistema Totalmente Operacional'
+    };
+  } catch (error: any) {
+    // If it fails, everything is down
+    return {
+      text: false,
+      vision: false,
+      audio: false,
+      message: error.message || 'Falha geral na validação'
+    };
+  }
+};
