@@ -64,12 +64,12 @@ export const useNavItems = () => {
     {
       section: 'sidebar.strategy', items: [
         { name: "CampaignBuilder" as ModuleName, label: t('sidebar.campaigns'), icon: 'campaign' as IconName },
-        { id: "nav-trend-hunter", name: "TrendHunter" as ModuleName, label: t('sidebar.trends'), icon: 'trends' as IconName },
-        { name: "SmartScheduler" as ModuleName, label: t('sidebar.calendar'), icon: 'calendar' as IconName }
+        { id: "nav-trend-hunter", name: "TrendHunter" as ModuleName, label: t('sidebar.trends'), icon: 'trends' as IconName }
       ]
     },
     {
       section: 'sidebar.tools', items: [
+        { name: "PromptChat" as ModuleName, label: 'Gerador de Prompt', icon: 'chat' as IconName },
         { name: "AudioTools" as ModuleName, label: t('sidebar.audio_tools'), icon: 'audio' as IconName },
         { name: "CodePlayground" as ModuleName, label: t('sidebar.code_playground'), icon: 'code' as IconName },
         { name: "CalendarManager" as ModuleName, label: t('sidebar.calendar_manager'), icon: 'calendarAlt' as IconName }

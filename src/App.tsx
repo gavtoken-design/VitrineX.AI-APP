@@ -31,12 +31,12 @@ const CampaignBuilder = React.lazy(() => import('./pages/CampaignBuilder'));
 const TrendHunter = React.lazy(() => import('./pages/TrendHunter'));
 const CreativeStudio = React.lazy(() => import('./pages/CreativeStudio'));
 const ContentLibrary = React.lazy(() => import('./pages/ContentLibrary'));
-const SmartScheduler = React.lazy(() => import('./pages/SmartScheduler'));
 const Settings = React.lazy(() => import('./pages/Settings'));
 const CodeAudit = React.lazy(() => import('./pages/CodeAudit'));
 const AudioTools = React.lazy(() => import('./pages/AudioTools'));
 const CalendarManager = React.lazy(() => import('./pages/CalendarManager'));
 const CodePlayground = React.lazy(() => import('./pages/CodePlayground'));
+const PromptChat = React.lazy(() => import('./pages/PromptChat'));
 
 
 export type ModuleName =
@@ -48,12 +48,12 @@ export type ModuleName =
   | 'TrendHunter'
   | 'CreativeStudio'
   | 'ContentLibrary'
-  | 'SmartScheduler'
   | 'Settings'
   | 'CodeAudit'
   | 'AudioTools'
   | 'CalendarManager'
-  | 'CodePlayground';
+  | 'CodePlayground'
+  | 'PromptChat';
 
 
 const queryClient = new QueryClient({
@@ -114,11 +114,11 @@ function AppContent() {
       case 'TrendHunter': return <TrendHunter />;
       case 'CreativeStudio': return <CreativeStudio />;
       case 'ContentLibrary': return <ContentLibrary />;
-      case 'SmartScheduler': return <SmartScheduler />;
       case 'CodeAudit': return <CodeAudit />;
       case 'AudioTools': return <AudioTools />;
       case 'CalendarManager': return <CalendarManager />;
       case 'CodePlayground': return <CodePlayground />;
+      case 'PromptChat': return <PromptChat />;
       case 'Settings': return <Settings />;
 
       default: return <Dashboard />;
