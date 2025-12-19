@@ -14,3 +14,12 @@ export enum Role {
   EDITOR = 'EDITOR',
   VIEWER = 'VIEWER',
 }
+
+export interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  role: Role;
+  gender?: 'male' | 'female' | 'other';
+  avatar?: string;
+}

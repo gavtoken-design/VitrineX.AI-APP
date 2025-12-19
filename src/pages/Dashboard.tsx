@@ -12,6 +12,7 @@ import { useTutorial, TutorialStep } from '../contexts/TutorialContext'; // Impo
 import { useAuth } from '../contexts/AuthContext';
 import { testGeminiConnection } from '../services/ai/gemini';
 import DateTimeDisplay from '../components/ui/DateTimeDisplay';
+import ClientGreeting from '../components/ui/ClientGreeting';
 import {
   DocumentTextIcon,
   MegaphoneIcon,
@@ -216,7 +217,8 @@ const Dashboard: React.FC = () => {
           <h2 className="text-2xl font-bold text-title">{t('dashboard.title')}</h2>
           <p className="text-muted mt-1">{t('dashboard.subtitle')}</p>
         </div>
-        <div className="flex items-center">
+        <div className="flex items-center gap-4">
+          <ClientGreeting name={user?.user_metadata?.name || "Visitante"} gender={user?.user_metadata?.gender || "female"} />
           <DateTimeDisplay />
         </div>
       </div>
