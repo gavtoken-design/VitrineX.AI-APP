@@ -407,6 +407,7 @@ const ContentLibrary: React.FC = () => {
                     <button
                       onClick={() => handleCopyTemplate(tmpl.code)}
                       className="flex-1 py-1.5 bg-accent/10 text-accent hover:bg-accent hover:text-darkbg rounded text-[10px] font-bold transition-colors"
+                      title="Copiar Código HTML"
                     >
                       Copiar HTML
                     </button>

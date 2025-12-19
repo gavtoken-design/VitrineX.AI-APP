@@ -405,6 +405,7 @@ Sem comentários markdown. Apenas o código.`;
                   onClick={() => setShowPreview(!showPreview)}
                   variant="ghost"
                   size="sm"
+                  title={showPreview ? "Ocultar o painel de visualização" : "Mostrar o painel de visualização"}
                 >
                   <EyeIcon className="w-4 h-4 mr-2" />
                   {showPreview ? 'Ocultar' : 'Ver'} Preview

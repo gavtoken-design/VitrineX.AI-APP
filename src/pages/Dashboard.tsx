@@ -11,6 +11,7 @@ import { useToast } from '../contexts/ToastContext';
 import { useTutorial, TutorialStep } from '../contexts/TutorialContext'; // Import Tutorial Hook
 import { useAuth } from '../contexts/AuthContext';
 import { testGeminiConnection } from '../services/ai/gemini';
+import DateTimeDisplay from '../components/ui/DateTimeDisplay';
 import {
   DocumentTextIcon,
   MegaphoneIcon,
@@ -96,10 +97,53 @@ const Dashboard: React.FC = () => {
   const { startTutorial, hasSeenTutorial } = useTutorial(); // Use Tutorial Hook
   const [testingApi, setTestingApi] = useState(false);
 
-  const totalPosts = data?.posts.length || 0;
+  const totalPosts = data?.library?.length || 0; // Use Library count for Total Content
   const totalAds = data?.ads.length || 0;
   const upcomingSchedule = data?.schedule.filter(s => new Date(s.datetime) > new Date()).length || 0;
   const detectedTrends = data?.trends.length || 0;
+
+  // Derive Recent Activity from Library and Schedule
+  const recentActivities = React.useMemo(() => {
+    if (!data) return [];
+
+    const libraryActivities = (data.library || []).map(item => ({
+      id: item.id,
+      type: 'creation',
+      title: 'Item Criado: ' + (item.title || 'Sem título'),
+      description: `Novo ${item.type} adicionado à biblioteca`,
+      timestamp: item.createdAt,
+      icon: SparklesIcon,
+      gradientFrom: 'from-purple-400',
+      gradientTo: 'to-pink-500'
+    }));
+
+    const scheduleActivities = (data.schedule || []).map(item => ({
+      id: item.id,
+      type: 'schedule',
+      title: 'Agendamento: ' + item.platform,
+      description: `Post agendado para ${new Date(item.datetime).toLocaleDateString()}`,
+      timestamp: item.datetime, // Use datetime for sorting
+      icon: CalendarDaysIcon,
+      gradientFrom: 'from-blue-400',
+      gradientTo: 'to-indigo-600'
+    }));
+
+    return [...libraryActivities, ...scheduleActivities]
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      .slice(0, 5);
+  }, [data]);
+
+  const getTimeAgo = (dateString: string) => {
+    const diff = new Date().getTime() - new Date(dateString).getTime();
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (days > 0) return `${days}d atrás`;
+    if (hours > 0) return `${hours}h atrás`;
+    if (minutes > 0) return `${minutes}m atrás`;
+    return 'Agora mesmo';
+  };
 
   useEffect(() => {
     if (!hasSeenTutorial) {
@@ -172,8 +216,8 @@ const Dashboard: React.FC = () => {
           <h2 className="text-2xl font-bold text-title">{t('dashboard.title')}</h2>
           <p className="text-muted mt-1">{t('dashboard.subtitle')}</p>
         </div>
-        <div className="text-sm text-muted font-medium bg-surface px-3 py-1 rounded-md border border-gray-200 dark:border-gray-800">
-          {new Date().toLocaleDateString(language, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+        <div className="flex items-center">
+          <DateTimeDisplay />
         </div>
       </div>
 
@@ -257,30 +301,28 @@ const Dashboard: React.FC = () => {
           </a>
         </div>
         <div className="space-y-3">
-          <ActivityCard
-            icon={BoltIcon}
-            title="API Conectada"
-            description="Sincronização do sistema concluída com sucesso"
-            timestamp="2m"
-            gradientFrom="from-blue-400"
-            gradientTo="to-indigo-600"
-          />
-          <ActivityCard
-            icon={SparklesIcon}
-            title="Conteúdo Gerado"
-            description="Novo lote de campanha pronto para revisão"
-            timestamp="1h"
-            gradientFrom="from-purple-400"
-            gradientTo="to-pink-500"
-          />
-          <ActivityCard
-            icon={ExclamationTriangleIcon}
-            title="Alerta de Orçamento"
-            description="Campanha #4 próxima do limite diário"
-            timestamp="3h"
-            gradientFrom="from-yellow-400"
-            gradientTo="to-orange-500"
-          />
+          <div className="space-y-3">
+            {recentActivities.length > 0 ? (
+              recentActivities.map((activity) => (
+                <ActivityCard
+                  key={activity.id}
+                  icon={activity.icon}
+                  title={activity.title}
+                  description={activity.description}
+                  timestamp={getTimeAgo(activity.timestamp)}
+                  gradientFrom={activity.gradientFrom}
+                  gradientTo={activity.gradientTo}
+                />
+              ))
+            ) : (
+              <div className="text-center py-8 text-muted">
+                <p>Nenhuma atividade recente registrada.</p>
+                <Button onClick={() => navigateTo('ContentGenerator')} variant="ghost" size="sm" className="mt-2">
+                  Começar a Criar
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
       </section>
     </div>

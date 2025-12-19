@@ -20,13 +20,14 @@ export const useDashboardData = (userId: string) => {
     queryKey: [QUERY_KEYS.dashboard, userId],
     queryFn: async () => {
       // Parallel fetching for dashboard
-      const [posts, ads, schedule, trends] = await Promise.all([
+      const [posts, ads, schedule, trends, library] = await Promise.all([
         getPosts(userId),
         getAds(userId),
         getScheduleEntries(userId),
         getTrends(userId),
+        getLibraryItems(userId),
       ]);
-      return { posts, ads, schedule, trends };
+      return { posts, ads, schedule, trends, library };
     },
   });
 };

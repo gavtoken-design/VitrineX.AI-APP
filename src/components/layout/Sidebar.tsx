@@ -41,6 +41,7 @@ const Sidebar: React.FC<SidebarProps> = memo(({ activeModule, setActiveModule })
           <Logo3D
             collapsed={!open}
             onClick={() => setActiveModule('Dashboard')}
+            title="Ir para Dashboard" // Tooltip for Logo
           />
         </div>
 
@@ -76,6 +77,7 @@ const Sidebar: React.FC<SidebarProps> = memo(({ activeModule, setActiveModule })
                             ? "bg-primary/10 text-primary shadow-sm"
                             : "text-body hover:bg-surface-hover hover:text-title"
                         )}
+                        title={!open ? t(item.label) : undefined} // Tooltip only when collapsed
                       >
                         <Icon
                           name={item.icon}

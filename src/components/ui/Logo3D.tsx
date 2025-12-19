@@ -7,14 +7,16 @@ interface Logo3DProps {
     collapsed?: boolean;
     onClick?: () => void;
     className?: string;
+    title?: string;
 }
 
-const Logo3D: React.FC<Logo3DProps> = ({ collapsed, onClick, className = '' }) => {
+const Logo3D: React.FC<Logo3DProps> = ({ collapsed, onClick, className = '', title }) => {
     return (
         <button
             onClick={onClick}
             className={`relative group flex items-center justify-center outline-none ${className}`}
             aria-label="Ir para Dashboard"
+            title={title || "Ir para Dashboard"}
         >
             <div className="relative w-10 h-10 perspective-500">
                 <motion.div

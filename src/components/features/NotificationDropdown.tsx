@@ -86,7 +86,7 @@ const NotificationDropdown: React.FC = () => {
         <div className="relative" ref={dropdownRef}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="p-2 rounded-full text-muted hover:bg-background transition-colors relative"
+                className="p-2 rounded-full text-muted hover:text-white transition-all relative liquid-glass hover:scale-110 active:scale-95 duration-300 group"
                 aria-label="Notificações"
             >
                 {unreadCount > 0 ? (
@@ -102,12 +102,11 @@ const NotificationDropdown: React.FC = () => {
                 )}
             </button>
 
-            {/* Dropdown Panel */}
             {isOpen && (
-                <div className="fixed top-[70px] left-4 right-4 md:absolute md:top-auto md:left-auto md:right-0 md:mt-2 md:w-96 bg-surface border border-border rounded-xl shadow-glass md:shadow-2xl z-50 overflow-hidden animate-fade-in-down origin-top-right">
-                    <div className="p-4 border-b border-border flex justify-between items-center bg-background/95 backdrop-blur-sm">
+                <div className="fixed top-[70px] left-4 right-4 md:absolute md:top-auto md:left-auto md:right-0 md:mt-4 md:w-96 liquid-modal rounded-2xl z-50 overflow-hidden liquid-emerge origin-top-right">
+                    <div className="p-4 border-b border-white/10 flex justify-between items-center bg-white/5 backdrop-blur-md">
                         <div className="flex items-center gap-2">
-                            <h3 className="font-bold text-title">Notificações</h3>
+                            <h3 className="font-bold text-white liquid-text-glow">Notificações</h3>
                             {unreadCount > 0 && (
                                 <span className="bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full font-medium">
                                     {unreadCount} novas
@@ -136,8 +135,8 @@ const NotificationDropdown: React.FC = () => {
                     <div className="max-h-[70vh] overflow-y-auto custom-scrollbar">
                         {notifications.length === 0 ? (
                             <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-                                <div className="bg-background p-4 rounded-full mb-3">
-                                    <BellIcon className="w-8 h-8 text-muted/50" />
+                                <div className="bg-white/5 p-4 rounded-full mb-3 liquid-float">
+                                    <BellIcon className="w-8 h-8 text-white/50" />
                                 </div>
                                 <p className="text-body font-medium">Tudo limpo por aqui!</p>
                                 <p className="text-sm text-muted mt-1">Você não tem novas notificações.</p>
