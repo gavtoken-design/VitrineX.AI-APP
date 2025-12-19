@@ -89,7 +89,7 @@ const CreativeStudio: React.FC = () => {
     setPreviewUrl(null);
     addToast({
       type: 'info',
-      title: 'Template Aplicado',
+      title: 'Modelo Aplicado',
       message: 'Personalize o nome do produto no prompt.'
     });
   };
@@ -412,14 +412,14 @@ Crie uma nova imagem que atenda à instrução do usuário, mantendo coerência 
           "Para analisar: Faça upload e descreva o que quer saber",
           "Configure proporção e tamanho conforme necessário",
           "Aguarde a geração (pode levar alguns segundos)",
-          "Use templates sazonais para inspiração rápida",
+          "Use modelos sazonais para inspiração rápida",
           "Use ferramentas avançadas (Remover Fundo, Trocar Personagem) após gerar"
         ]}
         tips={[
           "Imagens com análise: A IA analisa primeiro e cria baseado nisso",
           "Todos os arquivos são salvos automaticamente na biblioteca",
           "Use 'Aplicar Identidade' para adicionar sua logo",
-          "Templates sazonais já vêm com prompts otimizados"
+          "Modelos sazonais já vêm com prompts otimizados"
         ]}
       />
 

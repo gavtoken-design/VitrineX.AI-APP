@@ -261,3 +261,29 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+/* Global Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #18181b; /* Zinc 900 */
+}
+
+::-webkit-scrollbar-thumb {
+  background: #3f3f46; /* Zinc 700 */
+  border-radius: 5px;
+  border: 2px solid #18181b; /* Creates padding effect */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #52525b; /* Zinc 600 */
+}
+
+/* Firefox support */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #3f3f46 #18181b;
+}

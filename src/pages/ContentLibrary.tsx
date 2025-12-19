@@ -9,10 +9,13 @@ import LoadingSpinner from '../components/ui/LoadingSpinner';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import { useMediaActions } from '../hooks/useMediaActions';
-import { TrashIcon, ArrowDownTrayIcon, ShareIcon, DocumentTextIcon, MusicalNoteIcon, CircleStackIcon, CloudArrowUpIcon, CalendarDaysIcon, CodeBracketIcon } from '@heroicons/react/24/outline';
+import { TrashIcon, ArrowDownTrayIcon, ShareIcon, DocumentTextIcon, MusicalNoteIcon, CircleStackIcon, CloudArrowUpIcon, CalendarDaysIcon, CodeBracketIcon, EyeIcon } from '@heroicons/react/24/outline';
 import { useNavigate } from '../hooks/useNavigate';
 import { useToast } from '../contexts/ToastContext';
 import { useAuth } from '../contexts/AuthContext';
+import JSZip from 'jszip';
+import { CODE_TEMPLATES } from '../constants'; // Import Code Templates
+import Modal from '../components/ui/Modal'; // Added Modal import
 
 const ContentLibrary: React.FC = () => {
   const [libraryItems, setLibraryItems] = useState<LibraryItem[]>([]);
@@ -20,6 +23,7 @@ const ContentLibrary: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [selectedTag, setSelectedTag] = useState<string>('all');
   const [uploading, setUploading] = useState<boolean>(false);
+  const [viewItem, setViewItem] = useState<LibraryItem | null>(null); // Added state for viewing item
 
   const [kbLoading, setKbLoading] = useState<boolean>(false);
   const [kbStoreName, setKbStoreName] = useState<string | null>(localStorage.getItem('vitrinex_kb_name'));
@@ -28,6 +32,12 @@ const ContentLibrary: React.FC = () => {
   const { addToast } = useToast();
   const { handleDownload, handleShare, isProcessing } = useMediaActions();
   const { user } = useAuth();
+
+  const handleCopyTemplate = (code: string) => {
+    navigator.clipboard.writeText(code);
+    addToast({ type: 'success', message: 'Código do template copiado!' });
+  };
+
   const userId = user?.id || 'guest-user';
 
   const fetchLibrary = useCallback(async (tags?: string[]) => {
@@ -42,6 +52,65 @@ const ContentLibrary: React.FC = () => {
       setLoading(false);
     }
   }, [userId, addToast]);
+
+  const handleDownloadAll = useCallback(async () => {
+    if (libraryItems.length === 0) {
+      addToast({ type: 'warning', message: 'Biblioteca vazia.' });
+      return;
+    }
+
+    setLoading(true);
+    addToast({ type: 'info', message: 'Preparando download... isso pode demorar um pouco.' });
+
+    try {
+      const zip = new JSZip();
+      const folder = zip.folder("biblioteca-vitrinex");
+
+      if (!folder) return;
+
+      const promises = libraryItems.map(async (item) => {
+        const safeName = item.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+
+        if (item.type === 'text') {
+          // Text files
+          folder.file(`${safeName}.txt`, item.file_url);
+        } else if ((item.type === 'image' || item.type === 'audio' || item.type === 'video') && item.file_url) {
+          // Media files - try to fetch blob
+          try {
+            if (item.file_url.startsWith('data:')) {
+              const base64Data = item.file_url.split(',')[1];
+              folder.file(`${safeName}.${item.type === 'image' ? 'png' : item.type === 'audio' ? 'mp3' : 'mp4'}`, base64Data, { base64: true });
+            } else {
+              const response = await fetch(item.file_url);
+              const blob = await response.blob();
+              folder.file(`${safeName}.${blob.type.split('/')[1] || 'bin'}`, blob);
+            }
+          } catch (e) {
+            console.warn(`Could not download ${item.name}`, e);
+            folder.file(`${safeName}_error.txt`, `Erro ao baixar: ${item.file_url}`);
+          }
+        }
+      });
+
+      await Promise.all(promises);
+
+      const content = await zip.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(content);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `biblioteca-vitrinex-${new Date().toISOString().slice(0, 10)}.zip`;
+      a.click();
+      URL.revokeObjectURL(url);
+
+      addToast({ type: 'success', message: 'Download concluído!' });
+
+    } catch (e) {
+      console.error(e);
+      addToast({ type: 'error', message: 'Erro ao gerar arquivo ZIP.' });
+    } finally {
+      setLoading(false);
+    }
+  }, [libraryItems, addToast]);
 
   useEffect(() => {
     fetchLibrary();
@@ -160,18 +229,24 @@ const ContentLibrary: React.FC = () => {
   }, [libraryItems, searchTerm, selectedTag]);
 
   const Column = ({ title, items, icon: Icon }: { title: string; items: LibraryItem[]; icon: any }) => (
-    <div className="flex-1 min-w-[300px] bg-background/40 p-4 rounded-xl border border-border/50">
-      <div className="flex items-center gap-2 mb-4">
-        <Icon className="w-5 h-5 text-primary" />
-        <h4 className="font-bold text-title uppercase tracking-wider text-xs">{title} ({items.length})</h4>
+    <div className="flex-none w-[85vw] sm:w-[350px] bg-background/40 rounded-xl border border-border/50 flex flex-col h-[70vh]">
+      <div className="p-4 flex items-center justify-between border-b border-border/50 bg-surface/50 rounded-t-xl">
+        <div className="flex items-center gap-2">
+          <Icon className="w-5 h-5 text-primary" />
+          <h4 className="font-bold text-title uppercase tracking-wider text-xs">{title} ({items.length})</h4>
+        </div>
       </div>
-      <div className="space-y-3">
+
+      <div className="p-3 space-y-3 overflow-y-auto flex-1 custom-scrollbar">
         {items.length === 0 ? (
-          <p className="text-xs text-muted italic p-4 text-center">Nenhum item</p>
+          <div className="h-full flex flex-col items-center justify-center text-muted opacity-50">
+            <Icon className="w-12 h-12 mb-2 stroke-1" />
+            <p className="text-xs">Vazio</p>
+          </div>
         ) : (
           items.map(item => (
-            <div key={item.id} className="bg-surface rounded-lg border border-border overflow-hidden group hover:border-primary/50 transition-all p-3">
-              <div className="relative h-24 bg-gray-900 flex items-center justify-center overflow-hidden rounded mb-2">
+            <div key={item.id} className="bg-surface rounded-lg border border-border overflow-hidden group hover:border-primary/50 transition-all p-3 shadow-sm hover:shadow-md">
+              <div className="relative aspect-video bg-gray-900 flex items-center justify-center overflow-hidden rounded mb-2">
                 {item.type === 'image' || item.type === 'video' ? (
                   <img
                     src={item.thumbnail_url || item.file_url || 'https://picsum.photos/200/150'}
@@ -179,23 +254,36 @@ const ContentLibrary: React.FC = () => {
                     className="w-full h-full object-cover"
                   />
                 ) : item.type === 'audio' ? (
-                  <MusicalNoteIcon className="w-8 h-8 text-primary/50" />
+                  <MusicalNoteIcon className="w-10 h-10 text-primary/50" />
                 ) : (
-                  <DocumentTextIcon className="w-8 h-8 text-primary/50" />
+                  <DocumentTextIcon className="w-10 h-10 text-primary/50" />
                 )}
-                <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity gap-1">
-                  <button onClick={() => handleDownload(item.file_url, item.name)} className="p-1.5 bg-white/10 rounded-full text-white hover:bg-primary/20">
-                    <ArrowDownTrayIcon className="w-4 h-4" />
+
+                {/* Actions Overlay */}
+                <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity gap-2">
+                  <button
+                    onClick={() => setViewItem(item)}
+                    className="p-2 bg-white/10 rounded-full text-white hover:bg-primary hover:text-white transition-colors backdrop-blur-sm"
+                    title="Visualizar"
+                  >
+                    <EyeIcon className="w-5 h-5" />
                   </button>
-                  <button onClick={() => handleDeleteItem(item.id)} className="p-1.5 bg-white/10 rounded-full text-white hover:bg-red-500/20">
-                    <TrashIcon className="w-4 h-4" />
+                  <button
+                    onClick={() => handleDeleteItem(item.id)}
+                    className="p-2 bg-white/10 rounded-full text-white hover:bg-red-500 hover:text-white transition-colors backdrop-blur-sm"
+                    title="Excluir"
+                  >
+                    <TrashIcon className="w-5 h-5" />
                   </button>
                 </div>
               </div>
-              <h5 className="text-[10px] font-bold text-title truncate">{item.name}</h5>
-              <div className="flex items-center justify-between mt-1">
-                <span className="text-[8px] text-muted">{new Date(item.createdAt).toLocaleDateString()}</span>
-                {item.tags.includes('indexed') && <CloudArrowUpIcon className="w-3 h-3 text-accent" />}
+
+              <div className="space-y-1">
+                <h5 className="text-xs font-bold text-title truncate" title={item.name}>{item.name}</h5>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-muted">{new Date(item.createdAt).toLocaleDateString()}</span>
+                  {item.tags.includes('indexed') && <CloudArrowUpIcon className="w-3 h-3 text-accent" title="Indexado na IA" />}
+                </div>
               </div>
             </div>
           ))
@@ -278,6 +366,9 @@ const ContentLibrary: React.FC = () => {
               Limpar Filtros
             </Button>
           )}
+          <Button onClick={handleDownloadAll} variant="outline" className="w-full sm:w-auto flex items-center gap-2">
+            <ArrowDownTrayIcon className="w-4 h-4" /> Baixar Tudo (ZIP)
+          </Button>
         </div>
       </div>
 
@@ -291,10 +382,111 @@ const ContentLibrary: React.FC = () => {
           <Column title="Imagens" items={groupedItems.image} icon={CircleStackIcon} />
           <Column title="Áudios" items={groupedItems.audio} icon={MusicalNoteIcon} />
           <Column title="Páginas HTML" items={groupedItems.html} icon={CodeBracketIcon} />
+
+          {/* Static Templates Column */}
+          <div className="flex-none w-[85vw] sm:w-[350px] bg-background/40 rounded-xl border border-border/50 flex flex-col h-[70vh]">
+            <div className="p-4 flex items-center justify-between border-b border-border/50 bg-surface/50 rounded-t-xl">
+              <div className="flex items-center gap-2">
+                <CodeBracketIcon className="w-5 h-5 text-accent" />
+                <h4 className="font-bold text-title uppercase tracking-wider text-xs">Modelos Prontos ({CODE_TEMPLATES.length})</h4>
+              </div>
+            </div>
+            <div className="p-3 space-y-3 overflow-y-auto flex-1 custom-scrollbar">
+              {CODE_TEMPLATES.map((tmpl, idx) => (
+                <div key={tmpl.id} className="bg-surface rounded-lg border border-border overflow-hidden p-3 shadow-sm hover:border-accent/50 transition-all">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-8 h-8 rounded bg-accent/10 flex items-center justify-center text-accent">
+                      <CodeBracketIcon className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h5 className="text-xs font-bold text-title">{tmpl.name}</h5>
+                      <p className="text-[10px] text-muted">{tmpl.description}</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 mt-3">
+                    <button
+                      onClick={() => handleCopyTemplate(tmpl.code)}
+                      className="flex-1 py-1.5 bg-accent/10 text-accent hover:bg-accent hover:text-darkbg rounded text-[10px] font-bold transition-colors"
+                    >
+                      Copiar HTML
+                    </button>
+                    <button
+                      onClick={() => setViewItem({
+                        id: tmpl.id,
+                        name: tmpl.name,
+                        type: 'text', // Treat as text/code for preview
+                        file_url: tmpl.code,
+                        userId: 'system',
+                        tags: ['template'],
+                        createdAt: new Date().toISOString()
+                      } as LibraryItem)}
+                      className="p-1.5 bg-surface border border-border rounded text-muted hover:text-white hover:border-white transition-colors"
+                      title="Visualizar Preview"
+                    >
+                      <EyeIcon className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <Column title="Textos / Cópias" items={groupedItems.text} icon={DocumentTextIcon} />
           <Column title="Outros" items={groupedItems.other} icon={CircleStackIcon} />
         </div>
       )}
+      <Modal
+        isOpen={!!viewItem}
+        onClose={() => setViewItem(null)}
+        title={viewItem?.name}
+        size="lg"
+      >
+        {viewItem && (
+          <div className="space-y-6">
+            {/* Visual Content */}
+            <div className="w-full bg-black/5 rounded-xl overflow-hidden flex items-center justify-center min-h-[300px] border border-border relative">
+              {viewItem.type === 'image' ? (
+                <img src={viewItem.file_url} alt={viewItem.name} className="max-w-full max-h-[70vh] object-contain" />
+              ) : viewItem.type === 'video' ? (
+                <video src={viewItem.file_url} controls className="max-w-full max-h-[70vh]" />
+              ) : viewItem.type === 'audio' ? (
+                <div className="p-10 w-full"><audio src={viewItem.file_url} controls className="w-full" /></div>
+              ) : (viewItem.type === 'text' || viewItem.type === 'html') ? (
+                <div className="w-full p-4 max-h-[60vh] overflow-auto bg-gray-900 text-gray-100 font-mono text-xs rounded">
+                  <pre className="whitespace-pre-wrap">{viewItem.file_url}</pre>
+                </div>
+              ) : (
+                <div className="text-muted p-10 flex flex-col items-center">
+                  <DocumentTextIcon className="w-16 h-16 mb-2 opacity-50" />
+                  <p>Pré-visualização não disponível</p>
+                </div>
+              )}
+            </div>
+
+            {/* Info and Actions */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-surface p-4 rounded-lg border border-border">
+                <h4 className="text-sm font-bold text-title mb-2">Detalhes</h4>
+                <div className="space-y-1 text-sm text-body">
+                  <p><span className="text-muted">Tipo:</span> <span className="uppercase">{viewItem.type}</span></p>
+                  <p><span className="text-muted">Criado em:</span> {new Date(viewItem.createdAt).toLocaleString()}</p>
+                  <p><span className="text-muted">Tags:</span> {viewItem.tags?.join(', ') || '-'}</p>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2 justify-center">
+                <button
+                  onClick={() => handleDownload(viewItem.file_url, viewItem.name)}
+                  className="flex items-center justify-center gap-2 px-4 py-3 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors font-medium text-sm"
+                >
+                  <ArrowDownTrayIcon className="w-5 h-5" />
+                  Baixar Arquivo
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };

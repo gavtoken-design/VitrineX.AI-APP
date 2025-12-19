@@ -37,7 +37,7 @@ const Toast: React.FC<ToastProps> = ({ id, type, title, message, duration = 5000
   }, [id, duration, onClose]);
 
   return (
-    <div className="mb-4">
+    <div className="pointer-events-auto">
       <LiquidGlassCard
         className="w-full max-w-sm pointer-events-auto overflow-hidden bg-white/40 dark:bg-black/40"
         borderRadius="16px"
@@ -78,12 +78,10 @@ interface ToastContainerProps {
 
 export const ToastContainer: React.FC<ToastContainerProps> = ({ toasts, removeToast }) => {
   return (
-    <div aria-live="assertive" className="fixed inset-0 flex items-end px-4 py-6 pointer-events-none sm:p-6 sm:items-start z-[100] flex-col sm:justify-end">
-      <div className="w-full flex flex-col items-center sm:items-end space-y-4">
-        {toasts.map((toast) => (
-          <Toast key={toast.id} {...toast} onClose={removeToast} />
-        ))}
-      </div>
+    <div aria-live="assertive" className="fixed top-0 right-0 z-[100] flex flex-col items-end p-4 sm:p-6 pointer-events-none gap-4">
+      {toasts.map((toast) => (
+        <Toast key={toast.id} {...toast} onClose={removeToast} />
+      ))}
     </div>
   );
 };

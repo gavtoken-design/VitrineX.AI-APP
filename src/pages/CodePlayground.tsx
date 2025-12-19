@@ -9,65 +9,13 @@ import { useToast } from '../contexts/ToastContext';
 import { generateText } from '../services/ai';
 import { saveLibraryItem } from '../services/core/db';
 import HowToUse from '../components/ui/HowToUse';
-import { GEMINI_PRO_MODEL } from '../constants';
+import { GEMINI_PRO_MODEL, CODE_TEMPLATES } from '../constants';
 
-const TEMPLATES = [
-  {
-    id: 'hero-gradient',
-    name: 'Modern Hero',
-    description: 'Gradient background with glassmorphism cards',
-    icon: LucideIcons.LayoutIcon,
-    prompt: 'Crie uma Hero Section ultra moderna com fundo gradiente animado (mesh gradient), um card central usando glassmorphism, título com fonte inter e um botão CTA com brilho. Estilo 21.dev.'
-  },
-  {
-    id: 'saas-landing',
-    name: 'SaaS Landing',
-    description: 'Complete landing page for software products',
-    icon: LucideIcons.RocketIcon,
-    prompt: 'Gere uma Landing Page de SaaS completa: Hero elegante, seção de 3 features em grid, depoimento em destaque e rodapé minimalista. Cores dark mode e acentos azul neon.'
-  },
-  {
-    id: 'bento-portfolio',
-    name: 'Bento Portfolio',
-    description: 'Creative bento grid layout for designers',
-    icon: LucideIcons.GridIcon,
-    prompt: 'Crie um layout de Portfolio usando Bento Grid. Cards de diferentes tamanhos, bordas arredondadas finas, sombras suaves e tipografia moderna. Cada card deve representar um projeto.'
-  },
-  {
-    id: 'glass-dashboard',
-    name: 'Glass Dashboard',
-    description: 'Analytics dashboard with transparent elements',
-    icon: LucideIcons.LayoutDashboardIcon,
-    prompt: 'Gere um painel de controle (Dashboard) com estética glassmorphism. Sidebar translúcida, cards de estatísticas com gráficos simples em SVG e uma tabela de atividades recentes.'
-  },
-  {
-    id: 'pricing-tiers',
-    name: 'Pricing Table',
-    description: 'Strategic pricing cards with hover effects',
-    icon: LucideIcons.CreditCardIcon,
-    prompt: 'Crie uma tabela de preços com 3 planos. O plano central deve ter um destaque (brilho ou borda colorida). Use cards com hover effects suaves e CTAs claros.'
-  },
-  {
-    id: 'clean-contact',
-    name: 'Modern Contact',
-    description: 'Sleek contact form with interactive inputs',
-    icon: LucideIcons.MailIcon,
-    prompt: 'Crie uma página de contato minimalista. Formulário com inputs que brilham ao focar, layout centralizado em uma coluna elegante e informações de contato ao lado.'
-  },
-  /* 
-    ✨ ADICIONE NOVOS TEMPLATES ABAIXO DESTA LINHA ✨
-    Siga o modelo acima: id, name, description, icon (de LucideIcons), prompt.
-  */
-  /*
-  {
-    id: 'novo-template',
-    name: 'Nome do Template',
-    description: 'Breve descrição do estilo',
-    icon: LucideIcons.PlusCircleIcon,
-    prompt: 'Descreva aqui o comando detalhado para a IA gerar este novo componente.'
-  },
-  */
-];
+const TEMPLATES = CODE_TEMPLATES.map(t => ({
+  ...t,
+  icon: LucideIcons.LayoutTemplateIcon // Fallback icon since we can't persist icon components in plain objects easily, or map by ID
+}));
+
 
 const CodePlayground: React.FC = () => {
   const [contentText, setContentText] = useState('');
@@ -97,7 +45,7 @@ const CodePlayground: React.FC = () => {
 
   const applyTemplate = (prompt: string) => {
     setPageDescription(prompt);
-    addToast({ type: 'info', message: 'Template selecionado! Clique em Gerar para ver o resultado.' });
+    addToast({ type: 'info', message: 'Modelo selecionado! Clique em Gerar para ver o resultado.' });
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -280,7 +228,7 @@ Sem comentários markdown. Apenas o código.`;
           <div className="bg-surface p-6 rounded-xl border border-border">
             <h3 className="text-lg font-semibold text-title mb-4 flex items-center gap-2">
               <RectangleStackIcon className="w-5 h-5 text-purple-500" />
-              Biblioteca de Templates Premium (21st.dev)
+              Biblioteca de Modelos Premium (21st.dev)
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {TEMPLATES.map((tmpl) => (
@@ -429,9 +377,17 @@ Sem comentários markdown. Apenas o código.`;
 
           {generatedCode && (
             <div className="bg-surface p-6 rounded-xl border border-border">
-              <h3 className="text-lg font-semibold text-title mb-4">Código Gerado</h3>
-              <div className="bg-gray-900 p-4 rounded-lg overflow-x-auto max-h-96">
-                <pre className="text-xs text-green-400 font-mono">{generatedCode}</pre>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-title">Editor de Código</h3>
+                <span className="text-xs text-muted">Edite o HTML abaixo para atualizar o preview</span>
+              </div>
+              <div className="bg-gray-900 p-4 rounded-lg border border-border">
+                <textarea
+                  value={generatedCode}
+                  onChange={(e) => setGeneratedCode(e.target.value)}
+                  className="w-full h-96 bg-transparent text-xs text-green-400 font-mono outline-none resize-none"
+                  spellCheck={false}
+                />
               </div>
               <div className="flex gap-3 mt-4">
                 <Button onClick={handleCopyCode} variant="secondary" size="sm" className="flex-1">

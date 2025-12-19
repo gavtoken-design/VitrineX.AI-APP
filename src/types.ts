@@ -95,7 +95,7 @@ export interface Trend {
 export interface LibraryItem {
   id: string;
   userId: string;
-  type: 'image' | 'video' | 'text' | 'post' | 'ad' | 'audio'; // Added 'audio' type
+  type: 'image' | 'video' | 'text' | 'post' | 'ad' | 'audio' | 'html'; // Added 'html' type
   file_url: string;
   thumbnail_url?: string; // For images/videos
   tags: string[];

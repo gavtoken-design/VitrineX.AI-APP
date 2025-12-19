@@ -22,8 +22,14 @@ import {
   ShoppingBagIcon,
   RocketLaunchIcon,
   CheckCircleIcon,
-  SparklesIcon
+  SparklesIcon,
+  ArrowDownTrayIcon,
+  BookmarkSquareIcon,
+  ClipboardDocumentIcon,
+  PencilSquareIcon
 } from '@heroicons/react/24/outline';
+import { saveLibraryItem } from '../services/core/db';
+import { LibraryItem } from '../types';
 import { useToast } from '../contexts/ToastContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -227,6 +233,104 @@ IMPORTANTE: Retorne APENAS o JSON válido, sem texto adicional antes ou depois.`
     setResult(null);
     setError(null);
   }, []);
+
+  const handleDownload = useCallback((format: 'txt' | 'doc') => {
+    if (!result) return;
+
+    const textContent = `
+RELATÓRIO DE TENDÊNCIA VITRINEX AI
+Data: ${new Date().toLocaleDateString()}
+Palavra-chave: ${query}
+Localização: ${city || 'Brasil'}
+Score: ${result.score}/100
+
+== RESUMO ==
+${result.resumo}
+
+== MOTIVADORES ==
+${result.motivadores.map(m => `- ${m}`).join('\n')}
+
+== LEITURA DE CENÁRIO ==
+${result.leituraCenario}
+
+== SUGESTÃO DE CONTEÚDO ==
+O que: ${result.sugestaoConteudo.oque}
+Formato: ${result.sugestaoConteudo.formato}
+
+== SUGESTÃO DE PRODUTO ==
+Tipo: ${result.sugestaoProduto.tipo}
+Temas: ${result.sugestaoProduto.temas.join(', ')}
+
+== SUGESTÃO DE CAMPANHA ==
+Estratégia: ${result.sugestaoCampanha.estrategia}
+CTA: "${result.sugestaoCampanha.cta}"
+
+== CONCLUSÃO ==
+Avaliação: ${result.conclusao.avaliacao}
+Melhor Estratégia: ${result.conclusao.melhorEstrategia}
+    `.trim();
+
+    if (format === 'txt') {
+      const blob = new Blob([textContent], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `trend-${query.replace(/\s+/g, '-')}.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
+      addToast({ type: 'success', message: 'Relatório baixado com sucesso!' });
+    } else {
+      navigator.clipboard.writeText(textContent);
+      addToast({ type: 'success', message: 'Relatório copiado! Cole no Google Docs ou Word.' });
+    }
+  }, [result, query, city, addToast]);
+
+  const handleSaveToLibrary = useCallback(async () => {
+    if (!result) return;
+
+    setLoading(true);
+    try {
+      const item: LibraryItem = {
+        id: `lib-${Date.now()}`,
+        userId,
+        type: 'text',
+        name: `Tendência: ${query}`,
+        file_url: '', // No file for text-only trend
+        tags: ['tendencia', 'trendhunter', ...result.motivadores],
+        createdAt: new Date().toISOString()
+      };
+      // We save the full text content as "file_url" or strictly text content based on implementation. 
+      // Assuming 'file_url' stores the content for type 'text' if not a link.
+      // Re-using the text generation logic for content
+      const textContent = `Tendência: ${query}\n\n${result.resumo}`;
+      item.file_url = textContent; // Storing text directly for simplicity in text type
+
+      await saveLibraryItem(item);
+      addToast({ type: 'success', message: 'Salvo na Biblioteca com sucesso!' });
+    } catch (e) {
+      console.error(e);
+      addToast({ type: 'error', message: 'Erro ao salvar na biblioteca.' });
+    } finally {
+      setLoading(false);
+    }
+  }, [result, query, userId, addToast]);
+
+  const handleUseInContent = useCallback(() => {
+    if (!result) return;
+
+    // Save context to localStorage to be picked up by ContentGenerator
+    const contextData = {
+      source: 'TrendHunter',
+      topic: query,
+      insight: result.resumo,
+      format: result.sugestaoConteudo.formato,
+      contentIdea: result.sugestaoConteudo.oque
+    };
+    localStorage.setItem('vitrinex_pending_context', JSON.stringify(contextData));
+
+    navigateTo('ContentGenerator');
+    addToast({ type: 'info', message: 'Contexto enviado para o Gerador!' });
+  }, [result, query, navigateTo, addToast]);
 
   // Renderizar score com cor
   const renderScore = (score: number) => {
@@ -511,15 +615,23 @@ IMPORTANTE: Retorne APENAS o JSON válido, sem texto adicional antes ou depois.`
 
           {/* Ações */}
           <div className="flex flex-wrap gap-3 justify-center">
-            <Button onClick={handleCreateContent} variant="primary" className="flex items-center gap-2">
-              <LightBulbIcon className="w-4 h-4" />
-              Criar Conteúdo
+            <Button onClick={handleUseInContent} variant="primary" className="flex items-center gap-2">
+              <PencilSquareIcon className="w-4 h-4" />
+              Usar no Criador
             </Button>
-            <Button onClick={handleSchedule} variant="secondary" className="flex items-center gap-2">
-              Agendar Publicação
-            </Button>
-            <Button onClick={() => setResult(null)} variant="outline">
-              Nova Busca
+
+            <div className="flex gap-2">
+              <Button onClick={() => handleDownload('txt')} variant="secondary" className="flex items-center gap-2" title="Baixar TXT">
+                <ArrowDownTrayIcon className="w-4 h-4" /> TXT
+              </Button>
+              <Button onClick={() => handleDownload('doc')} variant="secondary" className="flex items-center gap-2" title="Copiar para Docs">
+                <ClipboardDocumentIcon className="w-4 h-4" /> Docs
+              </Button>
+            </div>
+
+            <Button onClick={handleSaveToLibrary} variant="outline" className="flex items-center gap-2">
+              <BookmarkSquareIcon className="w-4 h-4" />
+              Salvar Biblioteca
             </Button>
           </div>
         </div>

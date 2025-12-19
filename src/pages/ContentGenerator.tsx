@@ -6,11 +6,14 @@ import Input from '../components/ui/Input';
 import SaveToLibraryButton from '../components/features/SaveToLibraryButton';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import MediaActionsToolbar from '../components/features/MediaActionsToolbar'; // NOVO
-import { ArrowDownTrayIcon } from '@heroicons/react/24/outline';
+import {
+  ArrowDownTrayIcon,
+  ClipboardDocumentIcon,
+  BookmarkSquareIcon
+} from '@heroicons/react/24/outline';
 import { generateText, generateImage } from '../services/ai';
-import { savePost } from '../services/core/firestore';
 import { saveLibraryItem } from '../services/core/db';
-import { Post } from '../types';
+import { Post, LibraryItem } from '../types';
 import { GEMINI_FLASH_MODEL, GEMINI_IMAGE_MODEL, PLACEHOLDER_IMAGE_BASE64 } from '../constants';
 import { uploadFile } from '../services/media/storage';
 import { useToast } from '../contexts/ToastContext';
@@ -57,6 +60,32 @@ const ContentGenerator: React.FC = () => {
 
   // Use real user ID if available, otherwise check login
   const userId = user?.id || 'guest-user';
+
+  // Scroll to top on mount
+  React.useEffect(() => {
+    // Attempt to scroll the main container if possible, or window
+    window.scrollTo(0, 0);
+    const mainEl = document.querySelector('main');
+    if (mainEl) mainEl.scrollTop = 0;
+  }, []);
+
+  // Check for pending context from TrendHunter
+  React.useEffect(() => {
+    const pendingContext = localStorage.getItem('vitrinex_pending_context');
+    if (pendingContext) {
+      try {
+        const data = JSON.parse(pendingContext);
+        if (data && data.topic) {
+          setPrompt(`Tópico: ${data.topic}\nInsight: ${data.insight}\nIdeia: ${data.contentIdea}\n\nCrie um post engajador sobre isso.`);
+          addToast({ type: 'info', title: 'Contexto Carregado', message: `Trazendo dados de tendência sobre "${data.topic}"` });
+        }
+        // Clear after use
+        localStorage.removeItem('vitrinex_pending_context');
+      } catch (e) {
+        console.error('Error parsing pending context', e);
+      }
+    }
+  }, [addToast]);
 
   // Generate 4 Buyer Personas from Trend
   const generateAvatars = useCallback(async () => {
@@ -173,6 +202,60 @@ Formate como array JSON de strings (apenas os prompts).`;
       setLoadingCreativeIdeas(false);
     }
   }, [addToast]);
+
+  const formatAvatarText = (avatar: Avatar) => {
+    return `PERFIL DE AVATAR - VITRINEX AI
+Nome: ${avatar.name}
+Idade: ${avatar.age}
+Ocupação: ${avatar.occupation}
+
+== INTERESSES ==
+${avatar.interests.map(i => `- ${i}`).join('\n')}
+
+== DORES E NECESSIDADES ==
+${avatar.painPoints.map(p => `- ${p}`).join('\n')}
+
+== COMPORTAMENTO DE COMPRA ==
+${avatar.buyingBehavior}
+`.trim();
+  };
+
+  const handleDownloadAvatar = useCallback((avatar: Avatar) => {
+    const text = formatAvatarText(avatar);
+    const blob = new Blob([text], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `avatar-${avatar.name.replace(/\s+/g, '-').toLowerCase()}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+    addToast({ type: 'success', message: 'Avatar baixado!' });
+  }, [addToast]);
+
+  const handleCopyAvatar = useCallback((avatar: Avatar) => {
+    const text = formatAvatarText(avatar);
+    navigator.clipboard.writeText(text);
+    addToast({ type: 'success', message: 'Avatar copiado!' });
+  }, [addToast]);
+
+  const handleSaveAvatarToLibrary = useCallback(async (avatar: Avatar) => {
+    try {
+      const text = formatAvatarText(avatar);
+      await saveLibraryItem({
+        id: `avatar-${Date.now()}`,
+        userId,
+        type: 'text',
+        name: `Persona: ${avatar.name}`,
+        file_url: text,
+        tags: ['avatar', 'persona', ...avatar.interests.slice(0, 3)],
+        createdAt: new Date().toISOString()
+      });
+      addToast({ type: 'success', message: 'Avatar salvo na biblioteca!' });
+    } catch (error) {
+      console.error(error);
+      addToast({ type: 'error', message: 'Erro ao salvar avatar.' });
+    }
+  }, [userId, addToast]);
 
   const generateContent = useCallback(async (isWeekly: boolean = false) => {
     if (!prompt.trim()) {
@@ -447,6 +530,31 @@ Formate como array JSON de strings (apenas os prompts).`;
                     Gerar Ideias
                   </Button>
                 </div>
+
+                {/* Avatar Actions Toolbar */}
+                <div className="flex gap-2 mb-3">
+                  <button
+                    onClick={() => handleDownloadAvatar(avatar)}
+                    className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-md transition-colors"
+                    title="Baixar Avatar (TXT)"
+                  >
+                    <ArrowDownTrayIcon className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => handleCopyAvatar(avatar)}
+                    className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-md transition-colors"
+                    title="Copiar Texto"
+                  >
+                    <ClipboardDocumentIcon className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => handleSaveAvatarToLibrary(avatar)}
+                    className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-md transition-colors"
+                    title="Salvar na Biblioteca"
+                  >
+                    <BookmarkSquareIcon className="w-4 h-4" />
+                  </button>
+                </div>
                 <div className="space-y-2 text-sm">
                   <div>
                     <strong className="text-textlight">Interesses:</strong>
@@ -472,11 +580,12 @@ Formate como array JSON de strings (apenas os prompts).`;
               </div>
             ))}
           </div>
-        )}
-      </div>
+        )
+        }
+      </div >
 
       {/* Profile Analysis Section */}
-      <div className="bg-lightbg p-6 rounded-lg shadow-sm border border-gray-800 mb-8">
+      < div className="bg-lightbg p-6 rounded-lg shadow-sm border border-gray-800 mb-8" >
         <h3 className="text-xl font-semibold text-textlight mb-4">Análise de Perfil</h3>
         <p className="text-muted text-sm mb-4">Cole um texto e a IA identificará o perfil do avatar</p>
         <Textarea
@@ -496,153 +605,159 @@ Formate como array JSON de strings (apenas os prompts).`;
           {loadingProfileAnalysis ? 'Analisando...' : 'Analisar Perfil'}
         </Button>
 
-        {profileAnalysisResult && (
-          <div className="bg-surface p-4 rounded-lg border border-border mt-4">
-            <h4 className="font-semibold text-textlight mb-2">Resultado da Análise:</h4>
-            <pre className="text-sm text-muted whitespace-pre-wrap">{profileAnalysisResult}</pre>
-          </div>
-        )}
-      </div>
+        {
+          profileAnalysisResult && (
+            <div className="bg-surface p-4 rounded-lg border border-border mt-4">
+              <h4 className="font-semibold text-textlight mb-2">Resultado da Análise:</h4>
+              <pre className="text-sm text-muted whitespace-pre-wrap">{profileAnalysisResult}</pre>
+            </div>
+          )
+        }
+      </div >
 
       {/* Creative Ideas Section */}
-      {creativeIdeas.length > 0 && selectedAvatar && (
-        <div className="bg-lightbg p-6 rounded-lg shadow-sm border border-gray-800 mb-8 animate-slide-in-from-bottom">
-          <h3 className="text-xl font-semibold text-textlight mb-2">Ideias de Criativos</h3>
-          <p className="text-muted text-sm mb-4">
-            Baseado na persona: <strong>{selectedAvatar.name}</strong>
-          </p>
+      {
+        creativeIdeas.length > 0 && selectedAvatar && (
+          <div className="bg-lightbg p-6 rounded-lg shadow-sm border border-gray-800 mb-8 animate-slide-in-from-bottom">
+            <h3 className="text-xl font-semibold text-textlight mb-2">Ideias de Criativos</h3>
+            <p className="text-muted text-sm mb-4">
+              Baseado na persona: <strong>{selectedAvatar.name}</strong>
+            </p>
 
-          <div className="space-y-3">
-            {creativeIdeas.map((idea, index) => (
-              <div key={index} className="bg-surface p-4 rounded-lg border border-border">
-                <div className="flex justify-between items-start gap-3">
-                  <div className="flex-1">
-                    <span className="text-xs font-bold text-primary">Prompt {index + 1}</span>
-                    <p className="text-sm text-textlight mt-1">{idea}</p>
+            <div className="space-y-3">
+              {creativeIdeas.map((idea, index) => (
+                <div key={index} className="bg-surface p-4 rounded-lg border border-border">
+                  <div className="flex justify-between items-start gap-3">
+                    <div className="flex-1">
+                      <span className="text-xs font-bold text-primary">Prompt {index + 1}</span>
+                      <p className="text-sm text-textlight mt-1">{idea}</p>
+                    </div>
+                    <Button
+                      onClick={() => {
+                        navigator.clipboard.writeText(idea);
+                        addToast({ type: 'success', message: 'Prompt copiado!' });
+                      }}
+                      variant="outline"
+                      className="text-xs py-1 px-2 flex-shrink-0"
+                    >
+                      Copiar
+                    </Button>
                   </div>
-                  <Button
-                    onClick={() => {
-                      navigator.clipboard.writeText(idea);
-                      addToast({ type: 'success', message: 'Prompt copiado!' });
-                    }}
-                    variant="outline"
-                    className="text-xs py-1 px-2 flex-shrink-0"
-                  >
-                    Copiar
-                  </Button>
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {generatedPost && (
-        <div className="bg-lightbg p-6 rounded-lg shadow-sm border border-gray-800 animate-slide-in-from-bottom duration-500">
-          <h3 className="text-xl font-semibold text-textlight mb-5">Conteúdo Gerado</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="flex flex-col">
-              <h4 className="text-lg font-semibold text-textlight mb-3">Texto do Post</h4>
-              {loadingText && !generatedPost.content_text ? ( // Check content_text specifically for text loading
-                <LoadingSpinner />
-              ) : (
-                <div className="prose max-w-none text-textlight leading-relaxed bg-darkbg p-4 rounded-md h-full min-h-[150px]" style={{ whiteSpace: 'pre-wrap' }}>
-                  {generatedPost.content_text}
-                </div>
-              )}
-              <button
-                onClick={() => {
-                  const blob = new Blob([generatedPost.content_text], { type: 'text/plain' });
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = url;
-                  a.download = `vitrinex-texto-${Date.now()}.txt`;
-                  a.click();
-                  URL.revokeObjectURL(url);
-                  addToast({ type: 'success', message: 'Texto baixado como .txt' });
-                }}
-                className="mt-3 flex items-center justify-center gap-2 w-full bg-blue-900/30 hover:bg-blue-900/50 text-blue-400 px-4 py-2 rounded border border-blue-900 text-sm font-medium transition-colors"
-                title="Baixar texto como arquivo .txt"
-              >
-                <ArrowDownTrayIcon className="w-4 h-4" /> Baixar TXT
-              </button>
+              ))}
             </div>
-            <div className="flex flex-col">
-              <h4 className="text-lg font-semibold text-textlight mb-3">Imagem do Post</h4>
-              {loadingImage ? (
-                <div className="flex items-center justify-center h-48 bg-gray-900 rounded-md">
+          </div>
+        )
+      }
+
+      {
+        generatedPost && (
+          <div className="bg-lightbg p-6 rounded-lg shadow-sm border border-gray-800 animate-slide-in-from-bottom duration-500">
+            <h3 className="text-xl font-semibold text-textlight mb-5">Conteúdo Gerado</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="flex flex-col">
+                <h4 className="text-lg font-semibold text-textlight mb-3">Texto do Post</h4>
+                {loadingText && !generatedPost.content_text ? ( // Check content_text specifically for text loading
                   <LoadingSpinner />
+                ) : (
+                  <div className="prose max-w-none text-textlight leading-relaxed bg-darkbg p-4 rounded-md h-full min-h-[150px]" style={{ whiteSpace: 'pre-wrap' }}>
+                    {generatedPost.content_text}
+                  </div>
+                )}
+                <button
+                  onClick={() => {
+                    const blob = new Blob([generatedPost.content_text], { type: 'text/plain' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `vitrinex-texto-${Date.now()}.txt`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    addToast({ type: 'success', message: 'Texto baixado como .txt' });
+                  }}
+                  className="mt-3 flex items-center justify-center gap-2 w-full bg-blue-900/30 hover:bg-blue-900/50 text-blue-400 px-4 py-2 rounded border border-blue-900 text-sm font-medium transition-colors"
+                  title="Baixar texto como arquivo .txt"
+                >
+                  <ArrowDownTrayIcon className="w-4 h-4" /> Baixar TXT
+                </button>
+              </div>
+              <div className="flex flex-col">
+                <h4 className="text-lg font-semibold text-textlight mb-3">Imagem do Post</h4>
+                {loadingImage ? (
+                  <div className="flex items-center justify-center h-48 bg-gray-900 rounded-md">
+                    <LoadingSpinner />
+                  </div>
+                ) : (
+                  <img
+                    src={generatedImageUrl}
+                    alt="Generated content visual"
+                    className="w-full h-48 object-contain rounded-md border border-gray-700 mb-4"
+                  />
+                )}
+                <div className="flex flex-wrap gap-3">
+                  <Button onClick={handleRegenerateImage} isLoading={loadingImage} variant="outline" className="w-full sm:w-auto">
+                    {loadingImage ? 'Regenerando...' : 'Regenerar Imagem'}
+                  </Button>
+                  {/* NOVO: Ações de Mídia */}
+                  <MediaActionsToolbar
+                    mediaUrl={generatedImageUrl}
+                    fileName={`vitrinex-post.png`}
+                    shareTitle="Confira este post!"
+                    shareText={generatedPost.content_text}
+                  />
                 </div>
-              ) : (
-                <img
-                  src={generatedImageUrl}
-                  alt="Generated content visual"
-                  className="w-full h-48 object-contain rounded-md border border-gray-700 mb-4"
+              </div>
+            </div>
+
+            <div className="mt-8 pt-6 border-t border-gray-800">
+              <h4 className="text-lg font-semibold text-textlight mb-4">Salvar na Biblioteca</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <Input
+                  id="saveName"
+                  label="Nome do Item"
+                  value={savedItemName}
+                  onChange={(e) => setSavedItemName(e.target.value)}
+                  placeholder="Ex: Post Campanha Verão"
                 />
-              )}
-              <div className="flex flex-wrap gap-3">
-                <Button onClick={handleRegenerateImage} isLoading={loadingImage} variant="outline" className="w-full sm:w-auto">
-                  {loadingImage ? 'Regenerando...' : 'Regenerar Imagem'}
+                <Input
+                  id="saveTags"
+                  label="Tags (separadas por vírgula)"
+                  value={savedItemTags}
+                  onChange={(e) => setSavedItemTags(e.target.value)}
+                  placeholder="Ex: instagram, verão, promoção"
+                />
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button onClick={handleSavePost} variant="primary" isLoading={loadingText} disabled={!generatedPost} className="w-full sm:w-auto">
+                  {loadingText ? 'Salvando Post Completo...' : 'Salvar Post Completo'}
                 </Button>
-                {/* NOVO: Ações de Mídia */}
-                <MediaActionsToolbar
-                  mediaUrl={generatedImageUrl}
-                  fileName={`vitrinex-post.png`}
-                  shareTitle="Confira este post!"
-                  shareText={generatedPost.content_text}
+                <SaveToLibraryButton
+                  content={generatedImageUrl}
+                  type="image"
+                  userId={userId}
+                  initialName={savedItemName || 'Imagem Gerada'}
+                  tags={savedItemTags.split(',').map(t => t.trim()).filter(Boolean)}
+                  label="Salvar Apenas Imagem"
+                  variant="secondary"
+                  disabled={!generatedImageUrl || generatedImageUrl === PLACEHOLDER_IMAGE_BASE64}
+                  className="w-full sm:w-auto"
+                />
+                <SaveToLibraryButton
+                  content={generatedPost.content_text}
+                  type="text"
+                  userId={userId}
+                  initialName={savedItemName ? `${savedItemName} (Texto)` : 'Texto do Post'}
+                  tags={savedItemTags.split(',').map(t => t.trim()).filter(Boolean)}
+                  label="Salvar Apenas Texto"
+                  variant="outline"
+                  className="w-full sm:w-auto"
                 />
               </div>
             </div>
           </div>
-
-          <div className="mt-8 pt-6 border-t border-gray-800">
-            <h4 className="text-lg font-semibold text-textlight mb-4">Salvar na Biblioteca</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              <Input
-                id="saveName"
-                label="Nome do Item"
-                value={savedItemName}
-                onChange={(e) => setSavedItemName(e.target.value)}
-                placeholder="Ex: Post Campanha Verão"
-              />
-              <Input
-                id="saveTags"
-                label="Tags (separadas por vírgula)"
-                value={savedItemTags}
-                onChange={(e) => setSavedItemTags(e.target.value)}
-                placeholder="Ex: instagram, verão, promoção"
-              />
-            </div>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Button onClick={handleSavePost} variant="primary" isLoading={loadingText} disabled={!generatedPost} className="w-full sm:w-auto">
-                {loadingText ? 'Salvando Post Completo...' : 'Salvar Post Completo'}
-              </Button>
-              <SaveToLibraryButton
-                content={generatedImageUrl}
-                type="image"
-                userId={userId}
-                initialName={savedItemName || 'Imagem Gerada'}
-                tags={savedItemTags.split(',').map(t => t.trim()).filter(Boolean)}
-                label="Salvar Apenas Imagem"
-                variant="secondary"
-                disabled={!generatedImageUrl || generatedImageUrl === PLACEHOLDER_IMAGE_BASE64}
-                className="w-full sm:w-auto"
-              />
-              <SaveToLibraryButton
-                content={generatedPost.content_text}
-                type="text"
-                userId={userId}
-                initialName={savedItemName ? `${savedItemName} (Texto)` : 'Texto do Post'}
-                tags={savedItemTags.split(',').map(t => t.trim()).filter(Boolean)}
-                label="Salvar Apenas Texto"
-                variant="outline"
-                className="w-full sm:w-auto"
-              />
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   );
 };
 

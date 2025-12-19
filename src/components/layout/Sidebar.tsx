@@ -4,20 +4,17 @@ import { ModuleName } from '../../App';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavItems } from './NavigationItems';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X } from 'lucide-react';
+
 import { cn } from '../../lib/utils';
 
 import Icon from '../ui/Icon';
+
+import Logo3D from '../ui/Logo3D';
 
 interface SidebarProps {
   activeModule: ModuleName;
   setActiveModule: (moduleName: ModuleName) => void;
 }
-
-import Link from 'next/link'; // Assuming Next.js or similar router, but here using module state
-import Logo3D from '../ui/Logo3D';
-
-// ... imports
 
 const Sidebar: React.FC<SidebarProps> = memo(({ activeModule, setActiveModule }) => {
   const navItems = useNavItems();
