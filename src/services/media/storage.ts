@@ -3,40 +3,50 @@ import { supabase } from '../../lib/supabase';
 
 const STORAGE_BUCKET = 'media';
 
+// Helper to convert File to Base64
+const fileToDataUrl = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+};
+
 export const uploadFile = async (file: File, userId: string, type: LibraryItem['type']): Promise<LibraryItem> => {
     const timestamp = Date.now();
     // Sanitize filename
     const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
     const filePath = `${userId}/${timestamp}-${sanitizedName}`;
 
-    const { data, error } = await supabase.storage
-        .from(STORAGE_BUCKET)
-        .upload(filePath, file);
+    let publicUrl = '';
 
-    if (error) {
-        console.error('Error uploading file to Supabase:', error);
-        throw error;
+    try {
+        const { data, error } = await supabase.storage
+            .from(STORAGE_BUCKET)
+            .upload(filePath, file);
+
+        if (error) throw error;
+
+        const { data: urlData } = supabase.storage
+            .from(STORAGE_BUCKET)
+            .getPublicUrl(filePath);
+
+        publicUrl = urlData.publicUrl;
+
+    } catch (error) {
+        console.warn('Supabase storage upload failed, falling back to Base64:', error);
+        // Fallback: Convert file to Base64 Data URL
+        try {
+            publicUrl = await fileToDataUrl(file);
+        } catch (readError) {
+            console.error('Failed to read file as DataURL:', readError);
+            throw error; // If we can't even read the file, fail.
+        }
     }
-
-    const { data: { publicUrl } } = supabase.storage
-        .from(STORAGE_BUCKET)
-        .getPublicUrl(filePath);
 
     // Create LibraryItem
     const newItem: LibraryItem = {
-        // We let Supabase Generate ID if we save to DB later, but here we return an object.
-        // If the caller saves this object to DB (which it does in InteractiveActionCenter),
-        // we should either generate a UUID or let DB handle it.
-        // Since InteractiveActionCenter calls saveLibraryItem with THIS object, 
-        // and saveLibraryItem does .insert([item]), we should probably NOT set ID if we want DB to generate it.
-        // BUT the type requires ID.
-        // We will generate a UUID-like string or just use a timestamp-based ID for now, 
-        // hoping the DB allows text or we are lucky. 
-        // Better: don't set ID here if possible? No, type says it'S required.
-        // We will use a placeholder or generate one. 
-        // Ideally we should use uuid generation lib, but we can't easily add deps.
-        // We'll use the same pattern 'lib-' + timestamp for now.
-        // If DB has UUID constraint, user will need to change schema or we add uuid gen.
         id: `lib-${timestamp}`,
         userId: userId,
         type: type,
@@ -47,22 +57,7 @@ export const uploadFile = async (file: File, userId: string, type: LibraryItem['
         createdAt: new Date().toISOString(),
     };
 
-    // Note: The previous mock implementation returned the item but didn't save to DB within uploadFile.
-    // The calling code (InteractiveActionCenter) calls saveLibraryItem separately?
-    // Let's check InteractiveActionCenter.tsx...
-    // It says: 
-    // const imgRes = await generateImage... 
-    // outputUrl = imgRes.imageUrl;
-    // ...
-    // await saveLibraryItem({...})
-
-    // Wait, uploadFile is NOT called in InteractiveActionCenter!
-    // It uses `generateImage` etc.
-    // So where is `uploadFile` used? 
-    // Maybe in "CreativeStudio" or "ContentGenerator" (as per conservation history summary).
-    // I should check usage.
-
-    console.log('File uploaded to Supabase:', newItem);
+    console.log('File processed (Upload/Base64):', newItem.id);
     return newItem;
 };
 

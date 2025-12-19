@@ -132,74 +132,169 @@ export const getTrends = async (userId: string): Promise<Trend[]> => {
     return (data as Trend[]) || [];
 };
 
+// --- Local Storage Helpers ---
+const getLocalData = <T>(key: string): T[] => {
+    try {
+        const item = localStorage.getItem(`vitrinex_${key}`);
+        return item ? JSON.parse(item) : [];
+    } catch (e) {
+        console.warn(`Failed to parse local data for ${key}`, e);
+        return [];
+    }
+};
+
+const saveLocalData = <T extends { id: string }>(key: string, data: T): T => {
+    try {
+        const current = getLocalData<T>(key);
+        const index = current.findIndex(i => i.id === data.id);
+        if (index >= 0) {
+            current[index] = data;
+        } else {
+            current.unshift(data); // Add to top
+        }
+        localStorage.setItem(`vitrinex_${key}`, JSON.stringify(current));
+        return data;
+    } catch (e) {
+        console.error(`Failed to save local data for ${key}`, e);
+        throw e;
+    }
+};
+
 // --- Library Operations ---
 
 export const saveLibraryItem = async (item: LibraryItem): Promise<LibraryItem> => {
-    const { data, error } = await supabase
-        .from('library_items')
-        .upsert(item)
-        .select()
-        .single();
+    try {
+        // Try Supabase first
+        const { data, error } = await supabase
+            .from('library_items')
+            .upsert(item)
+            .select()
+            .single();
 
-    if (error) handleError('saveLibraryItem', error);
-    return data as LibraryItem;
+        if (error) throw error;
+        return data as LibraryItem;
+    } catch (error) {
+        console.warn('Supabase save failed, falling back to LocalStorage:', error);
+        // Fallback to LocalStorage
+        return saveLocalData('library_items', item);
+    }
 };
 
 export const getLibraryItems = async (userId: string, tags?: string[]): Promise<LibraryItem[]> => {
-    let query = supabase
-        .from('library_items')
-        .select('*')
-        .eq('userId', userId)
-        .order('createdAt', { ascending: false });
+    let supabaseItems: LibraryItem[] = [];
+    let localItems: LibraryItem[] = [];
 
-    if (tags && tags.length > 0) {
-        query = query.contains('tags', tags);
+    // Try fetch from Supabase
+    try {
+        let query = supabase
+            .from('library_items')
+            .select('*')
+            .order('createdAt', { ascending: false });
+
+        // Note: We might want to filter by userId in a real app, 
+        // but for local-first/fallback mixed mode, we might be lenient or filter in memory.
+        if (userId) {
+            query = query.eq('userId', userId);
+        }
+
+        if (tags && tags.length > 0) {
+            query = query.contains('tags', tags);
+        }
+
+        const { data, error } = await query;
+        if (!error && data) {
+            supabaseItems = data as LibraryItem[];
+        }
+    } catch (e) {
+        console.warn('Supabase fetch failed:', e);
     }
 
-    const { data, error } = await query;
+    // Fetch from LocalStorage
+    try {
+        localItems = getLocalData<LibraryItem>('library_items');
+        if (userId) {
+            localItems = localItems.filter(i => i.userId === userId);
+        }
+        if (tags && tags.length > 0) {
+            localItems = localItems.filter(i => tags.some(t => i.tags.includes(t)));
+        }
+    } catch (e) {
+        console.warn('Local fetch failed:', e);
+    }
 
-    if (error) handleError('getLibraryItems', error);
-    return (data as LibraryItem[]) || [];
+    // Merge logic: Local items take precedence if IDs conflict (optimistic updates), 
+    // or we just concat. For simplicity, we filter duplicates by ID.
+    const allItems = [...supabaseItems];
+    localItems.forEach(local => {
+        if (!allItems.find(supa => supa.id === local.id)) {
+            allItems.push(local);
+        }
+    });
+
+    // Sort by date desc
+    return allItems.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 };
 
 export const deleteLibraryItem = async (itemId: string): Promise<void> => {
-    const { error } = await supabase
-        .from('library_items')
-        .delete()
-        .eq('id', itemId);
+    // Try delete from both
+    try {
+        await supabase.from('library_items').delete().eq('id', itemId);
+    } catch (e) { /* ignore */ }
 
-    if (error) handleError('deleteLibraryItem', error);
+    try {
+        const current = getLocalData<LibraryItem>('library_items');
+        const filtered = current.filter(i => i.id !== itemId);
+        localStorage.setItem('vitrinex_library_items', JSON.stringify(filtered));
+    } catch (e) {
+        console.error('Local delete failed', e);
+    }
 };
 
 // --- Schedule Operations ---
 
 export const saveScheduleEntry = async (entry: ScheduleEntry): Promise<ScheduleEntry> => {
-    const { data, error } = await supabase
-        .from('schedule')
-        .upsert(entry)
-        .select()
-        .single();
+    try {
+        const { data, error } = await supabase
+            .from('schedule')
+            .upsert(entry)
+            .select()
+            .single();
 
-    if (error) handleError('saveScheduleEntry', error);
-    return data as ScheduleEntry;
+        if (error) throw error;
+        return data as ScheduleEntry;
+    } catch (e) {
+        return saveLocalData('schedule', entry);
+    }
 };
 
 export const getScheduleEntries = async (userId: string): Promise<ScheduleEntry[]> => {
-    const { data, error } = await supabase
-        .from('schedule')
-        .select('*')
-        .eq('userId', userId)
-        .order('datetime', { ascending: true });
+    // Similar merge strategy or just local fallback
+    try {
+        const { data, error } = await supabase
+            .from('schedule')
+            .select('*')
+            .eq('userId', userId)
+            .order('datetime', { ascending: true });
 
-    if (error) handleError('getScheduleEntries', error);
-    return (data as ScheduleEntry[]) || [];
+        if (error) throw error;
+        return data as ScheduleEntry[];
+    } catch (e) {
+        // Fallback
+        const local = getLocalData<ScheduleEntry>('schedule');
+        return local
+            .filter(i => i.userId === userId)
+            .sort((a, b) => new Date(a.datetime).getTime() - new Date(b.datetime).getTime());
+    }
 };
 
 export const deleteScheduleEntry = async (entryId: string): Promise<void> => {
-    const { error } = await supabase
-        .from('schedule')
-        .delete()
-        .eq('id', entryId);
+    try {
+        await supabase.from('schedule').delete().eq('id', entryId);
+    } catch (e) { }
 
-    if (error) handleError('deleteScheduleEntry', error);
+    try {
+        const current = getLocalData<ScheduleEntry>('schedule');
+        const filtered = current.filter(i => i.id !== entryId);
+        localStorage.setItem('vitrinex_schedule', JSON.stringify(filtered));
+    } catch (e) { }
 };
