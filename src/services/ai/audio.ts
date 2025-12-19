@@ -44,7 +44,7 @@ export const generateSpeech = async (text: string, voiceName: string = 'Kore'): 
             config: {
                 responseModalities: ["AUDIO"],
                 speechConfig: {
-                    voiceConfig: { prebuiltVoiceConfig: { voiceName: 'pt-BR-Neural2-A' } }
+                    voiceConfig: { prebuiltVoiceConfig: { voiceName: voiceName } } // Usa a voz passada como parâmetro (padrão: 'Kore')
                 }
             }
         });
