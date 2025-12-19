@@ -10,6 +10,14 @@ import { uploadFile } from '../services/media/storage';
 import HowToUse from '../components/ui/HowToUse';
 import { useAuth } from '../contexts/AuthContext';
 
+const VOICES = [
+  { id: 'Kore', name: 'Kore', gender: 'Feminino', description: 'Voz clara, padrão e profissional' },
+  { id: 'Aoede', name: 'Aoede', gender: 'Feminino', description: 'Voz suave, gentil e acolhedora' },
+  { id: 'Charon', name: 'Charon', gender: 'Masculino', description: 'Voz profunda, ideal para narrações sérias' },
+  { id: 'Puck', name: 'Puck', gender: 'Masculino', description: 'Voz jovem, enérgica e entusiasmada' },
+  { id: 'Fenrir', name: 'Fenrir', gender: 'Masculino', description: 'Voz equilibrada e direta' }
+];
+
 // Utility: Convert Base64 audio to File for storage upload
 const base64ToAudioFile = async (base64: string): Promise<File> => {
   const response = await fetch(`data:audio/wav;base64,${base64}`);
@@ -25,6 +33,7 @@ const AudioTools: React.FC = () => {
   const { user } = useAuth();
   const [text, setText] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [selectedVoice, setSelectedVoice] = useState('Kore');
   const { addToast } = useToast();
   const audioContextRef = React.useRef<AudioContext | null>(null);
   const sourceRef = React.useRef<AudioBufferSourceNode | null>(null);
@@ -61,7 +70,7 @@ const AudioTools: React.FC = () => {
 
     setIsGenerating(true);
     try {
-      const base64Audio = await generateSpeech(text);
+      const base64Audio = await generateSpeech(text, selectedVoice);
       if (!base64Audio) throw new Error('Falha na geração de áudio.');
 
       setGeneratedAudioBase64(base64Audio); // Store for download
@@ -132,8 +141,34 @@ const AudioTools: React.FC = () => {
           onChange={(e) => setText(e.target.value)}
           rows={6}
           placeholder="Digite o texto que deseja converter em áudio natural..."
-          className="mb-4"
+          className="mb-6"
         />
+
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-title mb-3">
+            Selecione a Persona da Voz
+          </label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+            {VOICES.map((voice) => (
+              <button
+                key={voice.id}
+                onClick={() => setSelectedVoice(voice.id)}
+                className={`p-3 rounded-xl border text-left transition-all ${selectedVoice === voice.id
+                    ? 'border-purple-500 bg-purple-500/10 ring-1 ring-purple-500'
+                    : 'border-border bg-surface hover:border-purple-300'
+                  }`}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-bold text-title">{voice.name}</span>
+                  <span className="text-[10px] uppercase font-bold text-muted bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded">
+                    {voice.gender === 'Feminino' ? 'FEM' : 'MASC'}
+                  </span>
+                </div>
+                <p className="text-[10px] text-muted leading-tight">{voice.description}</p>
+              </button>
+            ))}
+          </div>
+        </div>
 
         <div className="flex gap-3">
           <Button

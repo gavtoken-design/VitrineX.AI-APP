@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { useState } from 'react';
-import { CodeBracketIcon, SparklesIcon, ArrowDownTrayIcon, EyeIcon, XMarkIcon, ShareIcon } from '@heroicons/react/24/outline';
+import { CodeBracketIcon, SparklesIcon, ArrowDownTrayIcon, EyeIcon, XMarkIcon, ShareIcon, RectangleStackIcon, MagnifyingGlassIcon, ClipboardIcon } from '@heroicons/react/24/outline';
+import * as LucideIcons from 'lucide-react';
 import Button from '../components/ui/Button';
 import Textarea from '../components/ui/Textarea';
 import Input from '../components/ui/Input';
@@ -10,6 +11,51 @@ import { saveLibraryItem } from '../services/core/db';
 import HowToUse from '../components/ui/HowToUse';
 import { GEMINI_PRO_MODEL } from '../constants';
 
+const TEMPLATES = [
+  {
+    id: 'hero-gradient',
+    name: 'Modern Hero',
+    description: 'Gradient background with glassmorphism cards',
+    icon: LucideIcons.LayoutIcon,
+    prompt: 'Crie uma Hero Section ultra moderna com fundo gradiente animado (mesh gradient), um card central usando glassmorphism, título com fonte inter e um botão CTA com brilho. Estilo 21.dev.'
+  },
+  {
+    id: 'saas-landing',
+    name: 'SaaS Landing',
+    description: 'Complete landing page for software products',
+    icon: LucideIcons.RocketIcon,
+    prompt: 'Gere uma Landing Page de SaaS completa: Hero elegante, seção de 3 features em grid, depoimento em destaque e rodapé minimalista. Cores dark mode e acentos azul neon.'
+  },
+  {
+    id: 'bento-portfolio',
+    name: 'Bento Portfolio',
+    description: 'Creative bento grid layout for designers',
+    icon: LucideIcons.GridIcon,
+    prompt: 'Crie um layout de Portfolio usando Bento Grid. Cards de diferentes tamanhos, bordas arredondadas finas, sombras suaves e tipografia moderna. Cada card deve representar um projeto.'
+  },
+  {
+    id: 'glass-dashboard',
+    name: 'Glass Dashboard',
+    description: 'Analytics dashboard with transparent elements',
+    icon: LucideIcons.LayoutDashboardIcon,
+    prompt: 'Gere um painel de controle (Dashboard) com estética glassmorphism. Sidebar translúcida, cards de estatísticas com gráficos simples em SVG e uma tabela de atividades recentes.'
+  },
+  {
+    id: 'pricing-tiers',
+    name: 'Pricing Table',
+    description: 'Strategic pricing cards with hover effects',
+    icon: LucideIcons.CreditCardIcon,
+    prompt: 'Crie uma tabela de preços com 3 planos. O plano central deve ter um destaque (brilho ou borda colorida). Use cards com hover effects suaves e CTAs claros.'
+  },
+  {
+    id: 'clean-contact',
+    name: 'Modern Contact',
+    description: 'Sleek contact form with interactive inputs',
+    icon: LucideIcons.MailIcon,
+    prompt: 'Crie uma página de contato minimalista. Formulário com inputs que brilham ao focar, layout centralizado em uma coluna elegante e informações de contato ao lado.'
+  }
+];
+
 const CodePlayground: React.FC = () => {
   const [contentText, setContentText] = useState('');
   const [imageUrl, setImageUrl] = useState('');
@@ -18,8 +64,28 @@ const CodePlayground: React.FC = () => {
   const [generatedCode, setGeneratedCode] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [iconSearch, setIconSearch] = useState('');
+  const [showIconSelector, setShowIconSelector] = useState(false);
   const { addToast } = useToast();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const filteredIcons = React.useMemo(() => {
+    return Object.keys(LucideIcons).filter(name =>
+      name.toLowerCase().includes(iconSearch.toLowerCase()) &&
+      !name.endsWith('Icon') // Filter redundant aliases if any
+    ).slice(0, 50); // Limit results for performance
+  }, [iconSearch]);
+
+  const copyIconCode = (name: string) => {
+    const code = `<${name} size={24} />`;
+    navigator.clipboard.writeText(code);
+    addToast({ type: 'success', message: `Código do ícone ${name} copiado!` });
+  };
+
+  const applyTemplate = (prompt: string) => {
+    setPageDescription(prompt);
+    addToast({ type: 'info', message: 'Template selecionado! Clique em Gerar para ver o resultado.' });
+  };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -195,8 +261,28 @@ Sem comentários markdown. Apenas o código.`;
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Input Section */}
+        {/* Left Side: Input & Templates */}
         <div className="space-y-6">
+          {/* Templates Library */}
+          <div className="bg-surface p-6 rounded-xl border border-border">
+            <h3 className="text-lg font-semibold text-title mb-4 flex items-center gap-2">
+              <RectangleStackIcon className="w-5 h-5 text-purple-500" />
+              Biblioteca de Templates Premium (21st.dev)
+            </h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {TEMPLATES.map((tmpl) => (
+                <button
+                  key={tmpl.id}
+                  onClick={() => applyTemplate(tmpl.prompt)}
+                  className="flex flex-col items-center p-3 rounded-lg border border-border hover:border-purple-500 hover:bg-purple-500/5 transition-all text-center group"
+                >
+                  <tmpl.icon className="w-6 h-6 mb-2 text-muted group-hover:text-purple-500" />
+                  <span className="text-xs font-medium text-title">{tmpl.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="bg-surface p-6 rounded-xl border border-border">
             <h3 className="text-lg font-semibold text-title mb-4 flex items-center gap-2">
               <SparklesIcon className="w-5 h-5 text-blue-500" />
@@ -274,16 +360,57 @@ Sem comentários markdown. Apenas o código.`;
                 placeholder="Ex: Landing page moderna para produto SaaS, com hero section, 3 benefícios principais, depoimentos e CTA destacado. Cores vibrantes azul e roxo."
               />
 
-              <Button
-                onClick={generateHtmlCode}
-                isLoading={isGenerating}
-                disabled={!pageDescription.trim()}
-                variant="primary"
-                className="w-full"
-              >
-                <SparklesIcon className="w-5 h-5 mr-2" />
-                Gerar Código HTML Profissional
-              </Button>
+              <div className="flex flex-col gap-2">
+                <Button
+                  onClick={generateHtmlCode}
+                  isLoading={isGenerating}
+                  disabled={!pageDescription.trim()}
+                  variant="primary"
+                  className="w-full"
+                >
+                  <SparklesIcon className="w-5 h-5 mr-2" />
+                  Gerar Código HTML Profissional
+                </Button>
+
+                <button
+                  onClick={() => setShowIconSelector(!showIconSelector)}
+                  className="text-xs text-blue-500 hover:underline flex items-center justify-center gap-1"
+                >
+                  {showIconSelector ? 'Fechar Seletor de Ícones' : 'Abrir Seletor de Ícones Lucide'}
+                </button>
+              </div>
+
+              {showIconSelector && (
+                <div className="p-4 bg-darkbg rounded-lg border border-border mt-2">
+                  <div className="relative mb-4">
+                    <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
+                    <input
+                      type="text"
+                      value={iconSearch}
+                      onChange={(e) => setIconSearch(e.target.value)}
+                      placeholder="Buscar ícone (ex: Arrow, Heart...)"
+                      className="w-full bg-surface border border-border rounded-lg pl-9 pr-4 py-2 text-sm text-title outline-none focus:border-blue-500"
+                    />
+                  </div>
+                  <div className="grid grid-cols-5 gap-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                    {filteredIcons.map((iconName) => {
+                      const Icon = (LucideIcons as any)[iconName];
+                      if (!Icon || typeof Icon !== 'function' && typeof Icon !== 'object') return null;
+                      return (
+                        <button
+                          key={iconName}
+                          onClick={() => copyIconCode(iconName)}
+                          className="p-2 border border-border rounded hover:bg-surface hover:border-blue-500 transition-colors flex items-center justify-center"
+                          title={iconName}
+                        >
+                          <Icon size={18} className="text-muted hover:text-blue-500" />
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <p className="text-[10px] text-muted mt-2 text-center">Clique no ícone para copiar o código React/HTML</p>
+                </div>
+              )}
             </div>
           </div>
 

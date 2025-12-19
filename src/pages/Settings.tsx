@@ -22,9 +22,11 @@ import { useAuth } from '../contexts/AuthContext';
 const Settings: React.FC = () => {
   // Profile State
   const [businessProfileForm, setBusinessProfileForm] = useState<UserProfile['businessProfile']>(DEFAULT_BUSINESS_PROFILE);
-  const [contactInfoForm, setContactInfoForm] = useState<UserProfile['contactInfo']>({
-    instagram: '', tiktok: '', twitter: '', pinterest: '', whatsapp: '', facebook: ''
-  });
+  const [socialNetworks, setSocialNetworks] = useState<Array<{ name: string; username: string; url: string }>>([
+    { name: 'Instagram', username: '', url: '' },
+    { name: 'TikTok', username: '', url: '' },
+    { name: 'WhatsApp', username: '', url: '' }
+  ]);
   const [profileLoading, setProfileLoading] = useState<boolean>(true);
   const [savingProfile, setSavingProfile] = useState<boolean>(false);
 
@@ -49,7 +51,15 @@ const Settings: React.FC = () => {
         if (profile) {
           setBusinessProfileForm(profile.businessProfile);
           if (profile.contactInfo) {
-            setContactInfoForm(profile.contactInfo);
+            // Convert legacy contactInfo to new socialNetworks array if needed
+            const networks = Object.entries(profile.contactInfo)
+              .filter(([_, value]) => !!value)
+              .map(([key, value]) => ({
+                name: key.charAt(0).toUpperCase() + key.slice(1),
+                username: value,
+                url: ''
+              }));
+            if (networks.length > 0) setSocialNetworks(networks);
           }
         }
         // Internamente ainda usamos a chave do storage, mas a UI não revela a tecnologia
@@ -140,15 +150,48 @@ const Settings: React.FC = () => {
     try {
       const profileData = {
         businessProfile: businessProfileForm,
-        contactInfo: contactInfoForm
+        contactInfo: socialNetworks.reduce((acc, curr) => ({ ...acc, [curr.name.toLowerCase()]: curr.username }), {})
       };
       await updateUserProfile(userId, profileData);
-      addToast({ type: 'success', message: 'Perfil do negócio salvo com sucesso!' });
+      addToast({ type: 'success', message: 'Configurações salvas com sucesso!' });
     } catch (err) {
       addToast({ type: 'error', message: `Falha ao salvar perfil: ${err instanceof Error ? err.message : String(err)}` });
     } finally {
       setSavingProfile(false);
     }
+  };
+
+  const handleAddNetwork = () => {
+    setSocialNetworks([...socialNetworks, { name: 'Nova Rede', username: '', url: '' }]);
+  };
+
+  const handleRemoveNetwork = (index: number) => {
+    setSocialNetworks(socialNetworks.filter((_, i) => i !== index));
+  };
+
+  const downloadFullBackup = () => {
+    const backup: Record<string, any> = {
+      timestamp: new Date().toISOString(),
+      version: '3.4',
+      storage: {}
+    };
+
+    // Iterate through all localStorage keys
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (key.startsWith('vitrinex') || key.includes('db'))) {
+        backup.storage[key] = localStorage.getItem(key);
+      }
+    }
+
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `vitrinex-full-backup-${new Date().toISOString().split('T')[0]}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+    addToast({ type: 'success', message: 'Cópia de segurança gerada com sucesso!' });
   };
 
 
@@ -367,61 +410,78 @@ const Settings: React.FC = () => {
         )}
       </div>
 
-      {/* Social & Contact Section */}
+      {/* Social & Contact Section - Dynamic List */}
       <div className="bg-surface p-8 rounded-xl shadow-card border border-border">
-        <h3 className="text-xl font-semibold text-title mb-6 flex items-center gap-2">
-          <GlobeAltIcon className="w-5 h-5 text-primary" /> Redes Sociais & Contato
-        </h3>
-        {profileLoading ? <LoadingSpinner /> : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input
-              id="email"
-              label="Email de Contato"
-              value={'gavtoken@gmail.com'}
-              disabled={true}
-              placeholder="gavtoken@gmail.com"
-              className="md:col-span-2"
-            />
-            <Input
-              id="instagram"
-              label="Instagram"
-              value={contactInfoForm?.instagram || ''}
-              onChange={(e) => setContactInfoForm({ ...contactInfoForm, instagram: e.target.value })}
-              placeholder="@seu_perfil"
-            />
-            <Input
-              id="twitter"
-              label="Twitter / X"
-              value={contactInfoForm?.twitter || ''}
-              onChange={(e) => setContactInfoForm({ ...contactInfoForm, twitter: e.target.value })}
-              placeholder="@seu_perfil"
-            />
-            <Input
-              id="tiktok"
-              label="TikTok"
-              value={contactInfoForm?.tiktok || ''}
-              onChange={(e) => setContactInfoForm({ ...contactInfoForm, tiktok: e.target.value })}
-              placeholder="@seu_perfil"
-            />
-            <Input
-              id="pinterest"
-              label="Pinterest"
-              value={contactInfoForm?.pinterest || ''}
-              onChange={(e) => setContactInfoForm({ ...contactInfoForm, pinterest: e.target.value })}
-              placeholder="@seu_perfil"
-            />
-            <Input
-              id="whatsapp"
-              label="WhatsApp"
-              value={contactInfoForm?.whatsapp || ''}
-              onChange={(e) => setContactInfoForm({ ...contactInfoForm, whatsapp: e.target.value })}
-              placeholder="(00) 00000-0000"
-              className="md:col-span-2"
-            />
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-semibold text-title flex items-center gap-2">
+            <GlobeAltIcon className="w-5 h-5 text-primary" /> Canais Digitais & Redes
+          </h3>
+          <Button onClick={handleAddNetwork} variant="secondary" size="sm">
+            + Adicionar Canal
+          </Button>
+        </div>
 
-            <div className="md:col-span-2 pt-4">
-              <Button onClick={handleSaveProfile} isLoading={savingProfile} variant="primary" className="w-full sm:w-auto">
-                Salvar Informações
+        {profileLoading ? <LoadingSpinner /> : (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+              <Input
+                id="email"
+                label="Email Principal (Leitura)"
+                value={'gavtoken@gmail.com'}
+                disabled={true}
+                className="md:col-span-2"
+              />
+
+              {socialNetworks.map((network, index) => (
+                <div key={index} className="p-4 rounded-lg bg-background/50 border border-border space-y-3 relative group">
+                  <div className="flex items-center justify-between">
+                    <input
+                      type="text"
+                      value={network.name}
+                      onChange={(e) => {
+                        const newNets = [...socialNetworks];
+                        newNets[index].name = e.target.value;
+                        setSocialNetworks(newNets);
+                      }}
+                      className="bg-transparent border-none text-xs font-bold text-primary uppercase focus:ring-0 w-2/3 p-0"
+                      placeholder="NOME DA REDE"
+                    />
+                    <button
+                      onClick={() => handleRemoveNetwork(index)}
+                      className="text-muted hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <XMarkIcon className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <Input
+                    id={`user-${index}`}
+                    value={network.username}
+                    onChange={(e) => {
+                      const newNets = [...socialNetworks];
+                      newNets[index].username = e.target.value;
+                      setSocialNetworks(newNets);
+                    }}
+                    placeholder="@usuario"
+                    className="!py-1.5 !text-xs"
+                  />
+                  <Input
+                    id={`url-${index}`}
+                    value={network.url}
+                    onChange={(e) => {
+                      const newNets = [...socialNetworks];
+                      newNets[index].url = e.target.value;
+                      setSocialNetworks(newNets);
+                    }}
+                    placeholder="Link direto (opcional)"
+                    className="!py-1.5 !text-xs"
+                  />
+                </div>
+              ))}
+            </div>
+
+            <div className="pt-4 flex justify-end">
+              <Button onClick={handleSaveProfile} isLoading={savingProfile} variant="primary">
+                Salvar Canais
               </Button>
             </div>
           </div>
@@ -470,28 +530,12 @@ const Settings: React.FC = () => {
               Seus dados (posts, campanhas) ficam salvos neste navegador. Exporte regularmente para não perder nada.
             </p>
             <Button
-              onClick={() => {
-                const data = {
-                  db: localStorage.getItem('vitrinex_mock_db'),
-                  // apiKey removida por segurança: localStorage.getItem('vitrinex_gemini_api_key'),
-                  date: new Date().toISOString()
-                };
-                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = `backup-vitrinex-${new Date().toISOString().slice(0, 10)}.json`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                URL.revokeObjectURL(url);
-                addToast({ type: 'success', message: 'Backup de dados baixado com sucesso!' });
-              }}
+              onClick={downloadFullBackup}
               variant="secondary"
               className="w-full sm:w-auto"
             >
               <ArrowDownOnSquareIcon className="w-4 h-4 mr-2" />
-              Exportar Todos os Dados (.JSON)
+              Baixar Cópia da Memória (.JSON)
             </Button>
 
             <div className="pt-6 mt-4 border-t border-border flex justify-center">

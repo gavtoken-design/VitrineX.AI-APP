@@ -9,7 +9,7 @@ import LoadingSpinner from '../components/ui/LoadingSpinner';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import { useMediaActions } from '../hooks/useMediaActions';
-import { TrashIcon, ArrowDownTrayIcon, ShareIcon, DocumentTextIcon, MusicalNoteIcon, CircleStackIcon, CloudArrowUpIcon, CalendarDaysIcon } from '@heroicons/react/24/outline';
+import { TrashIcon, ArrowDownTrayIcon, ShareIcon, DocumentTextIcon, MusicalNoteIcon, CircleStackIcon, CloudArrowUpIcon, CalendarDaysIcon, CodeBracketIcon } from '@heroicons/react/24/outline';
 import { useNavigate } from '../hooks/useNavigate';
 import { useToast } from '../contexts/ToastContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -144,6 +144,66 @@ const ContentLibrary: React.FC = () => {
     fetchLibrary();
   }, [fetchLibrary]);
 
+  const groupedItems = React.useMemo(() => {
+    const filtered = libraryItems
+      .filter(item => item.name.toLowerCase().includes(searchTerm.toLowerCase()))
+      .filter(item => selectedTag === 'all' || item.tags.includes(selectedTag));
+
+    return {
+      audio: filtered.filter(i => i.type === 'audio'),
+      image: filtered.filter(i => i.type === 'image'),
+      text: filtered.filter(i => i.type === 'text' && !i.file_url.includes('<!DOCTYPE html>')),
+      html: filtered.filter(i => i.type === 'text' && i.file_url.includes('<!DOCTYPE html>')),
+      video: filtered.filter(i => i.type === 'video'),
+      other: filtered.filter(i => !['audio', 'image', 'text', 'video'].includes(i.type))
+    };
+  }, [libraryItems, searchTerm, selectedTag]);
+
+  const Column = ({ title, items, icon: Icon }: { title: string; items: LibraryItem[]; icon: any }) => (
+    <div className="flex-1 min-w-[300px] bg-background/40 p-4 rounded-xl border border-border/50">
+      <div className="flex items-center gap-2 mb-4">
+        <Icon className="w-5 h-5 text-primary" />
+        <h4 className="font-bold text-title uppercase tracking-wider text-xs">{title} ({items.length})</h4>
+      </div>
+      <div className="space-y-3">
+        {items.length === 0 ? (
+          <p className="text-xs text-muted italic p-4 text-center">Nenhum item</p>
+        ) : (
+          items.map(item => (
+            <div key={item.id} className="bg-surface rounded-lg border border-border overflow-hidden group hover:border-primary/50 transition-all p-3">
+              <div className="relative h-24 bg-gray-900 flex items-center justify-center overflow-hidden rounded mb-2">
+                {item.type === 'image' || item.type === 'video' ? (
+                  <img
+                    src={item.thumbnail_url || item.file_url || 'https://picsum.photos/200/150'}
+                    alt={item.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : item.type === 'audio' ? (
+                  <MusicalNoteIcon className="w-8 h-8 text-primary/50" />
+                ) : (
+                  <DocumentTextIcon className="w-8 h-8 text-primary/50" />
+                )}
+                <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity gap-1">
+                  <button onClick={() => handleDownload(item.file_url, item.name)} className="p-1.5 bg-white/10 rounded-full text-white hover:bg-primary/20">
+                    <ArrowDownTrayIcon className="w-4 h-4" />
+                  </button>
+                  <button onClick={() => handleDeleteItem(item.id)} className="p-1.5 bg-white/10 rounded-full text-white hover:bg-red-500/20">
+                    <TrashIcon className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+              <h5 className="text-[10px] font-bold text-title truncate">{item.name}</h5>
+              <div className="flex items-center justify-between mt-1">
+                <span className="text-[8px] text-muted">{new Date(item.createdAt).toLocaleDateString()}</span>
+                {item.tags.includes('indexed') && <CloudArrowUpIcon className="w-3 h-3 text-accent" />}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+
   return (
     <div className="container mx-auto py-8 lg:py-10">
       <h2 className="text-3xl font-bold text-textdark mb-8">Biblioteca de Conteúdo</h2>
@@ -226,91 +286,13 @@ const ContentLibrary: React.FC = () => {
           <LoadingSpinner />
           <p className="ml-2 text-textlight">Carregando biblioteca...</p>
         </div>
-      ) : filteredItems.length === 0 ? (
-        <div className="bg-lightbg p-6 rounded-lg shadow-sm border border-gray-800 text-center text-textlight">
-          Nenhum item encontrado na biblioteca.
-        </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-          {filteredItems.map((item) => (
-            <div key={item.id} className="bg-lightbg rounded-lg shadow-sm border border-gray-800 overflow-hidden group">
-              <div className="relative h-48 bg-gray-900 flex items-center justify-center overflow-hidden">
-                {item.type === 'image' || item.type === 'video' ? (
-                  <img
-                    src={item.thumbnail_url || item.file_url || 'https://picsum.photos/200/150'}
-                    alt={item.name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : item.type === 'audio' ? (
-                  <div className="text-gray-500 text-center p-4">
-                    <MusicalNoteIcon className="w-12 h-12 mx-auto mb-2 text-primary" />
-                    <p className="text-sm text-textlight">Arquivo de Áudio</p>
-                  </div>
-                ) : (
-                  <div className="text-gray-500 text-center p-4">
-                    <DocumentTextIcon className="w-12 h-12 mx-auto mb-2 text-primary" />
-                    <p className="text-sm text-textlight">Arquivo de Texto</p>
-                  </div>
-                )}
-                <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 gap-2">
-                  <Button
-                    onClick={() => handleDownload(item.file_url, item.name)}
-                    variant="ghost"
-                    size="sm"
-                    className="text-white hover:bg-primary/20"
-                    title="Baixar"
-                    disabled={isProcessing}
-                  >
-                    <ArrowDownTrayIcon className="w-5 h-5 text-accent" />
-                  </Button>
-                  <Button
-                    onClick={() => handleShareItem(item)}
-                    variant="ghost"
-                    size="sm"
-                    className="text-white hover:bg-primary/20"
-                    title="Compartilhar"
-                    disabled={isProcessing}
-                  >
-                    <ShareIcon className="w-5 h-5 text-accent" />
-                  </Button>
-                  <Button
-                    onClick={() => navigateTo('CalendarManager')}
-                    variant="ghost"
-                    size="sm"
-                    className="text-white hover:bg-primary/20"
-                    title="Usar no Calendário"
-                  >
-                    <CalendarDaysIcon className="w-5 h-5 text-accent" />
-                  </Button>
-                  <Button
-                    onClick={() => handleDeleteItem(item.id)}
-                    variant="danger"
-                    size="sm"
-                    className="text-white hover:bg-red-700"
-                    title="Excluir"
-                  >
-                    <TrashIcon className="w-5 h-5 text-red-400" />
-                  </Button>
-                </div>
-              </div>
-              <div className="p-5">
-                <div className="flex justify-between items-start">
-                  <h4 className="font-semibold text-textdark truncate flex-1">{item.name}</h4>
-                  {item.tags.includes('indexed') && <CloudArrowUpIcon className="w-4 h-4 text-accent" title="Indexado na IA" />}
-                </div>
-                <p className="text-sm text-textmuted mt-1">Tipo: {item.type}</p>
-                {item.tags.length > 0 && (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {item.tags.map(tag => (
-                      <span key={tag} className="bg-darkbg text-textlight text-xs px-2 py-1 rounded-full">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
+        <div className="flex gap-6 overflow-x-auto pb-6 custom-scrollbar">
+          <Column title="Imagens" items={groupedItems.image} icon={CircleStackIcon} />
+          <Column title="Áudios" items={groupedItems.audio} icon={MusicalNoteIcon} />
+          <Column title="Páginas HTML" items={groupedItems.html} icon={CodeBracketIcon} />
+          <Column title="Textos / Cópias" items={groupedItems.text} icon={DocumentTextIcon} />
+          <Column title="Outros" items={groupedItems.other} icon={CircleStackIcon} />
         </div>
       )}
     </div>
