@@ -53,7 +53,20 @@ const TEMPLATES = [
     description: 'Sleek contact form with interactive inputs',
     icon: LucideIcons.MailIcon,
     prompt: 'Crie uma página de contato minimalista. Formulário com inputs que brilham ao focar, layout centralizado em uma coluna elegante e informações de contato ao lado.'
-  }
+  },
+  /* 
+    ✨ ADICIONE NOVOS TEMPLATES ABAIXO DESTA LINHA ✨
+    Siga o modelo acima: id, name, description, icon (de LucideIcons), prompt.
+  */
+  /*
+  {
+    id: 'novo-template',
+    name: 'Nome do Template',
+    description: 'Breve descrição do estilo',
+    icon: LucideIcons.PlusCircleIcon,
+    prompt: 'Descreva aqui o comando detalhado para a IA gerar este novo componente.'
+  },
+  */
 ];
 
 const CodePlayground: React.FC = () => {
