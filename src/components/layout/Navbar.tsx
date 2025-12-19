@@ -7,6 +7,9 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { SunIcon, MoonIcon, GlobeAltIcon, Bars3Icon } from '@heroicons/react/24/outline';
 import NotificationDropdown from '../features/NotificationDropdown';
 
+import { useAuth } from '../../contexts/AuthContext';
+import ClientGreeting from '../ui/ClientGreeting';
+
 interface NavbarProps {
   onMenuClick: () => void;
 }
@@ -14,11 +17,12 @@ interface NavbarProps {
 const Navbar: React.FC<NavbarProps> = memo(({ onMenuClick }) => {
   const { theme, toggleTheme } = useTheme();
   const { language, setLanguage } = useLanguage();
+  const { user } = useAuth();
 
   return (
-    <nav className="bg-surface text-body px-4 md:px-6 py-3 shadow-sm border-b border-border z-20 transition-colors duration-200">
+    <nav className="bg-surface text-body px-4 md:px-6 py-3 shadow-sm border-b border-border z-20 transition-colors duration-200 sticky top-0">
       <div className="flex justify-between items-center max-w-full">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <button
             onClick={onMenuClick}
             className="md:hidden p-2 -ml-2 text-muted hover:text-primary transition-colors rounded-full hover:bg-background bounce-on-click"
@@ -26,14 +30,18 @@ const Navbar: React.FC<NavbarProps> = memo(({ onMenuClick }) => {
           >
             <Bars3Icon className="w-6 h-6 wiggle-on-hover" />
           </button>
-          <Logo className="h-9 w-9 md:hidden" />
+          <Logo className="h-8 w-8 md:hidden" />
+          {/* Client Greeting on Mobile Navbar */}
+          <div className="md:hidden ml-2 scalefade-enter">
+            <ClientGreeting name={user?.user_metadata?.name || "Visitante"} gender={user?.user_metadata?.gender || "female"} />
+          </div>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
 
           <NotificationDropdown />
 
-          <div className="relative group">
+          <div className="relative group hidden sm:block">
             <button className="flex items-center gap-1.5 px-2 py-1.5 rounded-md hover:bg-background text-sm font-medium text-muted transition-colors pop-on-hover">
               <GlobeAltIcon className="w-5 h-5 rotate-on-hover" />
               <span className="uppercase">{language.split('-')[0]}</span>
@@ -69,7 +77,7 @@ const Navbar: React.FC<NavbarProps> = memo(({ onMenuClick }) => {
             )}
           </button>
 
-          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 cursor-pointer heartbeat">
+          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 cursor-pointer heartbeat hidden sm:flex">
             <span className="text-xs font-bold text-primary">US</span>
           </div>
         </div>

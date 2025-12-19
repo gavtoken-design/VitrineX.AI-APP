@@ -302,21 +302,17 @@ function AppContent() {
 
   return (
     <NavigationContext.Provider value={{ setActiveModule, activeModule }}>
-      <div className="flex flex-col h-screen bg-background text-body font-sans overflow-hidden">
+      <div className="flex flex-col h-[100dvh] bg-background text-body font-sans overflow-hidden">
         <TutorialOverlay />
         <Navbar onMenuClick={() => setIsMobileMenuOpen(true)} />
+
         <div className="flex flex-1 overflow-hidden relative">
           <Sidebar
             activeModule={activeModule}
             setActiveModule={setActiveModule}
           />
-          <MobileNavMenu
-            isOpen={isMobileMenuOpen}
-            onClose={() => setIsMobileMenuOpen(false)}
-            activeModule={activeModule}
-            setActiveModule={setActiveModule}
-          />
-          <main className={`flex-1 flex flex-col min-w-0 overflow-y-auto pb-32 md:pb-16`}>
+
+          <main className={`flex-1 flex flex-col min-w-0 overflow-y-auto pb-32 md:pb-0`}>
             <Suspense fallback={
               <div className="flex-1 flex items-center justify-center">
                 <LoadingSpinner />
@@ -328,14 +324,21 @@ function AppContent() {
               </div>
             </Suspense>
           </main>
-
-          {/* Mobile Bottom Navigation - Moved outside to ensure Z-Index layer is top-level relative to viewport */}
-          <BottomNav
-            activeModule={activeModule}
-            setActiveModule={setActiveModule}
-            onMoreClick={() => setIsMobileMenuOpen(true)}
-          />
         </div>
+
+        {/* Mobile Navigation Components - Moved to Root Level to avoid stacking context issues */}
+        <MobileNavMenu
+          isOpen={isMobileMenuOpen}
+          onClose={() => setIsMobileMenuOpen(false)}
+          activeModule={activeModule}
+          setActiveModule={setActiveModule}
+        />
+
+        <BottomNav
+          activeModule={activeModule}
+          setActiveModule={setActiveModule}
+          onMoreClick={() => setIsMobileMenuOpen(true)}
+        />
       </div>
     </NavigationContext.Provider>
   );
