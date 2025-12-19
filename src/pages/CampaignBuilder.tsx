@@ -89,7 +89,7 @@ const CampaignBuilder: React.FC = () => {
 
   const handleAddCalendar = useCallback(() => {
     if (generatedCampaign) {
-      navigateTo('CalendarManager');
+      navigateTo('SmartScheduler');
       addToast({ type: 'info', message: `Navegando para o calendário para agendar a campanha "${generatedCampaign.name}".` });
     } else {
       addToast({ type: 'warning', message: 'Nenhuma campanha gerada para adicionar ao calendário.' });

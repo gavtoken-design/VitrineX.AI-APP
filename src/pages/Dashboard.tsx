@@ -110,7 +110,7 @@ const Dashboard: React.FC = () => {
     const libraryActivities = (data.library || []).map(item => ({
       id: item.id,
       type: 'creation',
-      title: 'Item Criado: ' + (item.title || 'Sem título'),
+      title: 'Item Criado: ' + (item.name || 'Sem título'),
       description: `Novo ${item.type} adicionado à biblioteca`,
       timestamp: item.createdAt,
       icon: SparklesIcon,
@@ -288,7 +288,7 @@ const Dashboard: React.FC = () => {
           <Button onClick={() => navigateTo('CreativeStudio')} variant="ghost" size="lg" className="w-full justify-start border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600">
             {t('dashboard.btn_media')}
           </Button>
-          <Button onClick={() => navigateTo('CalendarManager')} variant="ghost" size="lg" className="w-full justify-start border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600">
+          <Button onClick={() => navigateTo('SmartScheduler')} variant="ghost" size="lg" className="w-full justify-start border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600">
             {t('dashboard.btn_schedule')}
           </Button>
         </div>

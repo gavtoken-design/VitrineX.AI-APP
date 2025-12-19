@@ -1,63 +1,63 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-    darkMode: ["class"],
-    content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-  ],
-  theme: {
-  	extend: {
-  		colors: {
-  			primary: {
-  				DEFAULT: 'hsl(var(--primary))',
-  				foreground: 'hsl(var(--primary-foreground))'
-  			},
-  			secondary: {
-  				DEFAULT: 'hsl(var(--secondary))',
-  				foreground: 'hsl(var(--secondary-foreground))'
-  			},
-  			background: 'hsl(var(--background))',
-  			surface: '#1e293b',
-  			title: '#f8fafc',
-  			body: '#94a3b8',
-  			muted: {
-  				DEFAULT: 'hsl(var(--muted))',
-  				foreground: 'hsl(var(--muted-foreground))'
-  			},
-  			border: 'hsl(var(--border))',
-  			foreground: 'hsl(var(--foreground))',
-  			card: {
-  				DEFAULT: 'hsl(var(--card))',
-  				foreground: 'hsl(var(--card-foreground))'
-  			},
-  			popover: {
-  				DEFAULT: 'hsl(var(--popover))',
-  				foreground: 'hsl(var(--popover-foreground))'
-  			},
-  			accent: {
-  				DEFAULT: 'hsl(var(--accent))',
-  				foreground: 'hsl(var(--accent-foreground))'
-  			},
-  			destructive: {
-  				DEFAULT: 'hsl(var(--destructive))',
-  				foreground: 'hsl(var(--destructive-foreground))'
-  			},
-  			input: 'hsl(var(--input))',
-  			ring: 'hsl(var(--ring))',
-  			chart: {
-  				'1': 'hsl(var(--chart-1))',
-  				'2': 'hsl(var(--chart-2))',
-  				'3': 'hsl(var(--chart-3))',
-  				'4': 'hsl(var(--chart-4))',
-  				'5': 'hsl(var(--chart-5))'
-  			}
-  		},
-  		borderRadius: {
-  			lg: 'var(--radius)',
-  			md: 'calc(var(--radius) - 2px)',
-  			sm: 'calc(var(--radius) - 4px)'
-  		}
-  	}
-  },
-  plugins: [require("tailwindcss-animate")],
+	darkMode: ["class"],
+	content: [
+		"./index.html",
+		"./src/**/*.{js,ts,jsx,tsx}",
+	],
+	theme: {
+		extend: {
+			colors: {
+				primary: {
+					DEFAULT: 'rgb(var(--color-primary) / <alpha-value>)',
+					foreground: '#ffffff'
+				},
+				secondary: {
+					DEFAULT: 'rgb(var(--color-secondary) / <alpha-value>)',
+					foreground: '#ffffff'
+				},
+				background: 'rgb(var(--color-background) / <alpha-value>)',
+				surface: 'rgb(var(--color-surface) / <alpha-value>)',
+				title: 'rgb(var(--color-text-title) / <alpha-value>)',
+				body: 'rgb(var(--color-text-body) / <alpha-value>)',
+				muted: {
+					DEFAULT: 'rgb(var(--color-text-muted) / <alpha-value>)',
+					foreground: 'rgb(var(--color-text-body) / <alpha-value>)'
+				},
+				border: 'rgb(var(--color-border) / <alpha-value>)',
+				foreground: 'rgb(var(--color-text-body) / <alpha-value>)',
+				card: {
+					DEFAULT: 'rgb(var(--color-surface) / <alpha-value>)',
+					foreground: 'rgb(var(--color-text-title) / <alpha-value>)'
+				},
+				popover: {
+					DEFAULT: 'rgb(var(--color-surface) / <alpha-value>)',
+					foreground: 'rgb(var(--color-text-title) / <alpha-value>)'
+				},
+				accent: {
+					DEFAULT: 'rgb(139 92 246 / <alpha-value>)', // Violet-500
+					foreground: '#ffffff'
+				},
+				destructive: {
+					DEFAULT: '#EF4444',
+					foreground: '#ffffff'
+				},
+				input: 'rgb(var(--color-border) / <alpha-value>)',
+				ring: 'rgb(var(--color-primary) / <alpha-value>)',
+				chart: {
+					'1': 'rgb(var(--color-primary) / <alpha-value>)',
+					'2': 'rgb(var(--color-secondary) / <alpha-value>)',
+					'3': 'rgb(16 185 129 / <alpha-value>)', // Emerald
+					'4': 'rgb(245 158 11 / <alpha-value>)', // Amber
+					'5': 'rgb(239 68 68 / <alpha-value>)' // Red
+				}
+			},
+			borderRadius: {
+				lg: 'var(--radius)',
+				md: 'calc(var(--radius) - 2px)',
+				sm: 'calc(var(--radius) - 4px)'
+			}
+		}
+	},
+	plugins: [require("tailwindcss-animate")],
 }

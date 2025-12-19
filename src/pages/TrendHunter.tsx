@@ -138,42 +138,42 @@ const TrendHunter: React.FC = () => {
     const objectiveLabel = OBJECTIVES.find(o => o.id === objective)?.label || 'Todos os objetivos';
     const locationText = city.trim() ? `${city.trim()} – Brasil` : 'Brasil';
 
-    const prompt = `Você é um analista de tendências de mercado experiente.
+    const prompt = `Analise a tendência atual para a keyword "${query.trim()}" no local "${city || 'Brasil'}".
+O objetivo do usuário é: "${objectiveLabel}".
 
-  PALAVRA - CHAVE PESQUISADA: "${query.trim()}"
-LOCALIZAÇÃO: ${locationText}
-OBJETIVO DO CLIENTE: ${objectiveLabel}
-PERFIL DO NEGÓCIO: ${userProfile.name} (${userProfile.industry}) - Público: ${userProfile.targetAudience}
+Considere o perfil do negócio:
+- Nome: ${userProfile.name}
+- Indústria: ${userProfile.industry}
+- Público: ${userProfile.targetAudience}
 
-Analise a tendência dessa palavra - chave e retorne um JSON com a seguinte estrutura EXATA:
-
+Retorne um JSON estruturado com EXATAMENTE estes campos:
 {
-  "score": [número de 0 a 100 indicando relevância da keyword],
-    "resumo": "[resumo de 2-3 parágrafos sobre a tendência atual dessa keyword na localização especificada]",
-      "motivadores": ["motivador1", "motivador2", "motivador3", "motivador4", "motivador5"],
-        "leituraCenario": "[análise de 1-2 frases sobre o potencial de monetização]",
-          "buscasSemelhantes": ["termo1", "termo2", "termo3", "termo4", "termo5", "termo6"],
-            "interpretacaoBuscas": "[interpretação do que essas buscas indicam sobre a intenção do público]",
-              "sugestaoConteudo": {
-    "oque": "[descrição detalhada do tipo de conteúdo a criar]",
-      "formato": "[formato recomendado: Reels, Carrossel, Stories, Blog, etc]"
+  "score": [número de 0 a 100 indicando viralidade/relevância],
+  "resumo": "[resumo executivo de 2-3 parágrafos focando em oportunidades reais]",
+  "motivadores": ["lista de 5 termos ou gatilhos que estão impulsionando as buscas"],
+  "leituraCenario": "[análise estratégica sobre o timing do mercado]",
+  "buscasSemelhantes": ["lista de 6 termos relacionados que também estão em alta"],
+  "interpretacaoBuscas": "[o que esses termos revelam sobre a intenção do comprador]",
+  "sugestaoConteudo": {
+    "oque": "[ideia detalhada de roteiro ou post que aproveita a tendência]",
+    "formato": "[Reels, Carrossel, Vídeo Longo, Artigo, etc]"
   },
   "sugestaoProduto": {
-    "tipo": "[tipo de produto digital sugerido]",
-      "temas": ["tema1 que converte", "tema2 que converte", "tema3 que converte"]
+    "tipo": "[ideia de produto digital ou físico para aproveitar a onda]",
+    "temas": ["lista de 3 tópicos específicos para o produto"]
   },
   "sugestaoCampanha": {
-    "estrategia": "[estratégia de campanha em 2-3 frases]",
-      "cta": "[CTA pronto para usar entre aspas]"
+    "estrategia": "[estratégia de lançamento ou tráfego pago em 3 frases]",
+    "cta": "[chamada para ação de alta conversão]"
   },
   "conclusao": {
-    "avaliacao": "[avaliação final da keyword em 1-2 frases]",
-      "idealPara": ["perfil1", "perfil2", "perfil3"],
-        "melhorEstrategia": "[melhor estratégia resumida]"
+    "avaliacao": "[veredito final sobre investir ou não tempo/dinheiro agora]",
+    "idealPara": ["lista de 3 perfis de empreendedores"],
+    "melhorEstrategia": "[resumo da ação imediata recomendada]"
   }
 }
 
-IMPORTANTE: Retorne APENAS o JSON válido, sem texto adicional antes ou depois.`;
+IMPORTANTE: Forneça insights práticos e prontos para uso. Retorne APENAS o JSON puro.`;
 
     try {
       const response = await generateText(prompt, {
@@ -181,12 +181,13 @@ IMPORTANTE: Retorne APENAS o JSON válido, sem texto adicional antes ou depois.`
         tools: [{ googleSearch: {} }]
       });
 
-      // Tentar parsear o JSON
+      // Tentar parsear o JSON de forma robusta
       let parsed: TrendResultStructured;
       try {
-        // Limpar possíveis caracteres extras
-        const cleanedResponse = response.replace(/```json\n ?|\n ? ```/g, '').trim();
-        parsed = JSON.parse(cleanedResponse);
+        // Encontrar o primeiro '{' e o último '}'
+        const jsonMatch = response.match(/\{[\s\S]*\}/);
+        const jsonString = jsonMatch ? jsonMatch[0] : response;
+        parsed = JSON.parse(jsonString);
       } catch (parseError) {
         console.error('Failed to parse JSON:', parseError, response);
         throw new Error('Falha ao processar resposta da IA. Tente novamente.');
@@ -196,7 +197,7 @@ IMPORTANTE: Retorne APENAS o JSON válido, sem texto adicional antes ou depois.`
 
       // Salvar tendência no banco
       const trendToSave: Trend = {
-        id: `trend - ${Date.now()} `,
+        id: `trend-${Date.now()}`,
         userId,
         query: query.trim(),
         score: parsed.score,
@@ -223,7 +224,7 @@ IMPORTANTE: Retorne APENAS o JSON válido, sem texto adicional antes ou depois.`
   }, [navigateTo, addToast]);
 
   const handleSchedule = useCallback(() => {
-    navigateTo('CalendarManager');
+    navigateTo('SmartScheduler');
     addToast({ type: 'info', message: 'Abrindo agendador...' });
   }, [navigateTo, addToast]);
 
@@ -233,6 +234,25 @@ IMPORTANTE: Retorne APENAS o JSON válido, sem texto adicional antes ou depois.`
     setResult(null);
     setError(null);
   }, []);
+
+  const handlePaste = useCallback(async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (text) {
+        setQuery(text);
+        addToast({ type: 'success', message: 'Texto colado!' });
+      } else {
+        addToast({ type: 'warning', message: 'Área de transferência vazia.' });
+      }
+    } catch (err) {
+      addToast({ type: 'error', message: 'Erro ao acessar área de transferência.' });
+    }
+  }, [addToast]);
+
+  const handleCopySection = useCallback((text: string, sectionName: string) => {
+    navigator.clipboard.writeText(text);
+    addToast({ type: 'success', message: `${sectionName} copiado!` });
+  }, [addToast]);
 
   const handleDownload = useCallback((format: 'txt' | 'doc') => {
     if (!result) return;
@@ -402,14 +422,23 @@ Melhor Estratégia: ${result.conclusao.melhorEstrategia}
       {/* Formulário de Busca */}
       <div className="bg-surface p-6 rounded-xl shadow-card border border-gray-800 mb-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <Input
-            id="trendQuery"
-            label="Palavra-chave:"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Ex: ebook, pizza artesanal, moda fitness..."
-            className="mb-0"
-          />
+          <div className="relative">
+            <Input
+              id="trendQuery"
+              label="Palavra-chave:"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Ex: ebook, pizza artesanal, moda fitness..."
+              className="mb-0"
+            />
+            <button
+              onClick={handlePaste}
+              className="absolute right-2 top-8 p-1.5 text-muted hover:text-primary transition-colors rounded-md bg-gray-700/50"
+              title="Colar texto"
+            >
+              <ClipboardDocumentIcon className="w-4 h-4" />
+            </button>
+          </div>
 
           <div className="relative">
             <label className="block text-sm font-medium text-title mb-1.5 flex justify-between">
@@ -492,10 +521,19 @@ Melhor Estratégia: ${result.conclusao.melhorEstrategia}
 
           {/* 📊 Resultado da Busca */}
           <div className="bg-surface p-6 rounded-xl border border-gray-800">
-            <h4 className="text-lg font-semibold text-white flex items-center gap-2 mb-4">
-              <ChartBarIcon className="w-5 h-5 text-primary" />
-              📊 RESULTADO DA BUSCA
-            </h4>
+            <div className="flex justify-between items-start mb-4">
+              <h4 className="text-lg font-semibold text-white flex items-center gap-2">
+                <ChartBarIcon className="w-5 h-5 text-primary" />
+                📊 RESULTADO DA BUSCA
+              </h4>
+              <button
+                onClick={() => handleCopySection(result.resumo, 'Resumo')}
+                className="p-1.5 text-muted hover:text-primary transition-colors rounded-md bg-gray-800"
+                title="Copiar Resumo"
+              >
+                <ClipboardDocumentIcon className="w-4 h-4" />
+              </button>
+            </div>
             <p className="text-gray-300 leading-relaxed mb-4 whitespace-pre-wrap">{result.resumo}</p>
 
             <div className="bg-gray-800/50 p-4 rounded-lg mb-4">
@@ -519,10 +557,19 @@ Melhor Estratégia: ${result.conclusao.melhorEstrategia}
 
           {/* 🔎 Buscas Semelhantes */}
           <div className="bg-surface p-6 rounded-xl border border-gray-800">
-            <h4 className="text-lg font-semibold text-white flex items-center gap-2 mb-4">
-              <TagIcon className="w-5 h-5 text-primary" />
-              🔎 PRODUTOS / BUSCAS SEMELHANTES
-            </h4>
+            <div className="flex justify-between items-start mb-4">
+              <h4 className="text-lg font-semibold text-white flex items-center gap-2">
+                <TagIcon className="w-5 h-5 text-primary" />
+                🔎 PRODUTOS / BUSCAS SEMELHANTES
+              </h4>
+              <button
+                onClick={() => handleCopySection(result.buscasSemelhantes.join(', '), 'Buscas Semelhantes')}
+                className="p-1.5 text-muted hover:text-primary transition-colors rounded-md bg-gray-800"
+                title="Copiar Termos"
+              >
+                <ClipboardDocumentIcon className="w-4 h-4" />
+              </button>
+            </div>
             <div className="flex flex-wrap gap-2 mb-4">
               {result.buscasSemelhantes.map((b, i) => (
                 <span key={i} className="px-3 py-1.5 bg-gray-800 text-gray-300 rounded-full text-sm border border-gray-700">
@@ -538,10 +585,19 @@ Melhor Estratégia: ${result.conclusao.melhorEstrategia}
           {/* 💡 Sugestão de Conteúdo */}
           {(objective === 'content' || objective === 'all') && (
             <div className="bg-surface p-6 rounded-xl border border-gray-800">
-              <h4 className="text-lg font-semibold text-white flex items-center gap-2 mb-4">
-                <DocumentTextIcon className="w-5 h-5 text-primary" />
-                💡 SUGESTÃO DE CONTEÚDO
-              </h4>
+              <div className="flex justify-between items-start mb-4">
+                <h4 className="text-lg font-semibold text-white flex items-center gap-2">
+                  <DocumentTextIcon className="w-5 h-5 text-primary" />
+                  💡 SUGESTÃO DE CONTEXTO
+                </h4>
+                <button
+                  onClick={() => handleCopySection(`${result.sugestaoConteudo.oque}\n\nFormato: ${result.sugestaoConteudo.formato}`, 'Sugestão de Conteúdo')}
+                  className="p-1.5 text-muted hover:text-primary transition-colors rounded-md bg-gray-800"
+                  title="Copiar Conteúdo"
+                >
+                  <ClipboardDocumentIcon className="w-4 h-4" />
+                </button>
+              </div>
               <div className="bg-primary/10 border border-primary/30 p-4 rounded-lg mb-4">
                 <p className="text-white">{result.sugestaoConteudo.oque}</p>
               </div>
@@ -554,10 +610,19 @@ Melhor Estratégia: ${result.conclusao.melhorEstrategia}
           {/* 📘 Sugestão de Produto */}
           {(objective === 'product' || objective === 'all') && (
             <div className="bg-surface p-6 rounded-xl border border-gray-800">
-              <h4 className="text-lg font-semibold text-white flex items-center gap-2 mb-4">
-                <ShoppingBagIcon className="w-5 h-5 text-primary" />
-                📘 SUGESTÃO DE PRODUTO DIGITAL
-              </h4>
+              <div className="flex justify-between items-start mb-4">
+                <h4 className="text-lg font-semibold text-white flex items-center gap-2">
+                  <ShoppingBagIcon className="w-5 h-5 text-primary" />
+                  📘 SUGESTÃO DE PRODUTO
+                </h4>
+                <button
+                  onClick={() => handleCopySection(`${result.sugestaoProduto.tipo}\n\nTemas:\n${result.sugestaoProduto.temas.map(t => `- ${t}`).join('\n')}`, 'Sugestão de Produto')}
+                  className="p-1.5 text-muted hover:text-primary transition-colors rounded-md bg-gray-800"
+                  title="Copiar Produto"
+                >
+                  <ClipboardDocumentIcon className="w-4 h-4" />
+                </button>
+              </div>
               <p className="text-gray-300 mb-4">{result.sugestaoProduto.tipo}</p>
               <div className="bg-gray-800/50 p-4 rounded-lg">
                 <p className="text-sm font-semibold text-muted mb-2">Temas que convertem:</p>
@@ -576,10 +641,19 @@ Melhor Estratégia: ${result.conclusao.melhorEstrategia}
           {/* 🚀 Sugestão de Campanha */}
           {(objective === 'campaign' || objective === 'all') && (
             <div className="bg-surface p-6 rounded-xl border border-gray-800">
-              <h4 className="text-lg font-semibold text-white flex items-center gap-2 mb-4">
-                <RocketLaunchIcon className="w-5 h-5 text-primary" />
-                🚀 SUGESTÃO DE CAMPANHA
-              </h4>
+              <div className="flex justify-between items-start mb-4">
+                <h4 className="text-lg font-semibold text-white flex items-center gap-2">
+                  <RocketLaunchIcon className="w-5 h-5 text-primary" />
+                  🚀 ESTRATÉGIA DE CAMPANHA
+                </h4>
+                <button
+                  onClick={() => handleCopySection(`${result.sugestaoCampanha.estrategia}\n\nCTA: ${result.sugestaoCampanha.cta}`, 'Sugestão de Campanha')}
+                  className="p-1.5 text-muted hover:text-primary transition-colors rounded-md bg-gray-800"
+                  title="Copiar Campanha"
+                >
+                  <ClipboardDocumentIcon className="w-4 h-4" />
+                </button>
+              </div>
               <p className="text-gray-300 mb-4">{result.sugestaoCampanha.estrategia}</p>
               <div className="bg-green-900/20 border border-green-500/30 p-4 rounded-lg">
                 <p className="text-sm text-muted mb-1">CTA sugerido:</p>

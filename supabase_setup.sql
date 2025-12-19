@@ -114,3 +114,26 @@ create policy "Users can delete own files"
   on storage.objects for delete
   using ( bucket_id = 'media' and auth.uid() = owner );
 
+-- 7. Tabela de Públicos-Alvo (Target Audiences)
+create table if not exists public.target_audiences (
+  id uuid primary key default uuid_generate_v4(),
+  user_id uuid references auth.users(id) on delete cascade not null,
+  name text not null,
+  description text,
+  created_at timestamp with time zone default timezone('utc'::text, now())
+);
+
+-- Configurar RLS para Target Audiences
+alter table public.target_audiences enable row level security;
+
+create policy "Usuários podem ver seus públicos-alvo" on public.target_audiences
+  for select using (auth.uid() = user_id);
+
+create policy "Usuários podem criar públicos-alvo" on public.target_audiences
+  for insert with check (auth.uid() = user_id);
+
+create policy "Usuários podem atualizar seus públicos-alvo" on public.target_audiences
+  for update using (auth.uid() = user_id);
+
+create policy "Usuários podem deletar seus públicos-alvo" on public.target_audiences
+  for delete using (auth.uid() = user_id);

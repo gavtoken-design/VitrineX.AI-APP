@@ -1,10 +1,10 @@
 import { GEMINI_TTS_MODEL } from '../../constants';
-import { getGenAIClient } from './gemini';
+import { getGeminiClient } from './gemini';
 import { proxyFetch } from '../core/api';
 
 export const generateSpeech = async (text: string, voiceName: string = 'Kore'): Promise<string | undefined> => {
     try {
-        const client = await getGenAIClient();
+        const client = await getGeminiClient();
 
         // STEP 1: Text Normalization (Gemini 3 Flash)
         // Objective: Create a clean script for narration.

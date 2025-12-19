@@ -1,12 +1,12 @@
 import { GEMINI_FLASH_MODEL } from '../../constants';
-import { getGenAIClient } from './gemini';
+import { getGeminiClient } from './gemini';
 
 /**
  * Função Antigravit: Varre e limpa o código.
  */
 export const executarVarreduraAntigravit = async (codigoSujo: string): Promise<string> => {
     try {
-        const client = await getGenAIClient();
+        const client = await getGeminiClient();
 
         const result = await client.models.generateContent({
             model: GEMINI_FLASH_MODEL,

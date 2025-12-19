@@ -30,6 +30,8 @@ export interface UserProfile {
     linkedin?: string; // Explicitly kept for completeness, though user doesn't use it
   };
   status?: 'active' | 'blocked'; // Added status for admin control
+  apiKey?: string; // Persisted AI license key
+  secureConfig?: Record<string, any>; // For future encrypted settings
 }
 
 // Define Post interface
@@ -41,6 +43,14 @@ export interface Post {
   date?: string;
   createdAt: string; // ISO date string
   tags?: string[];
+}
+
+export interface TargetAudience {
+  id: string;
+  user_id: string;
+  name: string;
+  description: string;
+  created_at: string;
 }
 
 // Define Ad interface

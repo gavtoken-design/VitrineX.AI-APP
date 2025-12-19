@@ -1,29 +1,55 @@
-import { GoogleGenAI as Client } from '@google/genai';
+import { GoogleGenAI } from '@google/genai';
 import { GEMINI_FLASH_MODEL, HARDCODED_API_KEY } from '../../constants';
+import { SecureStorage } from '../../utils/secureStorage';
+import { getUserProfile } from '../core/db';
 
-export const getApiKey = async (): Promise<string> => {
+export const getApiKey = async (userId?: string): Promise<string> => {
+  // 1. LocalStorage (Raw - Legacy/Fast cache)
   const localKey = localStorage.getItem('vitrinex_gemini_api_key');
   if (localKey) return localKey;
 
+  // 2. SecureStorage (Encrypted - More secure local)
+  try {
+    const secureKey = await SecureStorage.getItem<string>('vitrinex_gemini_api_key_secure');
+    if (secureKey) {
+      localStorage.setItem('vitrinex_gemini_api_key', secureKey);
+      return secureKey;
+    }
+  } catch (e) {
+    console.warn('SecureStorage retrieval failed', e);
+  }
+
+  // 3. Supabase Profile (Source of Truth for persistent users)
+  if (userId) {
+    try {
+      const profile = await getUserProfile(userId);
+      if (profile?.apiKey) {
+        localStorage.setItem('vitrinex_gemini_api_key', profile.apiKey);
+        await SecureStorage.setItem('vitrinex_gemini_api_key_secure', profile.apiKey);
+        return profile.apiKey;
+      }
+    } catch (e) {
+      console.warn('Supabase key retrieval failed', e);
+    }
+  }
+
+  // 4. Environment Variables / Hardcoded (Dev/Initial Setup)
   if (import.meta.env.VITE_GEMINI_API_KEY) return import.meta.env.VITE_GEMINI_API_KEY;
   if (HARDCODED_API_KEY) return HARDCODED_API_KEY;
 
   throw new Error('Configuração Ausente: Chave de API não encontrada.');
 };
 
-export const getGenAIClient = async (explicitKey?: string): Promise<Client> => {
-  const apiKey = explicitKey || await getApiKey();
-  return new Client({ apiKey });
+export const getGeminiClient = async (explicitKey?: string, userId?: string): Promise<GoogleGenAI> => {
+  const apiKey = explicitKey || await getApiKey(userId);
+  return new GoogleGenAI({ apiKey });
 };
 
-// Alias para compatibilidade temporária se necessário
-export const getNewGenAIClient = getGenAIClient;
-
-export const testGeminiConnection = async (explicitKey?: string): Promise<string> => {
+export const testGeminiConnection = async (explicitKey?: string, userId?: string): Promise<string> => {
   try {
-    const client = await getGenAIClient(explicitKey);
+    const ai = await getGeminiClient(explicitKey, userId);
 
-    const response = await client.models.generateContent({
+    const response = await ai.models.generateContent({
       model: GEMINI_FLASH_MODEL,
       contents: [
         {
@@ -45,7 +71,7 @@ export const testGeminiConnection = async (explicitKey?: string): Promise<string
   } catch (error: any) {
     const errorMessage = error.message || error.toString();
     console.error("Erro detalhado:", errorMessage);
-    throw new Error(`Falha na conexão Gemini 3: ${errorMessage}`);
+    throw new Error(`Falha na conexão Gemini 2.5: ${errorMessage}`);
   }
 };
 
@@ -56,19 +82,16 @@ export interface CapabilityStatus {
   message: string;
 }
 
-export const verifySystemCapabilities = async (explicitKey?: string): Promise<CapabilityStatus> => {
+export const verifySystemCapabilities = async (explicitKey?: string, userId?: string): Promise<CapabilityStatus> => {
   try {
-    await testGeminiConnection(explicitKey);
-    // If basic connection works, we assume standard capabilities are active for the key.
-    // In a more complex scenario, we would make separate calls for Vision/Audio models.
+    await testGeminiConnection(explicitKey, userId);
     return {
       text: true,
-      vision: true, // Inferring active if key is valid for Flash
-      audio: true,  // Inferring active if key is valid for Flash/Pro
-      message: 'Sistema Totalmente Operacional'
+      vision: true,
+      audio: true,
+      message: 'Sistema Totalmente Operacional (v2.5)'
     };
   } catch (error: any) {
-    // If it fails, everything is down
     return {
       text: false,
       vision: false,

@@ -196,7 +196,7 @@ const ContentLibrary: React.FC = () => {
   }, [addToast, handleShare]);
 
   const handleUseInCalendar = useCallback((item: LibraryItem) => {
-    navigateTo('CalendarManager');
+    navigateTo('SmartScheduler');
     addToast({ type: 'info', message: `Item "${item.name}" pronto para agendar.` });
   }, [navigateTo, addToast]);
 

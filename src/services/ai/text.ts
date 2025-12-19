@@ -8,8 +8,7 @@ import {
     Trend,
     Campaign
 } from '../../types';
-import { getGenAIClient } from './gemini';
-import { proxyFetch } from '../core/api';
+import { getGeminiClient } from './gemini';
 
 export interface GenerateTextOptions {
     model?: string;
@@ -50,106 +49,89 @@ export const generateText = async (prompt: string, options?: GenerateTextOptions
     };
 
     try {
-        const response = await proxyFetch<any>('call-gemini', 'POST', {
+        const ai = await getGeminiClient(undefined, options?.userId);
+
+        // Direct SDK usage
+        const result = await ai.models.generateContent({
             model: modelToUse,
             contents: [{ role: 'user', parts: [{ text: prompt }] }],
-            generationConfig,
-            systemInstruction: getSystemInstruction(options?.systemInstruction, !!options?.tools),
-            tools: options?.tools
+            config: {
+                ...generationConfig,
+                systemInstruction: getSystemInstruction(options?.systemInstruction, !!options?.tools),
+                tools: options?.tools as any
+            }
         });
-        return response.response?.text || '';
-    } catch (error) {
-        console.warn("Backend proxy failed for generateText, falling back to client-side SDK.", error);
 
-        try {
-            const client = await getGenAIClient();
+        // Basic autonomous agent loop for Gemini SDK
+        if (result.functionCalls && result.functionCalls.length > 0) {
+            let history: any[] = [{ role: 'user', parts: [{ text: prompt }] }];
+            let currentResponse = result;
+            let iterations = 0;
+            const MAX_ITERATIONS = 5;
 
-            // New SDK structure using client.models.generateContent
-            // System instructions and tools go into config now unless using higher level helpers
-            const result = await client.models.generateContent({
-                model: modelToUse,
-                contents: [{ role: 'user', parts: [{ text: prompt }] }],
-                config: {
-                    ...generationConfig,
-                    systemInstruction: getSystemInstruction(options?.systemInstruction, !!options?.tools),
-                    tools: options?.tools as any
-                }
-            });
+            while (currentResponse.functionCalls && currentResponse.functionCalls.length > 0 && iterations < MAX_ITERATIONS) {
+                iterations++;
+                const calls = currentResponse.functionCalls;
+                const toolResponses: any[] = [];
 
-            // Handle function calls manually if needed (loop logic)
-            // For simple text generation, we just return the text
-            const text = result.text;
+                // Add modedel's turn to history
+                // The new SDK patterns often expect candidate content to be sent back
+                history.push(currentResponse.candidates?.[0]?.content || { role: 'model', parts: [{ functionCall: calls[0] }] });
 
-            if (result.functionCalls && result.functionCalls.length > 0) {
-                // Basic autonomous agent loop shim for new SDK
-                let history: any[] = [{ role: 'user', parts: [{ text: prompt }] }];
-                let currentResponse = result;
-                let iterations = 0;
-                const MAX_ITERATIONS = 10;
-
-                while (currentResponse.functionCalls && currentResponse.functionCalls.length > 0 && iterations < MAX_ITERATIONS) {
-                    iterations++;
-                    const calls = currentResponse.functionCalls;
-                    const toolResponses: any[] = [];
-
-                    // Add model response to history
-                    history.push(currentResponse.candidates?.[0]?.content);
-
-                    if (calls) {
-                        for (const call of calls) {
-                            try {
-                                const { executeTool } = await import('./tools');
-                                const toolResult = await executeTool(call.name, call.args, { userId: options?.userId });
-                                toolResponses.push({
-                                    functionResponse: {
-                                        name: call.name,
-                                        response: toolResult
-                                    }
-                                });
-                            } catch (toolError) {
-                                console.error(`Falha ao executar ferramenta ${call.name}:`, toolError);
-                                toolResponses.push({
-                                    functionResponse: {
-                                        name: call.name,
-                                        response: { error: `Erro na ferramenta: ${(toolError as Error).message}` }
-                                    }
-                                });
-                            }
+                if (calls) {
+                    for (const call of calls) {
+                        try {
+                            const { executeTool } = await import('./tools');
+                            const toolResult = await executeTool(call.name, call.args, { userId: options?.userId });
+                            toolResponses.push({
+                                functionResponse: {
+                                    name: call.name,
+                                    response: { result: toolResult }
+                                }
+                            });
+                        } catch (toolError) {
+                            console.error(`Falha ao executar ferramenta ${call.name}:`, toolError);
+                            toolResponses.push({
+                                functionResponse: {
+                                    name: call.name,
+                                    response: { error: `Erro na ferramenta: ${(toolError as Error).message}` }
+                                }
+                            });
                         }
                     }
-
-                    // Add tool outputs to history
-                    history.push({ role: 'tool', parts: toolResponses }); // 'tool' role for function responses
-
-                    // Call model again with history
-                    currentResponse = await client.models.generateContent({
-                        model: modelToUse,
-                        contents: history,
-                        config: {
-                            ...generationConfig,
-                            systemInstruction: getSystemInstruction(options?.systemInstruction, !!options?.tools),
-                            tools: options?.tools as any
-                        }
-                    });
                 }
-                return currentResponse.text || '';
-            }
 
-            return text || '';
+                // Add tool outputs as user role in the next turn
+                history.push({ role: 'user', parts: toolResponses });
 
-        } catch (innerError: any) {
-            console.error("SDK fallback failed:", innerError);
-            if (innerError.message?.includes('429')) {
-                throw new Error("Limite de requisições atingido. Por favor, aguarde ou faça o upgrade da licença.");
+                // Call model again with history
+                currentResponse = await ai.models.generateContent({
+                    model: modelToUse,
+                    contents: history,
+                    config: {
+                        ...generationConfig,
+                        systemInstruction: getSystemInstruction(options?.systemInstruction, !!options?.tools),
+                        tools: options?.tools as any
+                    }
+                });
             }
-            throw innerError;
+            return currentResponse.text || '';
         }
+
+        return result.text || '';
+
+    } catch (error: any) {
+        console.error("SDK generation failed:", error);
+        if (error.message?.includes('429')) {
+            throw new Error("Limite de requisições atingido. Por favor, aguarde ou faça o upgrade da licença.");
+        }
+        throw error;
     }
 };
 
-export const countTokens = async (text: string, modelId: string = GEMINI_FLASH_MODEL): Promise<number> => {
+export const countTokens = async (text: string, modelId: string = GEMINI_FLASH_MODEL, userId?: string): Promise<number> => {
     try {
-        const client = await getGenAIClient();
+        const client = await getGeminiClient(undefined, userId);
         const result = await client.models.countTokens({
             model: modelId,
             contents: [{ role: 'user', parts: [{ text }] }]
@@ -171,7 +153,7 @@ export const sendMessageToChat = async (
     const modelToUse = options.useThinking ? GEMINI_THINKING_MODEL : (options.model || GEMINI_PRO_MODEL);
 
     try {
-        const client = await getGenAIClient();
+        const client = await getGeminiClient(undefined, options.userId);
 
         // Convert history to @google/genai format
         const chatHistory = history.map(m => ({
@@ -232,7 +214,7 @@ export const searchTrends = async (query: string, language: string = 'en-US'): P
         : `Find current marketing trends for "${query}". Provide a detailed summary.`;
 
     try {
-        const client = await getGenAIClient();
+        const client = await getGeminiClient(undefined, 'system-search');
 
         const result = await client.models.generateContent({
             model: GEMINI_FLASH_MODEL,

@@ -1,3 +1,4 @@
+import { Type } from '@google/genai';
 import { getUserProfile } from '../core/db';
 
 /**
@@ -10,7 +11,7 @@ export const vitrinexTools: any[] = [
                 name: 'get_user_business_profile',
                 description: 'Retorna o perfil de negócio do usuário atual (nome, indústria, público-alvo, estilo visual). Use isso para personalizar suas respostas e estratégias de marketing.',
                 parameters: {
-                    type: 'OBJECT', // SchemaType.OBJECT
+                    type: Type.OBJECT,
                     properties: {},
                 },
             },
@@ -18,10 +19,10 @@ export const vitrinexTools: any[] = [
                 name: 'search_marketing_trends',
                 description: 'Pesquisa tendências de marketing atuais no Google para um nicho específico.',
                 parameters: {
-                    type: 'OBJECT', // SchemaType.OBJECT
+                    type: Type.OBJECT,
                     properties: {
                         query: {
-                            type: 'STRING', // SchemaType.STRING
+                            type: Type.STRING,
                             description: 'O nicho ou termo de pesquisa para tendências (ex: "moda sustentável", "IA no varejo").',
                         },
                     },

@@ -1,5 +1,5 @@
 import { VEO_GENERATE_MODEL } from '../../constants';
-import { getGenAIClient } from './gemini';
+import { getGeminiClient } from './gemini';
 import { proxyFetch } from '../core/api';
 
 export interface GenerateVideoOptions {
@@ -25,7 +25,7 @@ export const generateVideo = async (prompt: string, options?: GenerateVideoOptio
         console.warn("Backend proxy failed for generateVideo, falling back to client-side SDK.", error);
 
         try {
-            const client = await getGenAIClient();
+            const client = await getGeminiClient();
 
             // Note: Direct video generation in the client SDK might need 'generateVideo' method or specific config
             // For now, attempting generic content generation or throwing if not supported client-side

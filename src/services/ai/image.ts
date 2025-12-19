@@ -2,8 +2,9 @@ import {
     IMAGEN_STANDARD_MODEL,
     IMAGEN_ULTRA_MODEL,
     GEMINI_IMAGE_MODEL,
+    GEMINI_FLASH_MODEL,
 } from '../../constants';
-import { getGenAIClient } from './gemini';
+import { getGeminiClient } from './gemini';
 import { proxyFetch } from '../core/api';
 
 export interface GenerateImageOptions {
@@ -42,33 +43,25 @@ export const generateImage = async (prompt: string, options?: GenerateImageOptio
         console.warn("Backend proxy failed for generateImage, falling back to client-side SDK.", error);
 
         try {
-            const client = await getGenAIClient();
+            const client = await getGeminiClient();
 
-            const result = await client.models.generateContent({
+            // Using specify Imagen 3 method generateImages
+            const result = await client.models.generateImages({
                 model: modelId,
-                contents: [{ role: 'user', parts: [{ text: prompt }] }],
+                prompt,
                 config: {
-                    // Pass image generation styling options if model accepts them in generationConfig
-                    // For Imagen models, parameters like aspectRatio might be expected.
-                    // Using generic config object to pass them.
-                    ...imageConfig
+                    aspectRatio: options?.aspectRatio,
+                    numberOfImages: 1,
                 }
             });
 
-            // Inspect candidates for inlineData (image base64)
-            if (result.candidates) {
-                for (const cand of result.candidates) {
-                    if (cand.content?.parts) {
-                        for (const part of cand.content.parts) {
-                            if (part.inlineData) {
-                                return { imageUrl: `data:${part.inlineData.mimeType};base64,${part.inlineData.data}` };
-                            }
-                        }
-                    }
-                }
+            if (result.generatedImages && result.generatedImages.length > 0) {
+                const img = result.generatedImages[0];
+                // SDK v1 uses 'image' object with 'mimeType' and 'base64'
+                return { imageUrl: `data:${img.image?.mimeType};base64,${(img.image as any)?.base64}` };
             }
 
-            return { text: result.text || 'Imagem gerada, mas formato não reconhecido no fallback.' };
+            return { text: 'Imagem gerada, mas formato não reconhecido no fallback.' };
         } catch (innerError) {
             console.error("Image generation SDK fallback failed:", innerError);
             throw innerError;
@@ -90,31 +83,22 @@ export const editImage = async (prompt: string, base64ImageData: string, mimeTyp
     } catch (error) {
         console.warn("Backend proxy failed for editImage, falling back to client-side SDK.", error);
         try {
-            const client = await getGenAIClient();
-            const result = await client.models.generateContent({
+            const client = await getGeminiClient();
+            // In SDK v1, editImage uses 'source' for the image
+            const result = await client.models.editImage({
                 model: modelId,
-                contents: [
-                    {
-                        role: 'user', parts: [
-                            { inlineData: { data: base64ImageData, mimeType } },
-                            { text: prompt }
-                        ]
-                    }
-                ]
+                prompt,
+                source: {
+                    base64: base64ImageData,
+                    mimeType
+                } as any
             });
 
-            if (result.candidates) {
-                for (const cand of result.candidates) {
-                    if (cand.content?.parts) {
-                        for (const part of cand.content.parts) {
-                            if (part.inlineData) {
-                                return { imageUrl: `data:${part.inlineData.mimeType};base64,${part.inlineData.data}` };
-                            }
-                        }
-                    }
-                }
+            if (result.generatedImages && result.generatedImages.length > 0) {
+                const img = result.generatedImages[0];
+                return { imageUrl: `data:${img.image?.mimeType};base64,${(img.image as any)?.base64}` };
             }
-            return { text: result.text || 'Nenhuma edição retornada no fallback.' };
+            return { text: 'Nenhuma edição retornada no fallback.' };
         } catch (innerError) {
             console.error("Edit image SDK fallback failed:", innerError);
             throw innerError;
@@ -122,7 +106,7 @@ export const editImage = async (prompt: string, base64ImageData: string, mimeTyp
     }
 };
 
-export const analyzeImage = async (base64ImageData: string, mimeType: string, prompt: string, modelId: string = IMAGEN_ULTRA_MODEL): Promise<string> => {
+export const analyzeImage = async (base64ImageData: string, mimeType: string, prompt: string, modelId: string = GEMINI_FLASH_MODEL): Promise<string> => {
     try {
         const response = await proxyFetch<any>('call-gemini', 'POST', {
             model: modelId,
@@ -132,13 +116,13 @@ export const analyzeImage = async (base64ImageData: string, mimeType: string, pr
     } catch (error) {
         console.warn("Backend proxy failed for analyzeImage, falling back to client-side SDK.", error);
         try {
-            const client = await getGenAIClient();
+            const client = await getGeminiClient();
             const result = await client.models.generateContent({
                 model: modelId,
                 contents: [
                     {
                         role: 'user', parts: [
-                            { inlineData: { data: base64ImageData, mimeType } },
+                            { inlineData: { data: base64ImageData, mimeType } } as any,
                             { text: prompt }
                         ]
                     }

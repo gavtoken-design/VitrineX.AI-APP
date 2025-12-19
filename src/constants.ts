@@ -1,6 +1,6 @@
 
 // Gemini Model Names - Official Google Gemini API models
-export const GEMINI_FLASH_MODEL = 'gemini-flash-latest';  // Auto-updates to latest stable
+export const GEMINI_FLASH_MODEL = 'gemini-2.5-flash';  // Updated to 2.5
 export const GEMINI_PRO_MODEL = 'gemini-pro-latest';      // Auto-updates to latest stable
 
 // Image Generation Models - Imagen 3.0
@@ -39,10 +39,10 @@ export const PLACEHOLDER_IMAGE_BASE64 = `data:image/svg+xml;base64,PHN2ZyB3aWR0a
 
 // Default business profile settings
 export const DEFAULT_BUSINESS_PROFILE = {
-  name: 'Minha Empresa',
-  industry: 'Marketing Digital',
-  targetAudience: 'Pequenas e Médias Empresas',
-  visualStyle: 'moderno',
+    name: 'Minha Empresa',
+    industry: 'Marketing Digital',
+    targetAudience: 'Pequenas e Médias Empresas',
+    visualStyle: 'moderno',
 };
 
 // Mock data generation delay for simulating API calls
@@ -63,49 +63,49 @@ export const PAYMENT_LINK = 'https://buy.stripe.com/cNibJ0aqfeUTaA66Pv6oo01';
 
 // --- Seasonal Templates (Christmas & New Year) ---
 export const SEASONAL_TEMPLATES = [
-  {
-    id: 'christmas-sale',
-    label: 'Promoção de Natal',
-    icon: '🎄',
-    basePrompt: 'Crie uma imagem publicitária profissional de Natal para o produto "[PRODUTO]". Estilo minimalista e elegante, fundo vermelho escuro com detalhes em dourado, iluminação suave de estúdio, 4k, alta resolução. Texto "OFERTA DE NATAL" em fonte moderna dourada no topo.',
-    // Links ocultos para guiar a IA (Conceito de Few-Shot/Image Prompting)
-    referenceImage: 'https://images.unsplash.com/photo-1512389142860-9c449e58a543?q=80&w=2069&auto=format&fit=crop',
-    colorPalette: ['#8B0000', '#FFD700', '#F0F0F0']
-  },
-  {
-    id: 'new-year-party',
-    label: 'Festa de Ano Novo',
-    icon: '🥂',
-    basePrompt: 'Design de post para redes sociais de Ano Novo 2026. Tema: Festa e Celebração. Cores: Prata, Branco e Azul Marinho. Mostre garrafas de champanhe estourando e confetes. Espaço central para texto promocional. Estilo luxuoso e vibrante.',
-    referenceImage: 'https://images.unsplash.com/photo-1467810563316-b5476525c0f9?q=80&w=2069&auto=format&fit=crop',
-    colorPalette: ['#C0C0C0', '#000080', '#FFFFFF']
-  },
-  {
-    id: 'holiday-gift',
-    label: 'Guia de Presentes',
-    icon: '🎁',
-    basePrompt: 'Layout de "Guia de Presentes" para Instagram Stories. Fundo Clean com elementos natalinos sutis (galhos de pinheiro, fitas). Espaços em branco reservados para colagem de produtos. Atmosfera aconchegante e sofisticada.',
-    referenceImage: 'https://images.unsplash.com/photo-1512909006721-3d6018887383?q=80&w=2070&auto=format&fit=crop',
-    colorPalette: ['#2F4F4F', '#D2691E', '#F5F5DC']
-  },
-  {
-    id: 'stock-clearance',
-    label: 'Queima de Estoque',
-    icon: '🔥',
-    basePrompt: 'Banner impactante de "Queima de Estoque de Fim de Ano". Fundo amarelo vibrante com texto preto em negrito. Elementos de "porcentagem de desconto" flutuando em 3D. Estilo varejo moderno e agressivo, alta conversão.',
-    referenceImage: 'https://images.unsplash.com/photo-1526178613552-2b45c6c302f0?q=80&w=2068&auto=format&fit=crop',
-    colorPalette: ['#FFD700', '#000000', '#FF4500']
-  }
+    {
+        id: 'christmas-sale',
+        label: 'Promoção de Natal',
+        icon: '🎄',
+        basePrompt: 'Crie uma imagem publicitária profissional de Natal para o produto "[PRODUTO]". Estilo minimalista e elegante, fundo vermelho escuro com detalhes em dourado, iluminação suave de estúdio, 4k, alta resolução. Texto "OFERTA DE NATAL" em fonte moderna dourada no topo.',
+        // Links ocultos para guiar a IA (Conceito de Few-Shot/Image Prompting)
+        referenceImage: 'https://images.unsplash.com/photo-1512389142860-9c449e58a543?q=80&w=2069&auto=format&fit=crop',
+        colorPalette: ['#8B0000', '#FFD700', '#F0F0F0']
+    },
+    {
+        id: 'new-year-party',
+        label: 'Festa de Ano Novo',
+        icon: '🥂',
+        basePrompt: 'Design de post para redes sociais de Ano Novo 2026. Tema: Festa e Celebração. Cores: Prata, Branco e Azul Marinho. Mostre garrafas de champanhe estourando e confetes. Espaço central para texto promocional. Estilo luxuoso e vibrante.',
+        referenceImage: 'https://images.unsplash.com/photo-1467810563316-b5476525c0f9?q=80&w=2069&auto=format&fit=crop',
+        colorPalette: ['#C0C0C0', '#000080', '#FFFFFF']
+    },
+    {
+        id: 'holiday-gift',
+        label: 'Guia de Presentes',
+        icon: '🎁',
+        basePrompt: 'Layout de "Guia de Presentes" para Instagram Stories. Fundo Clean com elementos natalinos sutis (galhos de pinheiro, fitas). Espaços em branco reservados para colagem de produtos. Atmosfera aconchegante e sofisticada.',
+        referenceImage: 'https://images.unsplash.com/photo-1512909006721-3d6018887383?q=80&w=2070&auto=format&fit=crop',
+        colorPalette: ['#2F4F4F', '#D2691E', '#F5F5DC']
+    },
+    {
+        id: 'stock-clearance',
+        label: 'Queima de Estoque',
+        icon: '🔥',
+        basePrompt: 'Banner impactante de "Queima de Estoque de Fim de Ano". Fundo amarelo vibrante com texto preto em negrito. Elementos de "porcentagem de desconto" flutuando em 3D. Estilo varejo moderno e agressivo, alta conversão.',
+        referenceImage: 'https://images.unsplash.com/photo-1526178613552-2b45c6c302f0?q=80&w=2068&auto=format&fit=crop',
+        colorPalette: ['#FFD700', '#000000', '#FF4500']
+    }
 ];
 
 // Standard Code Templates (Boilerplates)
 export const CODE_TEMPLATES = [
-  {
-    id: 'hero-gradient',
-    name: 'Hero Moderno',
-    description: 'Fundo gradiente com cartões estilo vidro',
-    prompt: 'Crie uma Hero Section ultra moderna com fundo gradiente animado (mesh gradient), um card central usando glassmorphism, título com fonte inter e um botão CTA com brilho. Estilo 21.dev.',
-    code: `<!DOCTYPE html>
+    {
+        id: 'hero-gradient',
+        name: 'Hero Moderno',
+        description: 'Fundo gradiente com cartões estilo vidro',
+        prompt: 'Crie uma Hero Section ultra moderna com fundo gradiente animado (mesh gradient), um card central usando glassmorphism, título com fonte inter e um botão CTA com brilho. Estilo 21.dev.',
+        code: `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -226,13 +226,13 @@ export const CODE_TEMPLATES = [
     </div>
 </body>
 </html>`
-  },
-  {
-    id: 'pricing-tiers',
-    name: 'Tabela de Preços',
-    description: 'Cartões de preços estratégicos com efeitos hover',
-    prompt: 'Crie uma tabela de preços com 3 planos. O plano central deve ter um destaque (brilho ou borda colorida). Use cards com hover effects suaves e CTAs claros.',
-    code: `<!DOCTYPE html>
+    },
+    {
+        id: 'pricing-tiers',
+        name: 'Tabela de Preços',
+        description: 'Cartões de preços estratégicos com efeitos hover',
+        prompt: 'Crie uma tabela de preços com 3 planos. O plano central deve ter um destaque (brilho ou borda colorida). Use cards com hover effects suaves e CTAs claros.',
+        code: `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -389,13 +389,13 @@ export const CODE_TEMPLATES = [
     </div>
 </body>
 </html>`
-  },
-  {
-    id: 'clean-contact',
-    name: 'Contato Minimalista',
-    description: 'Formulário de contato elegante',
-    prompt: 'Crie uma página de contato minimalista...',
-    code: `<!DOCTYPE html>
+    },
+    {
+        id: 'clean-contact',
+        name: 'Contato Minimalista',
+        description: 'Formulário de contato elegante',
+        prompt: 'Crie uma página de contato minimalista...',
+        code: `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -420,12 +420,12 @@ export const CODE_TEMPLATES = [
     </form>
 </body>
 </html>`
-  }
+    }
 ];
 
 // Local Storage Keys
 export const STORAGE_KEYS = {
-  ADMIN_API_KEYS: 'vitrinex_admin_api_keys',
-  THEME_PREFERENCE: 'vitrinex_theme',
-  USER_SESSION: 'vitrinex_session'
+    ADMIN_API_KEYS: 'vitrinex_admin_api_keys',
+    THEME_PREFERENCE: 'vitrinex_theme',
+    USER_SESSION: 'vitrinex_session'
 };

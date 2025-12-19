@@ -1,4 +1,4 @@
-import { UserProfile, Post, Ad, Campaign, Trend, LibraryItem, ScheduleEntry } from '../../types';
+import { UserProfile, Post, Ad, Campaign, Trend, LibraryItem, ScheduleEntry, TargetAudience } from '../../types';
 import { supabase } from '../../lib/supabase';
 
 // Real Supabase Database Service
@@ -130,6 +130,51 @@ export const getTrends = async (userId: string): Promise<Trend[]> => {
 
     if (error) handleError('getTrends', error);
     return (data as Trend[]) || [];
+};
+
+// --- Target Audience Operations ---
+
+export const getTargetAudiences = async (userId: string): Promise<TargetAudience[]> => {
+    const { data, error } = await supabase
+        .from('target_audiences')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+
+    if (error) handleError('getTargetAudiences', error);
+    return (data as TargetAudience[]) || [];
+};
+
+export const createTargetAudience = async (audience: Omit<TargetAudience, 'id' | 'created_at'>): Promise<TargetAudience> => {
+    const { data, error } = await supabase
+        .from('target_audiences')
+        .insert([audience])
+        .select()
+        .single();
+
+    if (error) handleError('createTargetAudience', error);
+    return data as TargetAudience;
+};
+
+export const updateTargetAudience = async (audienceId: string, updates: Partial<TargetAudience>): Promise<TargetAudience> => {
+    const { data, error } = await supabase
+        .from('target_audiences')
+        .update(updates)
+        .eq('id', audienceId)
+        .select()
+        .single();
+
+    if (error) handleError('updateTargetAudience', error);
+    return data as TargetAudience;
+};
+
+export const deleteTargetAudience = async (audienceId: string): Promise<void> => {
+    const { error } = await supabase
+        .from('target_audiences')
+        .delete()
+        .eq('id', audienceId);
+
+    if (error) handleError('deleteTargetAudience', error);
 };
 
 // --- Local Storage Helpers ---

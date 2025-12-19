@@ -10,7 +10,6 @@ import { getUserProfile, updateUserProfile } from '../services/core/db';
 import { testGeminiConnection, verifySystemCapabilities } from '../services/ai/gemini';
 import { UserProfile } from '../types';
 import { DEFAULT_BUSINESS_PROFILE, HARDCODED_API_KEY, SUBSCRIPTION_CURRENCY, SUBSCRIPTION_PRICE_PROMO, SUBSCRIPTION_PRICE_FULL } from '../constants';
-// FIX: Add missing import for Cog6ToothIcon
 import { KeyIcon, ServerStackIcon, InformationCircleIcon, ArrowDownOnSquareIcon, PaintBrushIcon, GlobeAltIcon, SunIcon, MoonIcon, UserCircleIcon, Cog6ToothIcon, CheckCircleIcon, MegaphoneIcon, CpuChipIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useToast } from '../contexts/ToastContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -18,6 +17,9 @@ import { useLanguage } from '../contexts/LanguageContext';
 import Logo from '../components/ui/Logo';
 import { useNavigate } from '../hooks/useNavigate';
 import { useAuth } from '../contexts/AuthContext';
+import { SecureStorage } from '../utils/secureStorage';
+import { initGoogleDrive, connectGoogleDrive, isDriveConnected } from '../services/integrations/googleDrive';
+import { CloudIcon } from '@heroicons/react/24/outline';
 
 const Settings: React.FC = () => {
   // Profile State
@@ -42,6 +44,31 @@ const Settings: React.FC = () => {
   const { navigateTo } = useNavigate();
   const { user } = useAuth();
   const userId = user?.id || 'guest-user';
+  const [isDriveLinked, setIsDriveLinked] = useState(false);
+
+  useEffect(() => {
+    const checkDrive = async () => {
+      const connected = await isDriveConnected();
+      setIsDriveLinked(connected);
+    };
+    checkDrive();
+  }, []);
+
+  const handleConnectDrive = async () => {
+    try {
+      addToast({ type: 'info', message: 'Iniciando conexão com Google Drive...' });
+      await connectGoogleDrive();
+      setTimeout(async () => {
+        const connected = await isDriveConnected();
+        if (connected) {
+          setIsDriveLinked(true);
+          addToast({ type: 'success', message: 'Google Drive conectado!' });
+        }
+      }, 5000);
+    } catch (e: any) {
+      addToast({ type: 'error', message: `Erro ao conectar: ${e.message}` });
+    }
+  };
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -63,10 +90,16 @@ const Settings: React.FC = () => {
           }
         }
         // Internamente ainda usamos a chave do storage, mas a UI não revela a tecnologia
-        const savedKey = localStorage.getItem('vitrinex_gemini_api_key');
+        const savedKey = localStorage.getItem('vitrinex_gemini_api_key') || await SecureStorage.getItem<string>('vitrinex_gemini_api_key_secure');
+
         if (savedKey) {
           setApiKey(savedKey);
           setIsKeySaved(true);
+        } else if (profile?.apiKey) {
+          setApiKey(profile.apiKey);
+          setIsKeySaved(true);
+          localStorage.setItem('vitrinex_gemini_api_key', profile.apiKey);
+          SecureStorage.setItem('vitrinex_gemini_api_key_secure', profile.apiKey);
         } else if (HARDCODED_API_KEY) {
           setApiKey(HARDCODED_API_KEY);
           setIsKeySaved(true);
@@ -108,7 +141,19 @@ const Settings: React.FC = () => {
       const status = await verifySystemCapabilities(apiKey.trim());
 
       if (status.text) {
+        // Save locally (Raw and Secure)
         localStorage.setItem('vitrinex_gemini_api_key', apiKey.trim());
+        await SecureStorage.setItem('vitrinex_gemini_api_key_secure', apiKey.trim());
+
+        // Save to Supabase for cross-device persistence
+        if (userId && userId !== 'guest-user') {
+          try {
+            await updateUserProfile(userId, { apiKey: apiKey.trim() });
+          } catch (dbErr) {
+            console.warn('Failed to save API key to cloud profile:', dbErr);
+          }
+        }
+
         setIsKeySaved(true);
 
         // Construct detailed success message
@@ -504,6 +549,29 @@ const Settings: React.FC = () => {
                   />
                 </div>
               ))}
+            </div>
+
+            {/* Google Drive Integration */}
+            <div className="mt-6 p-4 border border-border rounded-lg bg-surface/50">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-lg ${isDriveLinked ? 'bg-green-500/10 text-green-500' : 'bg-gray-700/50 text-gray-400'}`}>
+                    <CloudIcon className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-title">Google Drive</h4>
+                    <p className="text-xs text-muted">{isDriveLinked ? 'Conectado e pronto para salvar arquivos.' : 'Conecte para salvar arquivos diretamente na nuvem.'}</p>
+                  </div>
+                </div>
+                <Button
+                  onClick={handleConnectDrive}
+                  variant={isDriveLinked ? "outline" : "secondary"}
+                  disabled={isDriveLinked}
+                  size="sm"
+                >
+                  {isDriveLinked ? 'Conectado' : 'Conectar Drive'}
+                </Button>
+              </div>
             </div>
 
             <div className="pt-4 flex justify-end">

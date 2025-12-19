@@ -56,7 +56,6 @@ export const useNavItems = () => {
     {
       section: 'sidebar.creation_suite', items: [
         { id: "nav-content-gen", name: "ContentGenerator" as ModuleName, label: 'Gerador de Conteúdo', icon: 'contentGen' as IconName },
-        { name: "PromptChat" as ModuleName, label: 'Chat Gerador de Prompts', icon: 'chat' as IconName },
         { name: "CreativeStudio" as ModuleName, label: 'Estúdio Criativo', icon: 'creativeStudio' as IconName },
         { id: "nav-ad-studio", name: "AdStudio" as ModuleName, label: 'Criar Anúncio', icon: 'adStudio' as IconName },
         { name: "CampaignBuilder" as ModuleName, label: 'Campanha', icon: 'campaign' as IconName }
@@ -64,9 +63,7 @@ export const useNavItems = () => {
     },
     {
       section: 'sidebar.tools', items: [
-        { name: "CodePlayground" as ModuleName, label: 'Criador de Páginas Web', icon: 'code' as IconName },
-        { name: "AudioTools" as ModuleName, label: 'Ferramenta de Áudio', icon: 'audio' as IconName },
-        { name: "CalendarManager" as ModuleName, label: 'Gerenciador de Calendário', icon: 'calendarAlt' as IconName }
+        { name: "SmartScheduler" as ModuleName, label: 'Agendamento', icon: 'calendarAlt' as IconName }
       ]
     },
     {
