@@ -13,5 +13,16 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src'),
     }
+  },
+  build: {
+    chunkSizeWarningLimit: 1000, // Increase warning limit to 1MB
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'framer-motion'], // Split core libs
+          ui: ['@headlessui/react', '@heroicons/react', 'lucide-react'], // Split UI libs
+        }
+      }
+    }
   }
 });
