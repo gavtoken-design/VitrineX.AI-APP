@@ -192,12 +192,7 @@ const CalendarManager: React.FC = () => {
         )}
       </div>
 
-      <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
-        <p className="text-sm text-muted">
-          <strong>Nota:</strong> Esta é uma versão simplificada. Para funcionalidades avançadas de calendário,
-          use o módulo <strong>SmartScheduler</strong>.
-        </p>
-      </div>
+
     </div>
   );
 };

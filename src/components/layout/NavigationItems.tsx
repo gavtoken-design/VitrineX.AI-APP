@@ -47,38 +47,32 @@ export const NavItem: React.FC<NavItemProps> = ({ name, label, icon, activeModul
 export const useNavItems = () => {
   const { t } = useLanguage();
 
-  // Retorna a estrutura de navegação usando as chaves de string definidas em iconRegistry
   return [
     {
       section: 'sidebar.overview', items: [
-        { id: "nav-dashboard", name: "Dashboard" as ModuleName, label: t('sidebar.dashboard'), icon: 'dashboard' as IconName }
+        { id: "nav-trend-hunter", name: "TrendHunter" as ModuleName, label: 'Tendência', icon: 'trends' as IconName }
       ]
     },
     {
       section: 'sidebar.creation_suite', items: [
-        { id: "nav-content-gen", name: "ContentGenerator" as ModuleName, label: t('sidebar.content_gen'), icon: 'contentGen' as IconName },
-        { id: "nav-ad-studio", name: "AdStudio" as ModuleName, label: t('sidebar.ad_creator'), icon: 'adStudio' as IconName },
-        { name: "CreativeStudio" as ModuleName, label: t('sidebar.media_studio'), icon: 'creativeStudio' as IconName }
-      ]
-    },
-    {
-      section: 'sidebar.strategy', items: [
-        { name: "CampaignBuilder" as ModuleName, label: t('sidebar.campaigns'), icon: 'campaign' as IconName },
-        { id: "nav-trend-hunter", name: "TrendHunter" as ModuleName, label: t('sidebar.trends'), icon: 'trends' as IconName }
+        { id: "nav-content-gen", name: "ContentGenerator" as ModuleName, label: 'Gerador de Conteúdo', icon: 'contentGen' as IconName },
+        { name: "PromptChat" as ModuleName, label: 'Chat Gerador de Prompts', icon: 'chat' as IconName },
+        { name: "CreativeStudio" as ModuleName, label: 'Estúdio Criativo', icon: 'creativeStudio' as IconName },
+        { id: "nav-ad-studio", name: "AdStudio" as ModuleName, label: 'Criar Anúncio', icon: 'adStudio' as IconName },
+        { name: "CampaignBuilder" as ModuleName, label: 'Campanha', icon: 'campaign' as IconName }
       ]
     },
     {
       section: 'sidebar.tools', items: [
-        { name: "PromptChat" as ModuleName, label: 'Gerador de Prompt', icon: 'chat' as IconName },
-        { name: "AudioTools" as ModuleName, label: t('sidebar.audio_tools'), icon: 'audio' as IconName },
-        { name: "CodePlayground" as ModuleName, label: t('sidebar.code_playground'), icon: 'code' as IconName },
-        { name: "CalendarManager" as ModuleName, label: t('sidebar.calendar_manager'), icon: 'calendarAlt' as IconName }
+        { name: "CodePlayground" as ModuleName, label: 'Criador de Páginas Web', icon: 'code' as IconName },
+        { name: "AudioTools" as ModuleName, label: 'Ferramenta de Áudio', icon: 'audio' as IconName },
+        { name: "CalendarManager" as ModuleName, label: 'Gerenciador de Calendário', icon: 'calendarAlt' as IconName }
       ]
     },
     {
       section: 'sidebar.system', items: [
-        { name: "ContentLibrary" as ModuleName, label: t('sidebar.library'), icon: 'library' as IconName },
-        { id: "nav-settings", name: "Settings" as ModuleName, label: t('sidebar.config'), icon: 'settings' as IconName }
+        { name: "ContentLibrary" as ModuleName, label: 'Biblioteca', icon: 'library' as IconName },
+        { id: "nav-settings", name: "Settings" as ModuleName, label: 'Configurações', icon: 'settings' as IconName }
       ]
     }
   ];
