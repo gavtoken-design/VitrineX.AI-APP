@@ -69,7 +69,7 @@ const queryClient = new QueryClient({
 
 function AppContent() {
   const { user, loading: authLoading, profile, signOut } = useAuth(); // Use Auth Context
-  const [activeModule, setActiveModule] = useState<ModuleName>('LandingPage');
+  const [activeModule, setActiveModuleState] = useState<ModuleName>('LandingPage');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Auth State
@@ -78,6 +78,11 @@ function AppContent() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [isAuthProcessing, setIsAuthProcessing] = useState(false);
+
+  // Memoized setActiveModule to prevent re-renders
+  const setActiveModule = useCallback((moduleName: ModuleName) => {
+    setActiveModuleState(moduleName);
+  }, []);
 
   // ... (Login Logic) ...
 

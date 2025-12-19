@@ -1,5 +1,6 @@
 
 import * as React from 'react';
+import { memo } from 'react';
 import Logo from '../ui/Logo';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -10,7 +11,7 @@ interface NavbarProps {
   onMenuClick: () => void;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
+const Navbar: React.FC<NavbarProps> = memo(({ onMenuClick }) => {
   const { theme, toggleTheme } = useTheme();
   const { language, setLanguage } = useLanguage();
 
@@ -75,6 +76,8 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
       </div>
     </nav>
   );
-};
+});
+
+Navbar.displayName = 'Navbar';
 
 export default Navbar;

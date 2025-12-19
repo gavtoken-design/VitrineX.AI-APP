@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { ModuleName } from '../../App';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavItems } from './NavigationItems';
@@ -14,7 +14,7 @@ interface SidebarProps {
   setActiveModule: (moduleName: ModuleName) => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ activeModule, setActiveModule }) => {
+const Sidebar: React.FC<SidebarProps> = memo(({ activeModule, setActiveModule }) => {
   const navItems = useNavItems();
   const { t } = useLanguage();
   const [open, setOpen] = useState(true);
@@ -101,6 +101,8 @@ const Sidebar: React.FC<SidebarProps> = ({ activeModule, setActiveModule }) => {
       </motion.aside>
     </>
   );
-};
+});
+
+Sidebar.displayName = 'Sidebar';
 
 export default Sidebar;

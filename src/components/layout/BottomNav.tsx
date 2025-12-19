@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { memo } from 'react';
 import { ModuleName } from '../../App';
 import { HomeIcon, SparklesIcon, PhotoIcon, Cog6ToothIcon } from '@heroicons/react/24/outline';
 import { HomeIcon as HomeSolid, SparklesIcon as SparklesSolid, PhotoIcon as PhotoSolid, Cog6ToothIcon as CogSolid } from '@heroicons/react/24/solid';
@@ -9,7 +10,7 @@ interface BottomNavProps {
     onMoreClick: () => void;
 }
 
-const BottomNav: React.FC<BottomNavProps> = ({ activeModule, setActiveModule, onMoreClick }) => {
+const BottomNav: React.FC<BottomNavProps> = memo(({ activeModule, setActiveModule, onMoreClick }) => {
 
     const navItems = [
         { id: 'Dashboard', label: 'Início', icon: HomeIcon, solidIcon: HomeSolid },
@@ -57,6 +58,8 @@ const BottomNav: React.FC<BottomNavProps> = ({ activeModule, setActiveModule, on
             </div>
         </div>
     );
-};
+});
+
+BottomNav.displayName = 'BottomNav';
 
 export default BottomNav;
