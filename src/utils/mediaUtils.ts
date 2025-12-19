@@ -53,7 +53,7 @@ export async function downloadImage(imageUrl: string, fileName: string) {
     
     const link = document.createElement('a');
     link.href = blobUrl;
-    link.download = finalFileName;
+    link.download = finalFileName || 'download.png';
     
     document.body.appendChild(link);
     link.click();

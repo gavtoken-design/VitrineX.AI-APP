@@ -40,7 +40,7 @@ export const useDownloader = () => {
         const a = document.createElement('a');
         
         a.href = url;
-        a.download = filename;
+        a.download = filename || 'download';
         document.body.appendChild(a);
         a.click();
         

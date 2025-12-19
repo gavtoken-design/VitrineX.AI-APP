@@ -218,7 +218,7 @@ const Dashboard: React.FC = () => {
           <p className="text-muted mt-1">{t('dashboard.subtitle')}</p>
         </div>
         <div className="flex items-center gap-4">
-          <ClientGreeting name={user?.user_metadata?.name || "Visitante"} gender={user?.user_metadata?.gender || "female"} />
+          <ClientGreeting name={user?.user_metadata?.name || "Visitante"} />
           <DateTimeDisplay />
         </div>
       </div>

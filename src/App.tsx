@@ -323,7 +323,7 @@ function AppContent() {
               </div>
             }>
               {/* REQUISITO: Container fluido, centralizado e com max-width */}
-              <div className={`w-full ${isFullHeightModule ? 'h-full' : 'max-w-[1200px] mx-auto p-6 md:p-8'}`}>
+              <div className={`w-full ${isFullHeightModule ? 'h-full' : 'max-w-[1200px] mx-auto p-4 md:p-8'}`}>
                 {renderModule()}
               </div>
             </Suspense>

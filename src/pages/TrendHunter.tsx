@@ -275,7 +275,8 @@ Melhor Estratégia: ${result.conclusao.melhorEstrategia}
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `trend-${query.replace(/\s+/g, '-')}.txt`;
+      const safeQuery = query.trim().replace(/\s+/g, '-') || 'trend-report';
+      a.download = `trend-${safeQuery}.txt`;
       a.click();
       URL.revokeObjectURL(url);
       addToast({ type: 'success', message: 'Relatório baixado com sucesso!' });

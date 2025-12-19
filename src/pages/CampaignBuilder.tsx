@@ -78,7 +78,8 @@ const CampaignBuilder: React.FC = () => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `vitrinex-campaign-${generatedCampaign.name.replace(/\s/g, '-')}-${Date.now()}.json`;
+    const campaignName = generatedCampaign.name.trim().replace(/\s/g, '-') || 'untitled-campaign';
+    link.download = `vitrinex-campaign-${campaignName}-${Date.now()}.json`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

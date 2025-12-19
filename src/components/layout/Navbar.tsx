@@ -26,7 +26,7 @@ const Navbar: React.FC<NavbarProps> = memo(({ onMenuClick }) => {
           >
             <Bars3Icon className="w-6 h-6 wiggle-on-hover" />
           </button>
-          <Logo className="h-9 w-9" />
+          <Logo className="h-9 w-9 md:hidden" />
         </div>
 
         <div className="flex items-center gap-4">

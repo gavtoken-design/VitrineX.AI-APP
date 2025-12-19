@@ -4,15 +4,11 @@ import { motion } from 'framer-motion';
 
 interface ClientGreetingProps {
     name: string;
-    gender?: 'male' | 'female' | 'other';
 }
 
-const ClientGreeting: React.FC<ClientGreetingProps> = ({ name, gender = 'male' }) => {
-    // Determine colors based on gender
-    const isFemale = gender === 'female';
-    const gradient = isFemale
-        ? 'from-pink-500 via-rose-500 to-purple-600'
-        : 'from-blue-500 via-cyan-500 to-teal-400';
+const ClientGreeting: React.FC<ClientGreetingProps> = ({ name }) => {
+    // Unified color scheme for a more inclusive and maintainable design
+    const gradient = 'from-primary to-accent';
 
     return (
         <motion.div
@@ -37,8 +33,8 @@ const ClientGreeting: React.FC<ClientGreetingProps> = ({ name, gender = 'male' }
                     <UserIcon className="w-3 h-3 text-white" />
                 </div>
 
-                <span className="text-sm font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-300">
-                    Olá, <span className={`bg-gradient-to-r ${gradient} bg-clip-text text-transparent`}>{name}</span>
+                <span className="text-sm font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-300 flex items-center gap-1">
+                    Olá, <span className={`bg-gradient-to-r ${gradient} bg-clip-text text-transparent max-w-[100px] sm:max-w-[200px] truncate block`}>{name}</span>
                 </span>
             </motion.div>
         </motion.div>
