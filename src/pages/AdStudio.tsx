@@ -14,6 +14,15 @@ import { GEMINI_PRO_MODEL, IMAGEN_ULTRA_MODEL, PLACEHOLDER_IMAGE_BASE64 } from '
 import { useToast } from '../contexts/ToastContext';
 import { uploadFile } from '../services/media/storage';
 import { useAuth } from '../contexts/AuthContext';
+import {
+  ChartBarIcon,
+  SparklesIcon,
+  RocketLaunchIcon,
+  ChatBubbleLeftRightIcon,
+  BoltIcon,
+  MagnifyingGlassIcon,
+  CheckBadgeIcon
+} from '@heroicons/react/24/outline';
 
 type Platform = 'Instagram' | 'Facebook' | 'TikTok' | 'Google' | 'Pinterest';
 
@@ -30,6 +39,11 @@ const AdStudio: React.FC = () => {
   // Library Save State
   const [savedItemName, setSavedItemName] = useState<string>('');
   const [savedItemTags, setSavedItemTags] = useState<string>('');
+
+  // Analysis State
+  const [adToAnalyze, setAdToAnalyze] = useState<string>('');
+  const [analysisResult, setAnalysisResult] = useState<string | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
 
 
 
@@ -137,55 +151,176 @@ const AdStudio: React.FC = () => {
     }
   }, [generatedAd, addToast]);
 
+  const handleAnalyzeAd = useCallback(async () => {
+    if (!adToAnalyze.trim()) {
+      addToast({ type: 'warning', message: 'Cole um anúncio para analisar.' });
+      return;
+    }
+
+    setIsAnalyzing(true);
+    setAnalysisResult(null);
+
+    try {
+      const prompt = `Analise este anúncio criticamente como um especialista em marketing de alta conversão:
+
+"${adToAnalyze}"
+
+Forneça:
+1. Score de efetividade (0-10)
+2. Pontos fortes
+3. Pontos fracos e o que pode ser melhorado
+4. Sugestões práticas de copy.
+
+Responda em Markdown estruturado.`;
+
+      const response = await generateText(prompt, { model: GEMINI_PRO_MODEL });
+      setAnalysisResult(response);
+      addToast({ type: 'success', message: 'Análise concluída!' });
+    } catch (err) {
+      console.error(err);
+      addToast({ type: 'error', message: 'Falha na análise.' });
+    } finally {
+      setIsAnalyzing(false);
+    }
+  }, [adToAnalyze, addToast]);
+
+  const handleRewriteAd = useCallback(async (mode: 'minimalist' | 'engagement' | 'sell' | 'news') => {
+    if (!generatedAd) return;
+
+    setLoading(true);
+    const rewriteModes = {
+      minimalist: `Reescreva o anúncio abaixo de forma minimalista, direta e focando apenas no essencial.`,
+      engagement: `Reescreva o anúncio abaixo focando em gerar engajamento, curtidas e comentários (use perguntas).`,
+      sell: `Reescreva o anúncio abaixo com foco total em conversão/venda, benefícios claros e CTA forte.`,
+      news: `Reescreva o anúncio abaixo como se fosse uma notícia urgente e importante de última hora.`
+    };
+
+    try {
+      const prompt = `${rewriteModes[mode]}
+
+Anúncio Original:
+Título: ${generatedAd.headline}
+Texto: ${generatedAd.copy}
+
+Retorne no formato JSON: { "headline": "...", "copy": "..." }`;
+
+      const response = await generateText(prompt, {
+        model: GEMINI_PRO_MODEL,
+        responseMimeType: 'application/json'
+      });
+
+      const data = JSON.parse(response.replace(/```json\n?|\n?```/g, '').trim());
+
+      setGeneratedAd(prev => prev ? {
+        ...prev,
+        headline: data.headline,
+        copy: data.copy
+      } : null);
+
+      addToast({ type: 'success', message: `Anúncio reescrito: Modo ${mode}` });
+    } catch (err) {
+      console.error(err);
+      addToast({ type: 'error', message: 'Falha ao reescrever.' });
+    } finally {
+      setLoading(false);
+    }
+  }, [generatedAd, addToast]);
+
 
   return (
     <div className="container mx-auto py-8 lg:py-10">
-      <h2 className="text-3xl font-bold text-textdark mb-8">Estúdio de Anúncios</h2>
+      <h2 className="text-3xl font-bold text-title mb-8 flex items-center gap-3">
+        <RocketLaunchIcon className="w-8 h-8 text-primary" />
+        Estúdio de Anúncios
+      </h2>
 
-      <div className="bg-lightbg p-6 rounded-lg shadow-sm border border-gray-800 mb-8">
-        <h3 className="text-xl font-semibold text-textlight mb-5">Detalhes do Anúncio</h3>
-        <Textarea
-          id="productDescription"
-          label="Descrição do Produto/Serviço:"
-          value={productDescription}
-          onChange={(e) => setProductDescription(e.target.value)}
-          rows={4}
-          placeholder="Ex: 'Um novo software de gestão de projetos com IA para pequenas e médias empresas que otimiza tarefas e comunicação.'"
-        />
-        <Input
-          id="targetAudience"
-          label="Público-alvo:"
-          value={targetAudience}
-          onChange={(e) => setTargetAudience(e.target.value)}
-          placeholder="Ex: 'Empreendedores, gerentes de equipe, freelancers que buscam eficiência.'"
-        />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        {/* Lado Esquerdo: Geração */}
+        <div className="bg-surface p-6 rounded-xl shadow-card border border-gray-800">
+          <h3 className="text-xl font-semibold text-title mb-5 flex items-center gap-2">
+            <SparklesIcon className="w-5 h-5 text-accent" />
+            Criar Novo Anúncio
+          </h3>
+          <Textarea
+            id="productDescription"
+            label="Descrição do Produto/Serviço:"
+            value={productDescription}
+            onChange={(e) => setProductDescription(e.target.value)}
+            rows={4}
+            placeholder="Ex: 'Um novo software de gestão de projetos com IA para pequenas e médias empresas que otimiza tarefas e comunicação.'"
+          />
+          <Input
+            id="targetAudience"
+            label="Público-alvo:"
+            value={targetAudience}
+            onChange={(e) => setTargetAudience(e.target.value)}
+            placeholder="Ex: 'Empreendedores, gerentes de equipe, freelancers que buscam eficiência.'"
+          />
 
-        <div className="mb-6">
-          <label htmlFor="platform" className="block text-sm font-medium text-textlight mb-1">
-            Plataforma:
-          </label>
-          <select
-            id="platform"
-            value={selectedPlatform}
-            onChange={(e) => setSelectedPlatform(e.target.value as Platform)}
-            className="block w-full px-3 py-2 border border-gray-700 rounded-md shadow-sm bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-neonGreen focus:border-neonGreen focus:ring-offset-2 focus:ring-offset-lightbg sm:text-sm"
+          <div className="mb-6">
+            <label htmlFor="platform" className="block text-sm font-medium text-textlight mb-1">
+              Plataforma:
+            </label>
+            <select
+              id="platform"
+              value={selectedPlatform}
+              onChange={(e) => setSelectedPlatform(e.target.value as Platform)}
+              className="block w-full px-3 py-2 border border-gray-700 rounded-md shadow-sm bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-neonGreen focus:border-neonGreen focus:ring-offset-2 focus:ring-offset-lightbg sm:text-sm"
+            >
+              {platforms.map((platform) => (
+                <option key={platform} value={platform}>
+                  {platform}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <Button
+            onClick={handleGenerateAd}
+            isLoading={loading && !generatedAd}
+            variant="primary"
+            className="w-full mt-4 py-4 text-lg font-bold"
           >
-            {platforms.map((platform) => (
-              <option key={platform} value={platform}>
-                {platform}
-              </option>
-            ))}
-          </select>
+            {loading && !generatedAd ? 'Gerando Anúncio...' : 'Gerar Anúncio Mágico'}
+          </Button>
         </div>
 
-        <Button
-          onClick={handleGenerateAd}
-          isLoading={loading && !generatedAd}
-          variant="primary"
-          className="w-full md:w-auto mt-4"
-        >
-          {loading && !generatedAd ? 'Gerando Anúncio...' : 'Gerar Anúncio'}
-        </Button>
+        {/* Lado Direito: Análise */}
+        <div className="bg-surface p-6 rounded-xl shadow-card border border-gray-800">
+          <h3 className="text-xl font-semibold text-title mb-5 flex items-center gap-2">
+            <MagnifyingGlassIcon className="w-5 h-5 text-primary" />
+            Analisar Copys Existentes
+          </h3>
+          <Textarea
+            id="adToAnalyze"
+            label="Cole aqui um anúncio para ser criticado pela IA:"
+            value={adToAnalyze}
+            onChange={(e) => setAdToAnalyze(e.target.value)}
+            rows={6}
+            placeholder="Ex: Cole aqui o texto daquele anúncio que não está convertendo..."
+          />
+          <Button
+            onClick={handleAnalyzeAd}
+            isLoading={isAnalyzing}
+            variant="secondary"
+            className="w-full mt-4"
+          >
+            {isAnalyzing ? 'Analisando...' : 'Analisar Efetividade'}
+          </Button>
+
+          {analysisResult && (
+            <div className="mt-6 p-4 bg-darkbg rounded-lg border border-primary/20 animate-fade-in">
+              <h4 className="font-bold text-accent mb-2 flex items-center gap-2">
+                <CheckBadgeIcon className="w-4 h-4" /> Resultado da Análise
+              </h4>
+              <div className="prose prose-invert prose-sm max-w-none text-gray-300">
+                {analysisResult.split('\n').map((line, i) => (
+                  <p key={i} className="mb-1">{line}</p>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {generatedAd && (
@@ -204,9 +339,24 @@ const AdStudio: React.FC = () => {
               {/* Implante do VoiceoverControl */}
               <VoiceoverControl text={generatedAd.copy} />
 
-              <div className="mt-6 flex flex-wrap gap-3">
-                <Button variant="secondary" onClick={() => addToast({ type: 'info', message: 'Funcionalidade em desenvolvimento.' })}>Gerar Variações</Button>
-                <Button variant="outline" onClick={() => addToast({ type: 'info', message: 'Funcionalidade em desenvolvimento.' })}>Editar</Button>
+              <div className="mt-6">
+                <h5 className="text-sm font-bold text-muted uppercase tracking-widest mb-3 flex items-center gap-2">
+                  <BoltIcon className="w-4 h-4 text-accent" /> Modos de Reescrita IA
+                </h5>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button variant="ghost" size="sm" onClick={() => handleRewriteAd('minimalist')} className="text-xs border border-gray-700">
+                    Minimalista
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => handleRewriteAd('engagement')} className="text-xs border border-gray-700">
+                    Engajamento
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => handleRewriteAd('sell')} className="text-xs border border-gray-700">
+                    Foco em Venda
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => handleRewriteAd('news')} className="text-xs border border-gray-700">
+                    Estilo Notícia
+                  </Button>
+                </div>
               </div>
             </div>
             <div>

@@ -1,3 +1,5 @@
+export * from '../types';
+
 // Modos de visualização da sua aplicação
 export enum AppMode {
   DASHBOARD = 'DASHBOARD',

@@ -7,7 +7,7 @@ import Button from '../components/ui/Button';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import SaveToLibraryButton from '../components/features/SaveToLibraryButton';
 import MediaActionsToolbar from '../components/features/MediaActionsToolbar';
-import { generateImage, editImage, generateVideo, analyzeImage } from '../services/ai';
+import { generateImage, editImage, analyzeImage } from '../services/ai';
 import { saveLibraryItem } from '../services/core/db';
 import { uploadFile } from '../services/media/storage';
 import { useAuth } from '../contexts/AuthContext';
@@ -21,7 +21,11 @@ import {
   AdjustmentsHorizontalIcon,
   EyeIcon,
   PencilSquareIcon,
-  PaintBrushIcon
+  PaintBrushIcon,
+  DocumentArrowDownIcon,
+  ScissorsIcon,
+  UserGroupIcon,
+  ArrowPathIcon
 } from '@heroicons/react/24/outline';
 import BrandAssetsManager, { LogoSettings } from '../components/features/BrandAssetsManager';
 import { applyWatermark } from '../utils/imageProcessing';
@@ -43,11 +47,10 @@ import {
 import { useToast } from '../contexts/ToastContext';
 import HowToUse from '../components/ui/HowToUse';
 
-type MediaType = 'image' | 'video';
+// Video functionality removed as per new requirements
 
 const CreativeStudio: React.FC = () => {
   const [prompt, setPrompt] = useState<string>('');
-  const [mediaType, setMediaType] = useState<MediaType>('image');
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [generatedMediaUrl, setGeneratedMediaUrl] = useState<string | null>(null);
@@ -60,8 +63,6 @@ const CreativeStudio: React.FC = () => {
 
   const [imageAspectRatio, setImageAspectRatio] = useState<string>(DEFAULT_ASPECT_RATIO);
   const [imageSize, setImageSize] = useState<string>(DEFAULT_IMAGE_SIZE);
-  const [videoAspectRatio, setVideoAspectRatio] = useState<string>(DEFAULT_ASPECT_RATIO);
-  const [videoResolution, setVideoResolution] = useState<string>(DEFAULT_VIDEO_RESOLUTION);
 
   const [savedItemName, setSavedItemName] = useState<string>('');
   const [savedItemTags, setSavedItemTags] = useState<string>('');
@@ -84,7 +85,6 @@ const CreativeStudio: React.FC = () => {
 
   const applyTemplate = (template: typeof SEASONAL_TEMPLATES[0]) => {
     setPrompt(template.basePrompt);
-    setMediaType('image');
     setFile(null); // Templates são para geração do zero
     setPreviewUrl(null);
     addToast({
@@ -121,12 +121,6 @@ const CreativeStudio: React.FC = () => {
       return;
     }
 
-    if (!selectedFile.type.startsWith('image/') && !selectedFile.type.startsWith('video/')) {
-      addToast({ type: 'error', title: 'Formato inválido', message: 'Apenas imagens ou vídeos.' });
-      if (fileInputRef.current) fileInputRef.current.value = '';
-      return;
-    }
-
     setFile(selectedFile);
 
     try {
@@ -139,13 +133,6 @@ const CreativeStudio: React.FC = () => {
     }
 
     setSavedItemName(selectedFile.name.split('.').slice(0, -1).join('.'));
-
-    // Auto-detect type
-    if (selectedFile.type.startsWith('image')) {
-      setMediaType('image');
-    } else if (selectedFile.type.startsWith('video')) {
-      setMediaType('video');
-    }
   }, [addToast]);
 
   const getFriendlyErrorMessage = (err: any, context: string) => {
@@ -169,82 +156,54 @@ const CreativeStudio: React.FC = () => {
     setGeneratedAnalysis(null);
 
     try {
-      if (mediaType === 'image') {
-        const response = await generateImage(prompt, {
-          model: IMAGEN_ULTRA_MODEL, // Ultra quality generation
-          aspectRatio: imageAspectRatio,
-          imageSize: imageSize,
-        });
-        if (!response.imageUrl) throw new Error('A API não retornou imagem.');
-        let finalImageUrl = response.imageUrl;
+      const response = await generateImage(prompt, {
+        model: IMAGEN_ULTRA_MODEL, // Ultra quality generation
+        aspectRatio: imageAspectRatio,
+        imageSize: imageSize,
+      });
+      if (!response.imageUrl) throw new Error('A API não retornou imagem.');
+      let finalImageUrl = response.imageUrl;
 
-        // Upload to Storage if Base64 and User is logged in
-        if (response.imageUrl && response.imageUrl.startsWith('data:') && user) {
-          try {
-            const res = await fetch(response.imageUrl);
-            const blob = await res.blob();
-            const file = new File([blob], `creative-gen-${Date.now()}.png`, { type: 'image/png' });
-            const uploadedItem = await uploadFile(file, user.id, 'image');
-            finalImageUrl = uploadedItem.file_url;
-          } catch (uploadErr) {
-            console.error("Failed to upload generated image to storage:", uploadErr);
-          }
+      // Upload to Storage if Base64 and User is logged in
+      if (response.imageUrl && response.imageUrl.startsWith('data:') && user) {
+        try {
+          const res = await fetch(response.imageUrl);
+          const blob = await res.blob();
+          const file = new File([blob], `creative-gen-${Date.now()}.png`, { type: 'image/png' });
+          const uploadedItem = await uploadFile(file, user.id, 'image');
+          finalImageUrl = uploadedItem.file_url;
+        } catch (uploadErr) {
+          console.error("Failed to upload generated image to storage:", uploadErr);
         }
+      }
 
-        setGeneratedMediaUrl(finalImageUrl);
+      setGeneratedMediaUrl(finalImageUrl);
 
-        // AUTO-SAVE: Salvar imagem na biblioteca
-        if (user && finalImageUrl && !finalImageUrl.startsWith('data:')) {
-          try {
-            await saveLibraryItem({
-              id: `lib-${Date.now()}`,
-              userId: user.id,
-              name: `Gerado - ${prompt.substring(0, 30)}`,
-              file_url: finalImageUrl,
-              type: 'image',
-              tags: ['creative-studio', 'image', 'generated'],
-              createdAt: new Date().toISOString()
-            });
-          } catch (saveError) {
-            console.warn('Failed to auto-save to library:', saveError);
-          }
-        }
-      } else {
-        const response = await generateVideo(prompt, {
-          model: VEO_GENERATE_MODEL,
-          config: {
-            numberOfVideos: 1,
-            resolution: videoResolution as "720p" | "1080p",
-            aspectRatio: videoAspectRatio as "16:9" | "9:16"
-          }
-        });
-        if (!response) throw new Error('A API não retornou vídeo.');
-        setGeneratedMediaUrl(response);
-
-        // AUTO-SAVE: Salvar vídeo na biblioteca
+      // AUTO-SAVE: Salvar imagem na biblioteca
+      if (user && finalImageUrl && !finalImageUrl.startsWith('data:')) {
         try {
           await saveLibraryItem({
             id: `lib-${Date.now()}`,
-            userId,
-            name: `Vídeo gerado - ${prompt.substring(0, 30)}`,
-            file_url: response,
-            type: 'video',
-            tags: ['creative-studio', 'video', 'generated'],
+            userId: user.id,
+            name: `Gerado - ${prompt.substring(0, 30)}`,
+            file_url: finalImageUrl,
+            type: 'image',
+            tags: ['creative-studio', 'image', 'generated'],
             createdAt: new Date().toISOString()
           });
         } catch (saveError) {
           console.warn('Failed to auto-save to library:', saveError);
         }
       }
-      setSavedItemName(`Gerado ${mediaType} - ${prompt.substring(0, 20)}...`);
-      addToast({ type: 'success', title: 'Sucesso', message: 'Mídia gerada com sucesso.' });
+      setSavedItemName(`Gerado - ${prompt.substring(0, 20)}...`);
+      addToast({ type: 'success', title: 'Sucesso', message: 'Imagem gerada com sucesso.' });
     } catch (err) {
       setError(getFriendlyErrorMessage(err, 'geração'));
       addToast({ type: 'error', message: 'Erro na geração.' });
     } finally {
       setLoading(false);
     }
-  }, [prompt, mediaType, imageAspectRatio, imageSize, videoAspectRatio, videoResolution, addToast]);
+  }, [prompt, imageAspectRatio, imageSize, addToast, user]);
 
   const handleEditMedia = useCallback(async () => {
     if (!file || !previewUrl) {
@@ -268,81 +227,55 @@ const CreativeStudio: React.FC = () => {
       const mimeType = file.type;
 
       try {
-        if (mediaType === 'image') {
-          // PASSO 1: Analisar a imagem carregada
-          addToast({ type: 'info', message: 'Analisando imagem...' });
-          const analysisPrompt = `Analise esta imagem em detalhes: elementos visuais, cores, composição, estilo, objetos presentes.`;
-          const imageAnalysis = await analyzeImage(base64Data, mimeType, analysisPrompt);
+        // PASSO 1: Analisar a imagem carregada
+        addToast({ type: 'info', message: 'Analisando imagem...' });
+        const analysisPrompt = `Analise esta imagem em detalhes: elementos visuais, cores, composição, estilo, objetos presentes.`;
+        const imageAnalysis = await analyzeImage(base64Data, mimeType, analysisPrompt);
 
-          // PASSO 2: Criar prompt enriquecido com análise + instrução do usuário
-          const enrichedPrompt = `Baseado nesta análise da imagem original:
+        // PASSO 2: Criar prompt enriquecido com análise + instrução do usuário
+        const enrichedPrompt = `Baseado nesta análise da imagem original:
 ${imageAnalysis}
 
 Instrução do usuário: ${prompt}
 
 Crie uma nova imagem que atenda à instrução do usuário, mantendo coerência com os elementos identificados na análise.`;
 
-          // PASSO 3: Gerar nova imagem
-          addToast({ type: 'info', message: 'Gerando nova imagem...' });
-          const response = await generateImage(enrichedPrompt, {
-            model: IMAGEN_ULTRA_MODEL,
-            aspectRatio: imageAspectRatio,
-            imageSize: imageSize,
-          });
+        // PASSO 3: Gerar nova imagem
+        addToast({ type: 'info', message: 'Gerando nova imagem...' });
+        const response = await generateImage(enrichedPrompt, {
+          model: IMAGEN_ULTRA_MODEL,
+          aspectRatio: imageAspectRatio,
+          imageSize: imageSize,
+        });
 
-          if (!response.imageUrl) throw new Error('Falha na geração da imagem.');
-          let finalEditedUrl = response.imageUrl;
+        if (!response.imageUrl) throw new Error('Falha na geração da imagem.');
+        let finalEditedUrl = response.imageUrl;
 
-          // Upload if Base64
-          if (response.imageUrl && response.imageUrl.startsWith('data:') && user) {
-            try {
-              const res = await fetch(response.imageUrl);
-              const blob = await res.blob();
-              const file = new File([blob], `creative-edit-${Date.now()}.png`, { type: 'image/png' });
-              const uploadedItem = await uploadFile(file, user.id, 'image');
-              finalEditedUrl = uploadedItem.file_url;
-            } catch (err) {
-              console.error("Failed to upload edited image:", err);
-            }
+        // Upload if Base64
+        if (response.imageUrl && response.imageUrl.startsWith('data:') && user) {
+          try {
+            const res = await fetch(response.imageUrl);
+            const blob = await res.blob();
+            const file = new File([blob], `creative-edit-${Date.now()}.png`, { type: 'image/png' });
+            const uploadedItem = await uploadFile(file, user.id, 'image');
+            finalEditedUrl = uploadedItem.file_url;
+          } catch (err) {
+            console.error("Failed to upload edited image:", err);
           }
+        }
 
-          setGeneratedMediaUrl(finalEditedUrl);
+        setGeneratedMediaUrl(finalEditedUrl);
 
-          // AUTO-SAVE: Salvar automaticamente na biblioteca
-          if (user && finalEditedUrl && !finalEditedUrl.startsWith('data:')) {
-            try {
-              await saveLibraryItem({
-                id: `lib-${Date.now()}`,
-                userId: user.id,
-                name: `Editado - ${prompt.substring(0, 30)}`,
-                file_url: finalEditedUrl,
-                type: 'image',
-                tags: ['creative-studio', 'image', 'edited'],
-                createdAt: new Date().toISOString()
-              });
-            } catch (saveError) {
-              console.warn('Failed to auto-save to library:', saveError);
-            }
-          }
-        } else {
-          // Video editing (generation with start image)
-          const response = await generateVideo(prompt, {
-            model: VEO_GENERATE_MODEL,
-            image: { imageBytes: base64Data, mimeType: mimeType },
-            config: { resolution: videoResolution as any, aspectRatio: videoAspectRatio as any }
-          });
-          if (!response) throw new Error('Falha na edição do vídeo.');
-          setGeneratedMediaUrl(response);
-
-          // AUTO-SAVE: Salvar vídeo na biblioteca
+        // AUTO-SAVE: Salvar automaticamente na biblioteca
+        if (user && finalEditedUrl && !finalEditedUrl.startsWith('data:')) {
           try {
             await saveLibraryItem({
               id: `lib-${Date.now()}`,
-              userId,
-              name: `Vídeo - ${prompt.substring(0, 30)}`,
-              file_url: response,
-              type: 'video',
-              tags: ['creative-studio', 'video'],
+              userId: user.id,
+              name: `Editado - ${prompt.substring(0, 30)}`,
+              file_url: finalEditedUrl,
+              type: 'image',
+              tags: ['creative-studio', 'image', 'edited'],
               createdAt: new Date().toISOString()
             });
           } catch (saveError) {
@@ -359,7 +292,7 @@ Crie uma nova imagem que atenda à instrução do usuário, mantendo coerência 
       }
     };
     reader.readAsDataURL(file);
-  }, [file, previewUrl, prompt, mediaType, imageAspectRatio, imageSize, videoAspectRatio, videoResolution, addToast]);
+  }, [file, previewUrl, prompt, imageAspectRatio, imageSize, addToast, user]);
 
   const handleAnalyzeMedia = useCallback(async () => {
     if (!file) {
@@ -396,32 +329,62 @@ Crie uma nova imagem que atenda à instrução do usuário, mantendo coerência 
     reader.readAsDataURL(file);
   }, [file, prompt, addToast]);
 
-  const handleSpecificDownload = useCallback(async () => {
-    if (generatedMediaUrl) {
-      const success = await downloadImage(generatedMediaUrl, `vitrinex-creative-${Date.now()}.png`);
-      if (!success) addToast({ type: 'error', message: 'Falha no download.' });
-    }
-  }, [generatedMediaUrl, addToast]);
-
-  const handleApplyBranding = async () => {
-    if (!generatedMediaUrl || mediaType !== 'image') return;
-    if (!logoSettings.file) {
-      addToast({ type: 'warning', message: 'Faça upload de uma logo primeiro.' });
-      return;
-    }
-
+  const handleRemoveBackground = useCallback(async () => {
+    if (!generatedMediaUrl) return;
     setLoading(true);
     try {
-      const brandedUrl = await applyWatermark(generatedMediaUrl, logoSettings);
-      setGeneratedMediaUrl(brandedUrl);
-      addToast({ type: 'success', message: 'Identidade Visual aplicada!' });
+      const response = await editImage("Remove the background completely, leaving only the main subject on a transparent-looking or solid white background.", generatedMediaUrl, IMAGEN_ULTRA_MODEL);
+      if (response.imageUrl) setGeneratedMediaUrl(response.imageUrl);
+      addToast({ type: 'success', message: 'Fundo removido!' });
     } catch (e) {
-      console.error(e);
-      addToast({ type: 'error', message: 'Erro ao aplicar logo.' });
+      addToast({ type: 'error', message: 'Erro ao remover fundo.' });
     } finally {
       setLoading(false);
     }
-  };
+  }, [generatedMediaUrl, addToast]);
+
+  const handleSwapSubject = useCallback(async () => {
+    if (!generatedMediaUrl || !prompt) {
+      addToast({ type: 'warning', message: 'Descreva o novo personagem no prompt.' });
+      return;
+    }
+    setLoading(true);
+    try {
+      const editPrompt = `Replace the main subject with: ${prompt}. Keep the same style, lighting and background.`;
+      const response = await editImage(editPrompt, generatedMediaUrl, IMAGEN_ULTRA_MODEL);
+      if (response.imageUrl) setGeneratedMediaUrl(response.imageUrl);
+      addToast({ type: 'success', message: 'Personagem trocado!' });
+    } catch (e) {
+      addToast({ type: 'error', message: 'Erro ao trocar personagem.' });
+    } finally {
+      setLoading(false);
+    }
+  }, [generatedMediaUrl, prompt, addToast]);
+
+  const handleGenerateVariation = useCallback(async () => {
+    if (!generatedMediaUrl) return;
+    setLoading(true);
+    try {
+      const response = await editImage("Create a variation of this image with slightly different composition but same style and subject.", generatedMediaUrl, IMAGEN_ULTRA_MODEL);
+      if (response.imageUrl) setGeneratedMediaUrl(response.imageUrl);
+      addToast({ type: 'success', message: 'Variação gerada!' });
+    } catch (e) {
+      addToast({ type: 'error', message: 'Erro ao gerar variação.' });
+    } finally {
+      setLoading(false);
+    }
+  }, [generatedMediaUrl, addToast]);
+
+  const exportPromptsAsTXT = useCallback(() => {
+    if (!prompt) return;
+    const element = document.createElement("a");
+    const file = new Blob([prompt], { type: 'text/plain' });
+    element.href = URL.createObjectURL(file);
+    element.download = "prompt-criativo.txt";
+    document.body.appendChild(element);
+    element.click();
+    addToast({ type: 'success', message: 'Prompt baixado como TXT' });
+  }, [prompt, addToast]);
 
   useEffect(() => {
     return () => { if (previewUrl) URL.revokeObjectURL(previewUrl); };
@@ -444,13 +407,13 @@ Crie uma nova imagem que atenda à instrução do usuário, mantendo coerência 
       <HowToUse
         title="Como Usar o Estúdio Criativo"
         steps={[
-          "Escolha entre Imagem ou Vídeo no topo",
-          "Para gerar do zero: Digite uma descrição e clique 'Gerar'",
-          "Para editar: Faça upload de um arquivo e descreva a edição",
+          "Para gerar do zero: Digite uma descrição e clique 'Gerar Imagem'",
+          "Para editar: Faça upload de uma foto e use os botões de edição",
           "Para analisar: Faça upload e descreva o que quer saber",
-          "Configure proporção e tamanho/resolução conforme necessário",
+          "Configure proporção e tamanho conforme necessário",
           "Aguarde a geração (pode levar alguns segundos)",
-          "Use templates sazonais para inspiração rápida"
+          "Use templates sazonais para inspiração rápida",
+          "Use ferramentas avançadas (Remover Fundo, Trocar Personagem) após gerar"
         ]}
         tips={[
           "Imagens com análise: A IA analisa primeiro e cria baseado nisso",
@@ -504,20 +467,11 @@ Crie uma nova imagem que atenda à instrução do usuário, mantendo coerência 
             </div>
           </div>
 
-          {/* Mode Selection */}
+          {/* Mode Selection - Simplified to Image only or Actions */}
           <div className="bg-surface p-1 rounded-xl border border-border flex shadow-sm">
-            <button
-              onClick={() => { setMediaType('image'); setFile(null); setPreviewUrl(null); }}
-              className={`flex-1 py-2.5 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-all ${mediaType === 'image' ? 'bg-primary text-white shadow-md' : 'text-muted hover:text-title hover:bg-background'}`}
-            >
-              <PhotoIcon className="w-4 h-4" /> Imagem
-            </button>
-            <button
-              onClick={() => { setMediaType('video'); setFile(null); setPreviewUrl(null); }}
-              className={`flex-1 py-2.5 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-all ${mediaType === 'video' ? 'bg-primary text-white shadow-md' : 'text-muted hover:text-title hover:bg-background'}`}
-            >
-              <VideoCameraIcon className="w-4 h-4" /> Vídeo
-            </button>
+            <div className="flex-1 py-2.5 rounded-lg text-sm font-medium flex items-center justify-center gap-2 bg-primary text-white shadow-md">
+              <PhotoIcon className="w-4 h-4" /> Modo Imagem
+            </div>
           </div>
 
           {/* Upload Area - Custom Button */}
@@ -533,17 +487,13 @@ Crie uma nova imagem que atenda à instrução do usuário, mantendo coerência 
               type="file"
               ref={fileInputRef}
               onChange={handleFileChange}
-              accept={mediaType === 'image' ? 'image/*' : 'video/*'}
+              accept="image/*"
               className="hidden"
             />
 
             {previewUrl ? (
               <div className="relative w-full h-40 flex items-center justify-center">
-                {mediaType === 'image' ? (
-                  <img src={previewUrl} alt="Preview" className="max-h-full max-w-full object-contain rounded shadow-lg" />
-                ) : (
-                  <video src={previewUrl} className="max-h-full max-w-full rounded shadow-lg" />
-                )}
+                <img src={previewUrl} alt="Preview" className="max-h-full max-w-full object-contain rounded shadow-lg" />
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity rounded">
                   <p className="text-white font-medium text-sm flex items-center gap-1"><ArrowDownTrayIcon className="w-4 h-4" /> Trocar Arquivo</p>
                 </div>
@@ -553,7 +503,7 @@ Crie uma nova imagem que atenda à instrução do usuário, mantendo coerência 
                 <div className="p-4 bg-background rounded-full mb-3 shadow-sm group-hover:scale-110 transition-transform">
                   <CloudArrowUpIcon className="w-8 h-8 text-primary" />
                 </div>
-                <p className="text-sm font-medium text-title">Clique para carregar {mediaType === 'image' ? 'uma Imagem' : 'um Vídeo'}</p>
+                <p className="text-sm font-medium text-title">Clique para carregar uma Imagem</p>
                 <p className="text-xs text-muted mt-1">ou arraste e solte aqui</p>
               </>
             )}
@@ -565,37 +515,20 @@ Crie uma nova imagem que atenda à instrução do usuário, mantendo coerência 
               <AdjustmentsHorizontalIcon className="w-4 h-4" /> Configurações
             </h3>
             <div className="grid grid-cols-2 gap-4">
-              {mediaType === 'image' ? (
-                <>
-                  <div>
-                    <label className="text-xs text-muted font-medium mb-1 block">Proporção</label>
-                    <select value={imageAspectRatio} onChange={e => setImageAspectRatio(e.target.value)} className="w-full text-sm bg-background border border-border rounded-lg px-2 py-2 text-body focus:ring-1 focus:ring-primary outline-none">
-                      {IMAGE_ASPECT_RATIOS.map(r => <option key={r} value={r}>{r}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-xs text-muted font-medium mb-1 block">Tamanho</label>
-                    <select value={imageSize} onChange={e => setImageSize(e.target.value)} className="w-full text-sm bg-background border border-border rounded-lg px-2 py-2 text-body focus:ring-1 focus:ring-primary outline-none">
-                      {IMAGE_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
-                    </select>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div>
-                    <label className="text-xs text-muted font-medium mb-1 block">Proporção</label>
-                    <select value={videoAspectRatio} onChange={e => setVideoAspectRatio(e.target.value)} className="w-full text-sm bg-background border border-border rounded-lg px-2 py-2 text-body focus:ring-1 focus:ring-primary outline-none">
-                      {VIDEO_ASPECT_RATIOS.map(r => <option key={r} value={r}>{r}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-xs text-muted font-medium mb-1 block">Resolução</label>
-                    <select value={videoResolution} onChange={e => setVideoResolution(e.target.value)} className="w-full text-sm bg-background border border-border rounded-lg px-2 py-2 text-body focus:ring-1 focus:ring-primary outline-none">
-                      {VIDEO_RESOLUTIONS.map(r => <option key={r} value={r}>{r}</option>)}
-                    </select>
-                  </div>
-                </>
-              )}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs text-muted font-medium mb-1 block">Proporção</label>
+                  <select value={imageAspectRatio} onChange={e => setImageAspectRatio(e.target.value)} className="w-full text-sm bg-background border border-border rounded-lg px-2 py-2 text-body focus:ring-1 focus:ring-primary outline-none">
+                    {IMAGE_ASPECT_RATIOS.map(r => <option key={r} value={r}>{r}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs text-muted font-medium mb-1 block">Tamanho</label>
+                  <select value={imageSize} onChange={e => setImageSize(e.target.value)} className="w-full text-sm bg-background border border-border rounded-lg px-2 py-2 text-body focus:ring-1 focus:ring-primary outline-none">
+                    {IMAGE_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -615,16 +548,21 @@ Crie uma nova imagem que atenda à instrução do usuário, mantendo coerência 
               {file ? (
                 <>
                   <Button onClick={handleEditMedia} isLoading={loading} variant="primary" disabled={loading}>
-                    <PencilSquareIcon className="w-4 h-4 mr-2" /> Editar
+                    <PencilSquareIcon className="w-4 h-4 mr-2" /> Editar IA
                   </Button>
                   <Button onClick={handleAnalyzeMedia} isLoading={loading} variant="outline" disabled={loading}>
                     <EyeIcon className="w-4 h-4 mr-2" /> Analisar
                   </Button>
                 </>
               ) : (
-                <Button onClick={handleGenerateMedia} isLoading={loading} variant="primary" className="col-span-2 gradient-animated glow-effect bounce-on-click liquid-transition">
-                  <SparklesIcon className="w-4 h-4 mr-2 icon-fluid-breathe" /> Gerar {mediaType === 'image' ? 'Imagem' : 'Vídeo'}
-                </Button>
+                <>
+                  <Button onClick={handleGenerateMedia} isLoading={loading} variant="primary" className="col-span-2 gradient-animated glow-effect bounce-on-click liquid-transition">
+                    <SparklesIcon className="w-4 h-4 mr-2 icon-fluid-breathe" /> Gerar Imagem
+                  </Button>
+                  <Button onClick={exportPromptsAsTXT} variant="outline" className="col-span-2 mt-2">
+                    <DocumentArrowDownIcon className="w-4 h-4 mr-2" /> Baixar Prompt (.txt)
+                  </Button>
+                </>
               )}
             </div>
           </div>
@@ -645,11 +583,7 @@ Crie uma nova imagem que atenda à instrução do usuário, mantendo coerência 
                 <p className="text-muted animate-pulse">Processando com IA...</p>
               </div>
             ) : generatedMediaUrl ? (
-              mediaType === 'image' ? (
-                <img src={generatedMediaUrl} alt="Resultado" className="max-w-full max-h-full object-contain shadow-2xl" />
-              ) : (
-                <video src={generatedMediaUrl} controls className="max-w-full max-h-full shadow-2xl" title="Vídeo gerado" />
-              )
+              <img src={generatedMediaUrl} alt="Resultado" className="max-w-full max-h-full object-contain shadow-2xl" />
             ) : generatedAnalysis ? (
               <div className="p-8 max-w-2xl w-full h-full overflow-y-auto">
                 <h3 className="text-xl font-bold text-title mb-4 flex items-center gap-2">
@@ -679,24 +613,30 @@ Crie uma nova imagem que atenda à instrução do usuário, mantendo coerência 
                   className="mb-0"
                 />
               </div>
-              <div className="flex items-center gap-2 w-full md:w-auto">
+              <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
                 <SaveToLibraryButton
-                  content={generatedMediaUrl || generatedAnalysis}
-                  type={generatedAnalysis ? 'text' : mediaType}
+                  content={generatedMediaUrl || generatedAnalysis || ""}
+                  type={generatedAnalysis ? 'text' : 'image'}
                   userId={userId}
                   initialName={savedItemName}
-                  tags={['creative-studio', mediaType]}
+                  tags={['creative-studio', 'image']}
                   variant="secondary"
                   className="w-full md:w-auto"
                 />
-                {mediaType === 'image' && logoSettings.previewUrl && (
-                  <Button onClick={handleApplyBranding} variant="outline" size="sm" isLoading={loading}>
-                    <PaintBrushIcon className="w-4 h-4 mr-2" />
-                    Aplicar Identidade
-                  </Button>
-                )}
+
                 {generatedMediaUrl && (
-                  <MediaActionsToolbar mediaUrl={generatedMediaUrl} fileName="creative.png" />
+                  <>
+                    <Button onClick={handleRemoveBackground} variant="outline" size="sm" isLoading={loading} title="Remover Fundo">
+                      <ScissorsIcon className="w-4 h-4" />
+                    </Button>
+                    <Button onClick={handleSwapSubject} variant="outline" size="sm" isLoading={loading} title="Mudar Personagem">
+                      <UserGroupIcon className="w-4 h-4" />
+                    </Button>
+                    <Button onClick={handleGenerateVariation} variant="outline" size="sm" isLoading={loading} title="Gerar Variação">
+                      <ArrowPathIcon className="w-4 h-4" />
+                    </Button>
+                    <MediaActionsToolbar mediaUrl={generatedMediaUrl} fileName="creative.png" />
+                  </>
                 )}
               </div>
             </div>

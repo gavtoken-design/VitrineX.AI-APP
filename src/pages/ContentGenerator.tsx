@@ -17,6 +17,18 @@ import { useToast } from '../contexts/ToastContext';
 import HowToUse from '../components/ui/HowToUse';
 
 import { useAuth } from '../contexts/AuthContext';
+import { GEMINI_PRO_MODEL } from '../constants';
+
+// Avatar Interface
+interface Avatar {
+  id: string;
+  name: string;
+  age: string;
+  occupation: string;
+  interests: string[];
+  painPoints: string[];
+  buyingBehavior: string;
+}
 
 const ContentGenerator: React.FC = () => {
   const { user } = useAuth();
@@ -31,10 +43,136 @@ const ContentGenerator: React.FC = () => {
   const [savedItemName, setSavedItemName] = useState<string>('');
   const [savedItemTags, setSavedItemTags] = useState<string>('');
 
+  // Avatar & Analysis State
+  const [avatars, setAvatars] = useState<Avatar[]>([]);
+  const [loadingAvatars, setLoadingAvatars] = useState(false);
+  const [profileAnalysisText, setProfileAnalysisText] = useState('');
+  const [profileAnalysisResult, setProfileAnalysisResult] = useState('');
+  const [loadingProfileAnalysis, setLoadingProfileAnalysis] = useState(false);
+  const [creativeIdeas, setCreativeIdeas] = useState<string[]>([]);
+  const [loadingCreativeIdeas, setLoadingCreativeIdeas] = useState(false);
+  const [selectedAvatar, setSelectedAvatar] = useState<Avatar | null>(null);
+
   const { addToast } = useToast();
 
   // Use real user ID if available, otherwise check login
   const userId = user?.id || 'guest-user';
+
+  // Generate 4 Buyer Personas from Trend
+  const generateAvatars = useCallback(async () => {
+    if (!prompt.trim()) {
+      addToast({ type: 'warning', message: 'Insira uma tendência primeiro.' });
+      return;
+    }
+
+    setLoadingAvatars(true);
+    try {
+      const avatarPrompt = `Analise esta tendência e gere 4 personas distintas de compradores em formato JSON:
+
+Tendência: "${prompt}"
+
+Para cada persona, forneça:
+- id (string única)
+- name (nome fictício)
+- age (faixa etária, ex: "25-35")
+- occupation (ocupação)
+- interests (array de interesses)
+- painPoints (array de dores/necessidades)
+- buyingBehavior (comportamento de compra em uma frase)
+
+Formate como array JSON válido.`;
+
+      const response = await generateText(avatarPrompt, {
+        model: GEMINI_PRO_MODEL,
+        responseMimeType: 'application/json'
+      });
+
+      // Clean response if it contains markdown code blocks
+      const cleanResponse = response.replace(/```json/g, '').replace(/```/g, '').trim();
+      const parsedAvatars: Avatar[] = JSON.parse(cleanResponse);
+      setAvatars(parsedAvatars);
+      addToast({ type: 'success', message: `${parsedAvatars.length} avatares gerados!` });
+    } catch (error) {
+      console.error('Erro ao gerar avatares:', error);
+      addToast({ type: 'error', message: 'Falha ao processar dados dos avatares. Tente novamente.' });
+    } finally {
+      setLoadingAvatars(false);
+    }
+  }, [prompt, addToast]);
+
+  // Analyze Profile from Text
+  const analyzeProfile = useCallback(async () => {
+    if (!profileAnalysisText.trim()) {
+      addToast({ type: 'warning', message: 'Insira um texto para análise.' });
+      return;
+    }
+
+    setLoadingProfileAnalysis(true);
+    try {
+      const analysisPrompt = `Identifique o perfil de avatar/persona baseado neste texto:
+
+"${profileAnalysisText}"
+
+Forneça:
+- Segmento demográfico
+- Principais características
+- Interesses prováveis
+- Dores e necessidades
+- Como abordar essa persona`;
+
+      const response = await generateText(analysisPrompt, {
+        model: GEMINI_PRO_MODEL
+      });
+
+      setProfileAnalysisResult(response);
+      addToast({ type: 'success', message: 'Perfil analisado!' });
+    } catch (error) {
+      console.error('Erro na análise:', error);
+      addToast({ type: 'error', message: 'Falha na análise de perfil.' });
+    } finally {
+      setLoadingProfileAnalysis(false);
+    }
+  }, [profileAnalysisText, addToast]);
+
+  // Generate Creative Ideas based on Avatar
+  const generateCreativeIdeas = useCallback(async (avatar: Avatar) => {
+    setSelectedAvatar(avatar);
+    setLoadingCreativeIdeas(true);
+
+    try {
+      const ideasPrompt = `Gere 5 prompts perfeitos para criativos visuais (imagens) baseados nesta persona:
+
+Nome: ${avatar.name}
+Idade: ${avatar.age}
+Ocupação: ${avatar.occupation}
+Interesses: ${avatar.interests.join(', ')}
+Dores: ${avatar.painPoints.join(', ')}
+Comportamento: ${avatar.buyingBehavior}
+
+Cada prompt deve ser otimizado para Imagen 4.0 e focado em:
+- Conectar emocionalmente com a persona
+- Resolver uma dor específica
+- Usar elementos visuais que ressoam com os interesses
+
+Formate como array JSON de strings (apenas os prompts).`;
+
+      const response = await generateText(ideasPrompt, {
+        model: GEMINI_PRO_MODEL,
+        responseMimeType: 'application/json'
+      });
+
+      // Clean response if it contains markdown code blocks
+      const cleanResponse = response.replace(/```json/g, '').replace(/```/g, '').trim();
+      const ideas: string[] = JSON.parse(cleanResponse);
+      setCreativeIdeas(ideas);
+      addToast({ type: 'success', message: `${ideas.length} ideias criativas geradas!` });
+    } catch (error) {
+      console.error('Erro ao gerar ideias:', error);
+      addToast({ type: 'error', message: 'Falha ao processar ideias criativas. Tente novamente.' });
+    } finally {
+      setLoadingCreativeIdeas(false);
+    }
+  }, [addToast]);
 
   const generateContent = useCallback(async (isWeekly: boolean = false) => {
     if (!prompt.trim()) {
@@ -278,6 +416,126 @@ const ContentGenerator: React.FC = () => {
           </Button>
         </div>
       </div>
+
+      {/* Avatar Generation Section */}
+      <div className="bg-lightbg p-6 rounded-lg shadow-sm border border-gray-800 mb-8">
+        <h3 className="text-xl font-semibold text-textlight mb-4">Perfis de Avatar</h3>
+        <p className="text-muted text-sm mb-4">Gere 4 personas distintas de compradores baseadas na tendência acima</p>
+        <Button
+          onClick={generateAvatars}
+          isLoading={loadingAvatars}
+          variant="secondary"
+          className="mb-4"
+        >
+          {loadingAvatars ? 'Gerando Avatares...' : 'Gerar 4 Avatares'}
+        </Button>
+
+        {avatars.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            {avatars.map((avatar) => (
+              <div key={avatar.id} className="bg-surface p-4 rounded-lg border border-border">
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <h4 className="font-bold text-textlight">{avatar.name}</h4>
+                    <p className="text-sm text-muted">{avatar.age} • {avatar.occupation}</p>
+                  </div>
+                  <Button
+                    onClick={() => generateCreativeIdeas(avatar)}
+                    variant="outline"
+                    className="text-xs py-1 px-2"
+                  >
+                    Gerar Ideias
+                  </Button>
+                </div>
+                <div className="space-y-2 text-sm">
+                  <div>
+                    <strong className="text-textlight">Interesses:</strong>
+                    <ul className="list-disc list-inside text-muted">
+                      {avatar.interests.map((interest, i) => (
+                        <li key={i}>{interest}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div>
+                    <strong className="text-textlight">Dores:</strong>
+                    <ul className="list-disc list-inside text-muted">
+                      {avatar.painPoints.map((pain, i) => (
+                        <li key={i}>{pain}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div>
+                    <strong className="text-textlight">Comportamento:</strong>
+                    <p className="text-muted">{avatar.buyingBehavior}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Profile Analysis Section */}
+      <div className="bg-lightbg p-6 rounded-lg shadow-sm border border-gray-800 mb-8">
+        <h3 className="text-xl font-semibold text-textlight mb-4">Análise de Perfil</h3>
+        <p className="text-muted text-sm mb-4">Cole um texto e a IA identificará o perfil do avatar</p>
+        <Textarea
+          id="profileAnalysisText"
+          label=""
+          value={profileAnalysisText}
+          onChange={(e) => setProfileAnalysisText(e.target.value)}
+          rows={4}
+          placeholder="Cole aqui um texto, post ou descrição para identificar o perfil da persona..."
+          className="mb-3"
+        />
+        <Button
+          onClick={analyzeProfile}
+          isLoading={loadingProfileAnalysis}
+          variant="secondary"
+        >
+          {loadingProfileAnalysis ? 'Analisando...' : 'Analisar Perfil'}
+        </Button>
+
+        {profileAnalysisResult && (
+          <div className="bg-surface p-4 rounded-lg border border-border mt-4">
+            <h4 className="font-semibold text-textlight mb-2">Resultado da Análise:</h4>
+            <pre className="text-sm text-muted whitespace-pre-wrap">{profileAnalysisResult}</pre>
+          </div>
+        )}
+      </div>
+
+      {/* Creative Ideas Section */}
+      {creativeIdeas.length > 0 && selectedAvatar && (
+        <div className="bg-lightbg p-6 rounded-lg shadow-sm border border-gray-800 mb-8 animate-slide-in-from-bottom">
+          <h3 className="text-xl font-semibold text-textlight mb-2">Ideias de Criativos</h3>
+          <p className="text-muted text-sm mb-4">
+            Baseado na persona: <strong>{selectedAvatar.name}</strong>
+          </p>
+
+          <div className="space-y-3">
+            {creativeIdeas.map((idea, index) => (
+              <div key={index} className="bg-surface p-4 rounded-lg border border-border">
+                <div className="flex justify-between items-start gap-3">
+                  <div className="flex-1">
+                    <span className="text-xs font-bold text-primary">Prompt {index + 1}</span>
+                    <p className="text-sm text-textlight mt-1">{idea}</p>
+                  </div>
+                  <Button
+                    onClick={() => {
+                      navigator.clipboard.writeText(idea);
+                      addToast({ type: 'success', message: 'Prompt copiado!' });
+                    }}
+                    variant="outline"
+                    className="text-xs py-1 px-2 flex-shrink-0"
+                  >
+                    Copiar
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {generatedPost && (
         <div className="bg-lightbg p-6 rounded-lg shadow-sm border border-gray-800 animate-slide-in-from-bottom duration-500">

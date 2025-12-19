@@ -127,7 +127,7 @@ const ContentLibrary: React.FC = () => {
   }, [addToast, handleShare]);
 
   const handleUseInCalendar = useCallback((item: LibraryItem) => {
-    navigateTo('SmartScheduler');
+    navigateTo('CalendarManager');
     addToast({ type: 'info', message: `Item "${item.name}" pronto para agendar.` });
   }, [navigateTo, addToast]);
 
@@ -274,7 +274,7 @@ const ContentLibrary: React.FC = () => {
                     <ShareIcon className="w-5 h-5 text-accent" />
                   </Button>
                   <Button
-                    onClick={() => navigateTo('SmartScheduler')}
+                    onClick={() => navigateTo('CalendarManager')}
                     variant="ghost"
                     size="sm"
                     className="text-white hover:bg-primary/20"

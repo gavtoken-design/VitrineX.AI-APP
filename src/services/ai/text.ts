@@ -257,8 +257,22 @@ export const searchTrends = async (query: string, language: string = 'en-US'): P
     }
 };
 
-export const campaignBuilder = async (campaignPrompt: string): Promise<{ campaign: Campaign; videoUrl?: string }> => {
-    const planPrompt = `Crie um plano de campanha de marketing detalhado... Retorne APENAS um JSON com os campos: campaignName, description, timeline.`;
+export const campaignBuilder = async (campaignPrompt: string): Promise<{ campaign: Campaign }> => {
+    const planPrompt = `Crie um plano de campanha de marketing 360 completo:
+    
+    Contexto: ${campaignPrompt}
+    
+    Retorne um JSON estruturado com:
+    1. name: Nome da campanha
+    2. description: Descrição geral
+    3. timeline: Cronograma sugerido (ex: 2 semanas, frequências)
+    4. hashtags: Array de hashtags recomendadas por rede
+    5. strategy: Texto detalhando apps em tendência e formatos (Reels, TikTok, etc.)
+    6. posts: Array de objetos { content_text: "...", date: "..." }
+    7. ads: Array de objetos { platform: "...", headline: "...", copy: "..." }
+    
+    Retorne APENAS o JSON puro.`;
+
     const planJsonStr = await generateText(planPrompt, {
         model: GEMINI_PRO_MODEL,
         responseMimeType: 'application/json'
@@ -266,31 +280,32 @@ export const campaignBuilder = async (campaignPrompt: string): Promise<{ campaig
 
     let plan;
     try {
-        plan = JSON.parse(planJsonStr);
+        plan = JSON.parse(planJsonStr.replace(/```json\n?|\n?```/g, '').trim());
     } catch (e) {
-        plan = { campaignName: "Campanha " + Date.now() };
-    }
-
-    const { generateVideo } = await import('./video');
-
-    let videoUrl: string | undefined = undefined;
-    try {
-        videoUrl = await generateVideo(`A short promo video for ${plan.campaignName}`);
-    } catch (e) {
-        console.warn("Video generation failed for campaign", e);
+        plan = {
+            name: "Campanha " + Date.now(),
+            description: "Campanha gerada automaticamente",
+            timeline: "2 semanas",
+            strategy: "Focar em vídeos curtos e engajamento orgânico.",
+            hashtags: [],
+            posts: [],
+            ads: []
+        };
     }
 
     return {
         campaign: {
             id: `c-${Date.now()}`,
-            name: plan.campaignName,
+            name: plan.name || plan.campaignName || "Nova Campanha",
             type: 'general',
-            posts: [],
-            ads: [],
+            description: plan.description,
+            strategy: plan.strategy,
+            hashtags: plan.hashtags,
+            posts: plan.posts || [],
+            ads: plan.ads || [],
             timeline: plan.timeline || '',
             createdAt: new Date().toISOString(),
             userId: 'mock-user-123'
-        },
-        videoUrl
+        }
     };
 };

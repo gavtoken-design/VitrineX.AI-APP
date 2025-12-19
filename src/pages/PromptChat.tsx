@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { generateText } from '../services/ai';
@@ -22,6 +22,15 @@ const PromptChat: React.FC = () => {
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
     const [lastGeneratedPrompt, setLastGeneratedPrompt] = useState('');
+    const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    useEffect(() => {
+        scrollToBottom();
+    }, [messages]);
 
     const SYSTEM_PROMPT = `Você é um especialista em Marketing Digital com mais de 15 anos de experiência.
 Seu trabalho é ajudar a criar prompts perfeitos para:
@@ -47,9 +56,11 @@ Sempre forneça prompts otimizados e detalhados.`;
         setLoading(true);
 
         try {
-            const chatHistory = messages.map(m => `${m.role}: ${m.content}`).join('\n\n');
+            // Limit history to the last 6 messages to keep context focused and save tokens
+            const recentMessages = messages.slice(-6);
+            const chatHistory = recentMessages.map(m => `${m.role === 'user' ? 'Usuário' : 'Assistente'}: ${m.content}`).join('\n\n');
 
-            const fullPrompt = `${SYSTEM_PROMPT}\n\n---\n\nHistórico:\n${chatHistory}\n\nUsuário: ${input}\n\nAssistente:`;
+            const fullPrompt = `${SYSTEM_PROMPT}\n\n---\n\nHistórico Recente:\n${chatHistory}\n\nUsuário: ${input}\n\nAssistente:`;
 
             const response = await generateText(fullPrompt, {
                 model: GEMINI_PRO_MODEL,
@@ -143,8 +154,8 @@ Sempre forneça prompts otimizados e detalhados.`;
                         >
                             <div
                                 className={`max-w-[80%] rounded-lg p-4 ${message.role === 'user'
-                                        ? 'bg-primary text-white'
-                                        : 'bg-surface border border-border text-textlight'
+                                    ? 'bg-primary text-white'
+                                    : 'bg-surface border border-border text-textlight'
                                     }`}
                             >
                                 <p className="text-sm whitespace-pre-wrap">{message.content}</p>
@@ -163,6 +174,7 @@ Sempre forneça prompts otimizados e detalhados.`;
                         </div>
                     </div>
                 )}
+                <div ref={messagesEndRef} />
             </div>
 
             {/* Input Area */}

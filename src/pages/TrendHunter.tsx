@@ -217,7 +217,7 @@ IMPORTANTE: Retorne APENAS o JSON válido, sem texto adicional antes ou depois.`
   }, [navigateTo, addToast]);
 
   const handleSchedule = useCallback(() => {
-    navigateTo('SmartScheduler');
+    navigateTo('CalendarManager');
     addToast({ type: 'info', message: 'Abrindo agendador...' });
   }, [navigateTo, addToast]);
 

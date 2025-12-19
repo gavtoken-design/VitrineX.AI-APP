@@ -38,6 +38,7 @@ export interface Post {
   userId: string;
   content_text: string;
   image_url?: string;
+  date?: string;
   createdAt: string; // ISO date string
   tags?: string[];
 }
@@ -59,6 +60,9 @@ export interface Campaign {
   userId: string;
   name: string;
   type: string; // e.g., 'general', 'product_launch'
+  description?: string;
+  strategy?: string;
+  hashtags?: string[];
   posts: Post[];
   ads: Ad[];
   video_url?: string;

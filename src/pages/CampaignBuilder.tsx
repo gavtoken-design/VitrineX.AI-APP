@@ -10,15 +10,39 @@ import { saveCampaign } from '../services/core/firestore';
 import { Campaign } from '../types';
 import { useNavigate } from '../hooks/useNavigate'; // Custom hook for navigation
 import { useToast } from '../contexts/ToastContext';
+import {
+  CurrencyDollarIcon,
+  HashtagIcon,
+  CalendarDaysIcon,
+  LightBulbIcon,
+  PresentationChartLineIcon,
+  ArrowRightCircleIcon
+} from '@heroicons/react/24/outline';
 
 const CampaignBuilder: React.FC = () => {
   const [campaignPrompt, setCampaignPrompt] = useState<string>('');
   const [generatedCampaign, setGeneratedCampaign] = useState<Campaign | null>(null);
-  const [generatedVideoUrl, setGeneratedVideoUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Profit Calculator State
+  const [costPrice, setCostPrice] = useState<number>(0);
+  const [profitMargin, setProfitMargin] = useState<number>(30); // Default 30%
+  const [calculatedPrice, setCalculatedPrice] = useState<number>(0);
+  const [profitAmount, setProfitAmount] = useState<number>(0);
+
   const { navigateTo } = useNavigate();
   const { addToast } = useToast();
+
+  const calculateROI = useCallback(() => {
+    const price = costPrice * (1 + profitMargin / 100);
+    setCalculatedPrice(price);
+    setProfitAmount(price - costPrice);
+  }, [costPrice, profitMargin]);
+
+  React.useEffect(() => {
+    calculateROI();
+  }, [calculateROI]);
 
   const handleCreateCampaign = useCallback(async () => {
     if (!campaignPrompt.trim()) {
@@ -29,12 +53,10 @@ const CampaignBuilder: React.FC = () => {
     setLoading(true);
     setError(null);
     setGeneratedCampaign(null);
-    setGeneratedVideoUrl(null);
 
     try {
-      const { campaign, videoUrl } = await campaignBuilder(campaignPrompt);
+      const { campaign } = await campaignBuilder(campaignPrompt);
       setGeneratedCampaign(campaign);
-      setGeneratedVideoUrl(videoUrl);
       addToast({ type: 'success', title: 'Sucesso!', message: `Campanha "${campaign.name}" criada e salva com sucesso!` });
     } catch (err) {
       console.error('Error building campaign:', err);
@@ -66,7 +88,7 @@ const CampaignBuilder: React.FC = () => {
 
   const handleAddCalendar = useCallback(() => {
     if (generatedCampaign) {
-      navigateTo('SmartScheduler');
+      navigateTo('CalendarManager');
       addToast({ type: 'info', message: `Navegando para o calendário para agendar a campanha "${generatedCampaign.name}".` });
     } else {
       addToast({ type: 'warning', message: 'Nenhuma campanha gerada para adicionar ao calendário.' });
@@ -107,42 +129,90 @@ const CampaignBuilder: React.FC = () => {
 
       {generatedCampaign && (
         <div className="bg-lightbg p-6 rounded-lg shadow-sm border border-gray-800">
-          <h3 className="text-xl font-semibold text-textlight mb-5">Campanha Gerada: {generatedCampaign.name}</h3>
-          <p className="text-textlight mb-6">
-            <span className="font-semibold">Cronograma:</span> {generatedCampaign.timeline}
-          </p>
+          {/* Nova Seção: Estratégia 360 */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <div className="lg:col-span-2 bg-darkbg p-6 rounded-xl border border-primary/20">
+              <h4 className="text-lg font-bold text-accent mb-4 flex items-center gap-2">
+                <PresentationChartLineIcon className="w-5 h-5" /> Estratégia 360 & Canais
+              </h4>
+              <p className="text-gray-300 leading-relaxed mb-4">
+                {generatedCampaign.strategy || "Estratégia personalizada focada em conversão e visibilidade orgânica."}
+              </p>
+
+              <div className="flex flex-wrap gap-2">
+                {generatedCampaign.hashtags?.map((tag, idx) => (
+                  <span key={idx} className="bg-primary/10 text-primary text-xs px-2 py-1 rounded-full border border-primary/20 flex items-center gap-1">
+                    <HashtagIcon className="w-3 h-3" /> {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-surface p-6 rounded-xl border border-gray-800 shadow-lg">
+              <h4 className="text-lg font-bold text-title mb-4 flex items-center gap-2">
+                <CurrencyDollarIcon className="w-5 h-5 text-green-500" /> Calculadora ROI
+              </h4>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-muted uppercase mb-1">Custo do Produto (R$)</label>
+                  <input
+                    type="number"
+                    value={costPrice}
+                    onChange={(e) => setCostPrice(Number(e.target.value))}
+                    className="w-full bg-darkbg border border-gray-700 rounded p-2 text-white outline-none focus:border-primary"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-muted uppercase mb-1">Margem Lucro (%)</label>
+                  <input
+                    type="number"
+                    value={profitMargin}
+                    onChange={(e) => setProfitMargin(Number(e.target.value))}
+                    className="w-full bg-darkbg border border-gray-700 rounded p-2 text-white outline-none focus:border-primary"
+                  />
+                </div>
+                <div className="pt-2 border-t border-gray-800">
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="text-gray-400">Preço Sugerido:</span>
+                    <span className="text-white font-bold">R$ {calculatedPrice.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-400">Lucro por Venda:</span>
+                    <span className="text-green-500 font-bold">R$ {profitAmount.toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
             <div>
-              <h4 className="text-lg font-semibold text-textlight mb-4">Posts ({generatedCampaign.posts.length})</h4>
+              <h4 className="text-lg font-semibold text-textlight mb-4 flex items-center gap-2">
+                <CalendarDaysIcon className="w-5 h-5 text-primary" /> Cronograma & Posts
+              </h4>
+              <p className="text-sm text-muted mb-3 italic">{generatedCampaign.timeline}</p>
               <ul className="list-disc list-inside text-textlight space-y-3 max-h-64 overflow-y-auto bg-darkbg p-4 rounded-md border border-gray-700">
                 {generatedCampaign.posts.map((post, index) => (
                   <li key={post.id || index} className="text-sm">
-                    <strong>Post {index + 1}:</strong> {post.content_text.substring(0, 100)}...
+                    <span className="text-accent font-bold">[{post.date || `Dia ${index + 1}`}]</span> {post.content_text.substring(0, 100)}...
                   </li>
                 ))}
               </ul>
             </div>
             <div>
-              <h4 className="text-lg font-semibold text-textlight mb-4">Anúncios ({generatedCampaign.ads.length})</h4>
+              <h4 className="text-lg font-semibold text-textlight mb-4 flex items-center gap-2">
+                <LightBulbIcon className="w-5 h-5 text-yellow-500" /> Anúncios Gerados
+              </h4>
               <ul className="list-disc list-inside text-textlight space-y-3 max-h-64 overflow-y-auto bg-darkbg p-4 rounded-md border border-gray-700">
                 {generatedCampaign.ads.map((ad, index) => (
                   <li key={ad.id || index} className="text-sm">
-                    <strong>Ad {index + 1} ({ad.platform}):</strong> "{ad.headline}" - {ad.copy.substring(0, 70)}...
+                    <strong>{ad.platform}:</strong> "{ad.headline}"
                   </li>
                 ))}
               </ul>
             </div>
           </div>
 
-          {generatedVideoUrl && (
-            <div className="mb-8">
-              <h4 className="text-lg font-semibold text-textlight mb-4">Vídeo da Campanha</h4>
-              <div className="relative w-full aspect-video bg-gray-900 rounded-md overflow-hidden border border-gray-700">
-                <video controls src={generatedVideoUrl} className="w-full h-full object-contain"></video>
-              </div>
-            </div>
-          )}
 
           <div className="flex flex-col sm:flex-row gap-3">
             <Button onClick={handleDownloadMaterials} variant="primary" className="w-full sm:w-auto">Baixar Materiais</Button>
