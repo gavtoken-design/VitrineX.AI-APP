@@ -82,9 +82,19 @@ export const generateImageInternal = async (prompt: string, options?: ImageOptio
             throw new Error(`Pollinations API failed with status ${fallbackResponse.status}`);
         }
 
-        const arrayBuffer = await fallbackResponse.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
-        const base64 = buffer.toString('base64');
+        const blob = await fallbackResponse.blob();
+        const base64 = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const result = reader.result as string;
+                // result format: "data:image/jpeg;base64,..."
+                const base64Part = result.split(',')[1];
+                resolve(base64Part);
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+        });
+
         const mimeType = 'image/jpeg'; // Pollinations usually returns JPEG
 
         return {
