@@ -397,7 +397,7 @@ const Settings: React.FC = () => {
                             <div className="space-y-2">
                                 <label className="text-xs font-bold text-muted uppercase tracking-wider">Idioma do Sistema</label>
                                 <select
-                                    className="w-full bg-surface-hover border border-border rounded-xl px-4 py-3 text-title focus:outline-none focus:border-primary transition-colors"
+                                    className="w-full bg-surface-hover border border-border rounded-xl px-4 py-3 text-title focus:outline-none focus:border-primary transition-colors [&>option]:bg-gray-900 [&>option]:text-white"
                                     // Note: In a real implementation this would sync with LanguageContext
                                     defaultValue="pt-BR"
                                     onChange={(e) => {
@@ -405,9 +405,9 @@ const Settings: React.FC = () => {
                                         addToast({ type: 'info', message: `Idioma alterado para ${e.target.value}` });
                                     }}
                                 >
-                                    <option value="pt-BR">Português (Brasil)</option>
-                                    <option value="en-US">English (US)</option>
-                                    <option value="es">Español</option>
+                                    <option value="pt-BR" className="bg-gray-900 text-white">Português (Brasil)</option>
+                                    <option value="en-US" className="bg-gray-900 text-white">English (US)</option>
+                                    <option value="es" className="bg-gray-900 text-white">Español</option>
                                 </select>
                             </div>
                             <div className="space-y-2">
