@@ -242,7 +242,7 @@ const Settings: React.FC = () => {
 
                                 <div className="text-center md:border-l border-white/10 md:pl-8 min-w-[200px]">
                                     <div className="mb-4">
-                                        <span className="text-4xl font-black text-white">R$ 97</span>
+                                        <span className="text-4xl font-black text-white">R$ 148,90</span>
                                         <span className="text-muted text-sm ml-1">/mês</span>
                                     </div>
                                     <a
