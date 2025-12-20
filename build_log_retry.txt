@@ -1,0 +1,15 @@
+
+> vitrinex-ai-app@0.0.0 build
+> vite build
+
+[36mvite v5.4.21 [32mbuilding for production...[36m[39m
+transforming...
+[32mÔ£ô[39m 40 modules transformed.
+x Build failed in 1.97s
+error during build:
+Could not resolve "./components/ui/TutorialOverlay" from "src/App.tsx"
+file: C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/App.tsx
+    at getRollupError (file:///C:/Users/Jeanc/OneDrive/%C3%81rea%20de%20Trabalho/VitrineX-AI%20-%20APP/node_modules/rollup/dist/es/shared/parseAst.js:401:41)
+    at error (file:///C:/Users/Jeanc/OneDrive/%C3%81rea%20de%20Trabalho/VitrineX-AI%20-%20APP/node_modules/rollup/dist/es/shared/parseAst.js:397:42)
+    at ModuleLoader.handleInvalidResolvedId (file:///C:/Users/Jeanc/OneDrive/%C3%81rea%20de%20Trabalho/VitrineX-AI%20-%20APP/node_modules/rollup/dist/es/shared/node-entry.js:21633:24)
+    at file:///C:/Users/Jeanc/OneDrive/%C3%81rea%20de%20Trabalho/VitrineX-AI%20-%20APP/node_modules/rollup/dist/es/shared/node-entry.js:21593:26

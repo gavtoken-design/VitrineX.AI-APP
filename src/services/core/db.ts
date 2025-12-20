@@ -284,7 +284,9 @@ export const deleteLibraryItem = async (itemId: string): Promise<void> => {
     // Try delete from both
     try {
         await supabase.from('library_items').delete().eq('id', itemId);
-    } catch (e) { /* ignore */ }
+    } catch (e) {
+        console.warn('Supabase delete failed for library item. It might have been already deleted or network failed.', e);
+    }
 
     try {
         const current = getLocalData<LibraryItem>('library_items');
@@ -335,11 +337,15 @@ export const getScheduleEntries = async (userId: string): Promise<ScheduleEntry[
 export const deleteScheduleEntry = async (entryId: string): Promise<void> => {
     try {
         await supabase.from('schedule').delete().eq('id', entryId);
-    } catch (e) { }
+    } catch (e) {
+        console.warn('Supabase delete failed for schedule entry. It might have been already deleted or network failed.', e);
+    }
 
     try {
         const current = getLocalData<ScheduleEntry>('schedule');
         const filtered = current.filter(i => i.id !== entryId);
         localStorage.setItem('vitrinex_schedule', JSON.stringify(filtered));
-    } catch (e) { }
+    } catch (e) {
+        console.error('Local delete failed for schedule entry', e);
+    }
 };

@@ -9,7 +9,6 @@ import NotificationDropdown from '../features/NotificationDropdown';
 
 import { useAuth } from '../../contexts/AuthContext';
 import ClientGreeting from '../ui/ClientGreeting';
-import CanvaEmbedButton from '../CanvaEmbedButton';
 import SocialConnectButton from '../SocialConnectButton';
 import SocialPublish from '../SocialPublish';
 
@@ -43,7 +42,6 @@ const Navbar: React.FC<NavbarProps> = memo(({ onMenuClick }) => {
         <div className="flex items-center gap-3">
 
           <NotificationDropdown />
-          <CanvaEmbedButton />
           <SocialConnectButton />
           <SocialPublish />
           <div className="relative group hidden sm:block">

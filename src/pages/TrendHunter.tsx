@@ -5,8 +5,7 @@ import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import { generateText } from '../services/ai';
-import { saveTrend } from '../services/core/db';
-import { getUserProfile } from '../services/core/firestore';
+import { saveTrend, getUserProfile } from '../services/core/db';
 import { Trend, BusinessProfile } from '../types';
 import { useNavigate } from '../hooks/useNavigate';
 import { GEMINI_FLASH_MODEL, DEFAULT_BUSINESS_PROFILE } from '../constants';
@@ -472,10 +471,10 @@ Melhor Estratégia: ${result.conclusao.melhorEstrategia}
               <button
                 key={obj.id}
                 onClick={() => setObjective(obj.id)}
-                className={`px - 4 py - 2 rounded - lg text - sm font - medium transition - all flex items - center gap - 2 ${objective === obj.id
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${objective === obj.id
                   ? 'bg-primary text-white'
                   : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-                  } `}
+                  }`}
               >
                 <span>{obj.icon}</span>
                 {obj.label}

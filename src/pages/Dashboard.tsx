@@ -90,7 +90,7 @@ const ActivityCard: React.FC<ActivityCardProps> = ({
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth(); // Use real user
-  const userId = user?.id || 'mock-user-123'; // Fallback if somehow null but should be handled by App.tsx
+  const userId = user?.id || 'anonymous'; // Fallback if somehow null but should be handled by App.tsx
   const { data, isLoading, isError, error } = useDashboardData(userId);
   const { navigateTo } = useNavigate();
   const { t, language } = useLanguage();

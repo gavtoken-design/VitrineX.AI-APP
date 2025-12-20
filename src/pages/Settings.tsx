@@ -1,656 +1,242 @@
-
 import * as React from 'react';
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import Input from '../components/ui/Input';
-import Button from '../components/ui/Button';
-import Textarea from '../components/ui/Textarea';
-import LoadingSpinner from '../components/ui/LoadingSpinner';
-import { getUserProfile, updateUserProfile } from '../services/core/db';
-import { testGeminiConnection, verifySystemCapabilities } from '../services/ai/gemini';
-import { UserProfile } from '../types';
-import { DEFAULT_BUSINESS_PROFILE, HARDCODED_API_KEY, SUBSCRIPTION_CURRENCY, SUBSCRIPTION_PRICE_PROMO, SUBSCRIPTION_PRICE_FULL } from '../constants';
-import { KeyIcon, ServerStackIcon, InformationCircleIcon, ArrowDownOnSquareIcon, PaintBrushIcon, GlobeAltIcon, SunIcon, MoonIcon, UserCircleIcon, Cog6ToothIcon, CheckCircleIcon, MegaphoneIcon, CpuChipIcon, XMarkIcon } from '@heroicons/react/24/outline';
-import { useToast } from '../contexts/ToastContext';
-import { useTheme } from '../contexts/ThemeContext';
-import { useLanguage } from '../contexts/LanguageContext';
-import Logo from '../components/ui/Logo';
-import { useNavigate } from '../hooks/useNavigate';
 import { useAuth } from '../contexts/AuthContext';
-import { SecureStorage } from '../utils/secureStorage';
-import { initGoogleDrive, connectGoogleDrive, isDriveConnected } from '../services/integrations/googleDrive';
-import { CloudIcon } from '@heroicons/react/24/outline';
+import { useLanguage } from '../contexts/LanguageContext';
+import { useToast } from '../contexts/ToastContext';
+import { supabase } from '../lib/supabase';
+import Button from '../components/ui/Button';
+import {
+    UserIcon,
+    CreditCardIcon,
+    ShieldCheckIcon,
+    BellIcon,
+    LanguageIcon,
+    ArrowTopRightOnSquareIcon,
+    CheckBadgeIcon,
+    SparklesIcon
+} from '@heroicons/react/24/outline';
 
 const Settings: React.FC = () => {
-  // Profile State
-  const [businessProfileForm, setBusinessProfileForm] = useState<UserProfile['businessProfile']>(DEFAULT_BUSINESS_PROFILE);
-  const [socialNetworks, setSocialNetworks] = useState<Array<{ name: string; username: string; url: string }>>([
-    { name: 'Instagram', username: '', url: '' },
-    { name: 'TikTok', username: '', url: '' },
-    { name: 'WhatsApp', username: '', url: '' }
-  ]);
-  const [profileLoading, setProfileLoading] = useState<boolean>(true);
-  const [savingProfile, setSavingProfile] = useState<boolean>(false);
+    const { user, profile, signOut } = useAuth();
+    const { t } = useLanguage();
+    const { addToast } = useToast();
+    const [verifying, setVerifying] = useState(false);
 
-  // API Key State
-  const [apiKey, setApiKey] = useState('');
-  const [isKeySaved, setIsKeySaved] = useState(false);
-  const [isTesting, setIsTesting] = useState(false);
-  const [keyError, setKeyError] = useState<string | null>(null);
+    const planLink = `https://buy.stripe.com/cNibJ0aqfeUTaA66Pv6oo01?client_reference_id=${user?.id}`;
 
-  const { addToast } = useToast();
-  const { theme, toggleTheme } = useTheme();
-  const { language, setLanguage } = useLanguage();
-  const { navigateTo } = useNavigate();
-  const { user } = useAuth();
-  const userId = user?.id || 'guest-user';
-  const [isDriveLinked, setIsDriveLinked] = useState(false);
+    const handleVerifyPayment = async () => {
+        if (!user) return;
+        setVerifying(true);
+        try {
+            // @ts-ignore - Supabase functions type might need casting
+            const { data, error } = await supabase.functions.invoke('stripe-manager', {
+                body: { action: 'verify-session', userId: user.id }
+            });
 
-  useEffect(() => {
-    const checkDrive = async () => {
-      const connected = await isDriveConnected();
-      setIsDriveLinked(connected);
-    };
-    checkDrive();
-  }, []);
-
-  const handleConnectDrive = async () => {
-    try {
-      addToast({ type: 'info', message: 'Iniciando conexão com Google Drive...' });
-      await connectGoogleDrive();
-      setTimeout(async () => {
-        const connected = await isDriveConnected();
-        if (connected) {
-          setIsDriveLinked(true);
-          addToast({ type: 'success', message: 'Google Drive conectado!' });
+            if (data?.plan === 'pro') {
+                addToast({
+                    type: 'success',
+                    title: 'Parabéns!',
+                    message: 'Seu plano PRO foi ativado com sucesso.'
+                });
+                // Recarregar perfil
+                window.location.reload();
+            } else {
+                addToast({
+                    type: 'info',
+                    title: 'Ainda em processamento',
+                    message: 'Não encontramos um pagamento ativo recente. Se você já pagou, aguarde alguns minutos.'
+                });
+            }
+        } catch (error) {
+            console.error('Verify error:', error);
+            addToast({
+                type: 'error',
+                title: 'Erro',
+                message: 'Falha ao conectar com o serviço de pagamentos.'
+            });
+        } finally {
+            setVerifying(false);
         }
-      }, 5000);
-    } catch (e: any) {
-      addToast({ type: 'error', message: `Erro ao conectar: ${e.message}` });
-    }
-  };
-
-  useEffect(() => {
-    const fetchInitialData = async () => {
-      setProfileLoading(true);
-      try {
-        const profile = await getUserProfile(userId);
-        if (profile) {
-          setBusinessProfileForm(profile.businessProfile);
-          if (profile.contactInfo) {
-            // Convert legacy contactInfo to new socialNetworks array if needed
-            const networks = Object.entries(profile.contactInfo)
-              .filter(([_, value]) => !!value)
-              .map(([key, value]) => ({
-                name: key.charAt(0).toUpperCase() + key.slice(1),
-                username: value,
-                url: ''
-              }));
-            if (networks.length > 0) setSocialNetworks(networks);
-          }
-        }
-        // Internamente ainda usamos a chave do storage, mas a UI não revela a tecnologia
-        const savedKey = localStorage.getItem('vitrinex_gemini_api_key') || await SecureStorage.getItem<string>('vitrinex_gemini_api_key_secure');
-
-        if (savedKey) {
-          setApiKey(savedKey);
-          setIsKeySaved(true);
-        } else if (profile?.apiKey) {
-          setApiKey(profile.apiKey);
-          setIsKeySaved(true);
-          localStorage.setItem('vitrinex_gemini_api_key', profile.apiKey);
-          SecureStorage.setItem('vitrinex_gemini_api_key_secure', profile.apiKey);
-        } else if (HARDCODED_API_KEY) {
-          setApiKey(HARDCODED_API_KEY);
-          setIsKeySaved(true);
-        }
-      } catch (err) {
-        addToast({ type: 'error', message: 'Falha ao carregar dados iniciais.' });
-      } finally {
-        setProfileLoading(false);
-      }
-    };
-    fetchInitialData();
-  }, [userId, addToast]);
-
-  const validateAndSetKey = (key: string) => {
-    setApiKey(key);
-    if (!key.trim()) {
-      setKeyError(null);
-      return;
-    }
-    if (!key.startsWith('AIzaSy')) {
-      setKeyError('Formato inválido. A chave deve começar com "AIzaSy".');
-    } else if (key.length < 38) {
-      setKeyError('Chave muito curta.');
-    } else if (/\s/.test(key)) {
-      setKeyError('A chave não pode conter espaços.');
-    } else {
-      setKeyError(null);
-    }
-  };
-
-  const handleSaveKey = async () => {
-    if (keyError || !apiKey.trim()) {
-      addToast({ type: 'warning', message: 'Por favor, insira uma chave de licença válida.' });
-      return;
-    }
-    setIsTesting(true);
-    try {
-      // Teste granular de capacidades
-      const status = await verifySystemCapabilities(apiKey.trim());
-
-      if (status.text) {
-        // Save locally (Raw and Secure)
-        localStorage.setItem('vitrinex_gemini_api_key', apiKey.trim());
-        await SecureStorage.setItem('vitrinex_gemini_api_key_secure', apiKey.trim());
-
-        // Save to Supabase for cross-device persistence
-        if (userId && userId !== 'guest-user') {
-          try {
-            await updateUserProfile(userId, { apiKey: apiKey.trim() });
-          } catch (dbErr) {
-            console.warn('Failed to save API key to cloud profile:', dbErr);
-          }
-        }
-
-        setIsKeySaved(true);
-
-        // Construct detailed success message
-        const activeFeatures = [];
-        if (status.text) activeFeatures.push('Texto (Chat/Copy)');
-        if (status.vision) activeFeatures.push('Visão Computacional');
-        if (status.audio) activeFeatures.push('Geração de Voz');
-
-        addToast({
-          type: 'success',
-          title: 'Sistema VitrineX ATIVO 🟢',
-          message: `Módulos Operacionais: ${activeFeatures.join(', ')}.`
-        });
-      } else {
-        throw new Error(status.message);
-      }
-    } catch (e: any) {
-      console.error("Erro ao salvar chave:", e);
-      addToast({
-        type: 'error',
-        title: 'Funções INATIVAS 🔴',
-        message: `Falha na ativação: ${e.message}. Verifique: Texto, Visão, Áudio.`
-      });
-      setIsKeySaved(false);
-    } finally {
-      setIsTesting(false);
-    }
-  };
-
-  const handleTestKey = async () => {
-    if (!apiKey.trim()) {
-      addToast({ type: 'warning', message: 'Por favor, insira uma chave para testar.' });
-      return;
-    }
-    setIsTesting(true);
-    try {
-      const status = await verifySystemCapabilities(apiKey.trim());
-
-      if (status.text) {
-        addToast({
-          type: 'success',
-          title: 'Conexão Estabelecida 🟢',
-          message: `Status: ATIVO. Capacidades confirmadas: Texto, Visão, Áudio.`
-        });
-      } else {
-        throw new Error(status.message);
-      }
-    } catch (e: any) {
-      console.error("Erro no teste de conexão:", e);
-      let errorMessage = e instanceof Error ? e.message : String(e);
-      if (errorMessage.includes('404')) errorMessage = 'Motor de IA não encontrado.';
-      if (errorMessage.includes('403')) errorMessage = 'Permissão negada (Chave inválida).';
-
-      addToast({
-        type: 'error',
-        title: 'Diagnóstico de Falha 🔴',
-        message: `Erro: ${errorMessage}. Funções afetadas: Todas.`
-      });
-    } finally {
-      setIsTesting(false);
-    }
-  };
-
-  const handleSaveProfile = async () => {
-    setSavingProfile(true);
-    try {
-      const profileData = {
-        businessProfile: businessProfileForm,
-        contactInfo: socialNetworks.reduce((acc, curr) => ({ ...acc, [curr.name.toLowerCase()]: curr.username }), {})
-      };
-      await updateUserProfile(userId, profileData);
-      addToast({ type: 'success', message: 'Configurações salvas com sucesso!' });
-    } catch (err) {
-      addToast({ type: 'error', message: `Falha ao salvar perfil: ${err instanceof Error ? err.message : String(err)}` });
-    } finally {
-      setSavingProfile(false);
-    }
-  };
-
-  const handleAddNetwork = () => {
-    setSocialNetworks([...socialNetworks, { name: 'Nova Rede', username: '', url: '' }]);
-  };
-
-  const handleRemoveNetwork = (index: number) => {
-    setSocialNetworks(socialNetworks.filter((_, i) => i !== index));
-  };
-
-  const downloadFullBackup = () => {
-    const backup: Record<string, any> = {
-      timestamp: new Date().toISOString(),
-      version: '3.4',
-      storage: {}
     };
 
-    // Iterate through all localStorage keys
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && (key.startsWith('vitrinex') || key.includes('db'))) {
-        backup.storage[key] = localStorage.getItem(key);
-      }
-    }
+    const handleSignOut = async () => {
+        try {
+            await signOut();
+            addToast({
+                type: 'success',
+                title: 'Desconectado',
+                message: 'Você saiu da sua conta com sucesso.'
+            });
+        } catch (error) {
+            addToast({
+                type: 'error',
+                title: 'Erro ao sair',
+                message: 'Não foi possível desconectar.'
+            });
+        }
+    };
 
-    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `vitrinex-full-backup-${new Date().toISOString().split('T')[0]}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
-    addToast({ type: 'success', message: 'Cópia de segurança gerada com sucesso!' });
-  };
+    return (
+        <div className="animate-fade-in pb-20">
+            <header className="mb-8">
+                <h1 className="text-3xl font-bold text-title">Configurações</h1>
+                <p className="text-muted mt-2">Gerencie sua conta, assinatura e preferências do sistema.</p>
+            </header>
 
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Lateral Navigation (Cards for Desktop, scroll for mobile) */}
+                <div className="lg:col-span-1 space-y-4">
+                    <section className="glass-card p-6">
+                        <div className="flex items-center gap-4 mb-6">
+                            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+                                {user?.user_metadata?.full_name?.charAt(0) || user?.email?.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                                <h2 className="font-bold text-title text-lg truncate max-w-[180px]">
+                                    {user?.user_metadata?.full_name || 'Usuário VitrineX'}
+                                </h2>
+                                <p className="text-sm text-muted truncate max-w-[180px]">{user?.email}</p>
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary mt-1 border border-primary/20">
+                                    Plano {profile?.plan || 'Free'}
+                                </span>
+                            </div>
+                        </div>
 
+                        <div className="space-y-1">
+                            <button className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl bg-primary/10 text-primary border border-primary/20">
+                                <UserIcon className="w-5 h-5" />
+                                Perfil
+                            </button>
+                            <button className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-muted hover:bg-surface-hover hover:text-title transition-colors">
+                                <ShieldCheckIcon className="w-5 h-5" />
+                                Segurança
+                            </button>
+                            <button className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-muted hover:bg-surface-hover hover:text-title transition-colors">
+                                <BellIcon className="w-5 h-5" />
+                                Notificações
+                            </button>
+                            <button className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-muted hover:bg-surface-hover hover:text-title transition-colors">
+                                <LanguageIcon className="w-5 h-5" />
+                                Idioma e Região
+                            </button>
+                        </div>
 
-  return (
-    <div className="animate-fade-in duration-500 space-y-10 max-w-3xl mx-auto pb-10">
-      <h2 className="text-3xl font-bold text-title">Configurações</h2>
-
-      {/* API Key Section */}
-      <div className="bg-surface p-8 rounded-xl shadow-card border border-border">
-        <h3 className="text-xl font-semibold text-title mb-6 flex items-center gap-2">
-          <KeyIcon className="w-5 h-5 text-primary" /> Motor de Inteligência Artificial
-        </h3>
-        <div className="space-y-4">
-          <div>
-            <label htmlFor="apiKey" className="block text-sm font-medium text-title mb-1.5">
-              Chave de Acesso / Licença
-            </label>
-            <input
-              id="apiKey"
-              type="password"
-              value={apiKey}
-              onChange={(e) => validateAndSetKey(e.target.value)}
-              placeholder="Digite sua chave de licenciamento..."
-              className={`block w-full px-3 py-2.5 liquid-glass-light border rounded-lg shadow-sm text-title placeholder-muted liquid-transition sm:text-sm focus:outline-none ${keyError ? 'border-error ring-1 ring-error' : 'border-white/20 focus:border-primary focus:ring-1 focus:ring-primary'
-                }`}
-            />
-            {keyError && <p className="mt-2 text-xs text-error">{keyError}</p>}
-          </div>
-
-          <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800 flex items-start gap-3">
-            <InformationCircleIcon className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-            <p className="text-sm text-muted mt-2">
-              Insira sua chave de licença para ativar as funcionalidades avançadas de criação e análise.
-            </p>
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-3 mt-6">
-            <Button
-              onClick={handleSaveKey}
-              isLoading={isTesting && !keyError}
-              disabled={!!keyError || !apiKey.trim()}
-              variant="primary"
-              className="w-full sm:w-auto"
-            >
-              <ServerStackIcon className="w-4 h-4 mr-2" />
-              {isKeySaved ? 'Salvar & Reativar' : 'Salvar & Ativar'}
-            </Button>
-            <Button
-              onClick={handleTestKey}
-              isLoading={isTesting}
-              disabled={!apiKey.trim()}
-              variant="secondary"
-              className="w-full sm:w-auto"
-            >
-              Testar Conexão
-            </Button>
-
-          </div>
-        </div>
-      </div>
-
-      {/* Subscription Plan Section - Enhanced with 21st.dev style animations */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: 'easeOut' }}
-        className="relative p-8 rounded-xl shadow-card overflow-hidden group"
-        style={{
-          background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.9) 100%)',
-          border: '1px solid rgba(99, 102, 241, 0.3)',
-        }}
-      >
-        {/* Animated gradient border */}
-        <div className="absolute inset-0 rounded-xl opacity-50 group-hover:opacity-100 transition-opacity duration-500" style={{
-          background: 'linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.1), transparent)',
-          animation: 'shimmer 3s infinite',
-        }} />
-
-        {/* Glowing orb effect */}
-        <motion.div
-          className="absolute -top-20 -right-20 w-40 h-40 rounded-full blur-3xl"
-          style={{ background: 'rgba(99, 102, 241, 0.15)' }}
-          animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.3, 0.5, 0.3]
-          }}
-          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-        />
-
-        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-30 transition-opacity duration-300">
-          <motion.div
-            animate={{ rotate: [12, 18, 12] }}
-            transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-          >
-            <MegaphoneIcon className="w-32 h-32 text-primary" />
-          </motion.div>
-        </div>
-
-        <div className="relative z-10">
-          <motion.h3
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.1, duration: 0.4 }}
-            className="text-xl font-semibold text-white mb-6 flex items-center gap-2"
-          >
-            <ServerStackIcon className="w-5 h-5 text-primary" /> Meu Plano
-          </motion.h3>
-
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.4 }}
-            className="flex flex-col md:flex-row md:items-center justify-between gap-6 rounded-lg p-6 border border-white/10"
-            style={{ background: 'rgba(0, 0, 0, 0.3)', backdropFilter: 'blur(10px)' }}
-          >
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-sm font-bold tracking-wider text-primary uppercase">Plano Pro (Early Adopter)</span>
-                <motion.span
-                  className="bg-green-500/20 text-green-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-green-500/30"
-                  animate={{ scale: [1, 1.05, 1] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                >
-                  ATIVO
-                </motion.span>
-              </div>
-              <motion.h4
-                className="text-3xl font-bold text-white mb-1"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.3, duration: 0.5 }}
-              >
-                {SUBSCRIPTION_CURRENCY} {SUBSCRIPTION_PRICE_PROMO} <span className="text-sm font-normal text-gray-400">/mês</span>
-              </motion.h4>
-              <p className="text-sm text-gray-500 line-through opacity-70">
-                De: {SUBSCRIPTION_CURRENCY} {SUBSCRIPTION_PRICE_FULL}
-              </p>
-            </div>
-
-            <div className="flex flex-col gap-3">
-              {[
-                'Acesso Ilimitado ao TrendHunter Deeper',
-                'Geração de Vídeo (Veo) & Imagens 4K',
-                'Modo "Thinking" (Raciocínio Profundo)'
-              ].map((feature, index) => (
-                <motion.div
-                  key={feature}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.4 + index * 0.1, duration: 0.3 }}
-                  className="flex items-center gap-2 text-sm text-gray-200"
-                >
-                  <CheckCircleIcon className="w-4 h-4 text-green-400" />
-                  <span>{feature}</span>
-                </motion.div>
-              ))}
-            </div>
-
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <Button
-                variant="outline"
-                className="h-fit whitespace-nowrap border-primary/50 text-primary hover:bg-primary/10 hover:border-primary transition-all duration-300"
-                onClick={() => window.open('https://buy.stripe.com/cNibJ0aqfeUTaA66Pv6oo01', '_blank')}
-              >
-                Gerenciar Assinatura
-              </Button>
-            </motion.div>
-          </motion.div>
-        </div>
-      </motion.div>
-
-      {/* Business Profile Section */}
-      <div className="bg-surface p-8 rounded-xl shadow-card border border-border">
-        <h3 className="text-xl font-semibold text-title mb-6 flex items-center gap-2">
-          <UserCircleIcon className="w-5 h-5 text-primary" /> Perfil do Negócio
-        </h3>
-        {profileLoading ? <LoadingSpinner /> : (
-          <div className="space-y-4">
-            <Input
-              id="businessName"
-              label="Nome da Empresa"
-              value={businessProfileForm.name}
-              onChange={(e) => setBusinessProfileForm({ ...businessProfileForm, name: e.target.value })}
-            />
-            <Textarea
-              id="industry"
-              label="Indústria / Nicho"
-              value={businessProfileForm.industry}
-              onChange={(e) => setBusinessProfileForm({ ...businessProfileForm, industry: e.target.value })}
-              rows={2}
-              placeholder="Ex: E-commerce de moda sustentável"
-            />
-            <Textarea
-              id="targetAudience"
-              label="Público-alvo"
-              value={businessProfileForm.targetAudience}
-              onChange={(e) => setBusinessProfileForm({ ...businessProfileForm, targetAudience: e.target.value })}
-              rows={3}
-              placeholder="Ex: Mulheres de 25-40 anos, conscientes ambientalmente..."
-            />
-            <Input
-              id="visualStyle"
-              label="Estilo Visual"
-              value={businessProfileForm.visualStyle}
-              onChange={(e) => setBusinessProfileForm({ ...businessProfileForm, visualStyle: e.target.value })}
-              placeholder="Ex: Minimalista, vibrante, retrô..."
-            />
-            <Button onClick={handleSaveProfile} isLoading={savingProfile} variant="primary" className="w-full sm:w-auto">
-              Salvar Perfil
-            </Button>
-          </div>
-        )}
-      </div>
-
-      {/* Social & Contact Section - Dynamic List */}
-      <div className="bg-surface p-8 rounded-xl shadow-card border border-border">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-semibold text-title flex items-center gap-2">
-            <GlobeAltIcon className="w-5 h-5 text-primary" /> Canais Digitais & Redes
-          </h3>
-          <Button onClick={handleAddNetwork} variant="secondary" size="sm">
-            + Adicionar Canal
-          </Button>
-        </div>
-
-        {profileLoading ? <LoadingSpinner /> : (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-              <Input
-                id="email"
-                label="Email Principal (Leitura)"
-                value={'gavtoken@gmail.com'}
-                disabled={true}
-                className="md:col-span-2"
-              />
-
-              {socialNetworks.map((network, index) => (
-                <div key={index} className="p-4 rounded-lg bg-background/50 border border-border space-y-3 relative group">
-                  <div className="flex items-center justify-between">
-                    <input
-                      type="text"
-                      value={network.name}
-                      onChange={(e) => {
-                        const newNets = [...socialNetworks];
-                        newNets[index].name = e.target.value;
-                        setSocialNetworks(newNets);
-                      }}
-                      className="bg-transparent border-none text-xs font-bold text-primary uppercase focus:ring-0 w-2/3 p-0"
-                      placeholder="NOME DA REDE"
-                    />
-                    <button
-                      onClick={() => handleRemoveNetwork(index)}
-                      className="text-muted hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <XMarkIcon className="w-4 h-4" />
-                    </button>
-                  </div>
-                  <Input
-                    id={`user-${index}`}
-                    value={network.username}
-                    onChange={(e) => {
-                      const newNets = [...socialNetworks];
-                      newNets[index].username = e.target.value;
-                      setSocialNetworks(newNets);
-                    }}
-                    placeholder="@usuario"
-                    className="!py-1.5 !text-xs"
-                  />
-                  <Input
-                    id={`url-${index}`}
-                    value={network.url}
-                    onChange={(e) => {
-                      const newNets = [...socialNetworks];
-                      newNets[index].url = e.target.value;
-                      setSocialNetworks(newNets);
-                    }}
-                    placeholder="Link direto (opcional)"
-                    className="!py-1.5 !text-xs"
-                  />
+                        <div className="mt-8 pt-6 border-t border-border">
+                            <Button
+                                variant="outline"
+                                className="w-full justify-center text-red-500 border-red-500/20 hover:bg-red-500/10"
+                                onClick={handleSignOut}
+                            >
+                                Sair da Conta
+                            </Button>
+                        </div>
+                    </section>
                 </div>
-              ))}
-            </div>
 
-            {/* Google Drive Integration */}
-            <div className="mt-6 p-4 border border-border rounded-lg bg-surface/50">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-lg ${isDriveLinked ? 'bg-green-500/10 text-green-500' : 'bg-gray-700/50 text-gray-400'}`}>
-                    <CloudIcon className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-title">Google Drive</h4>
-                    <p className="text-xs text-muted">{isDriveLinked ? 'Conectado e pronto para salvar arquivos.' : 'Conecte para salvar arquivos diretamente na nuvem.'}</p>
-                  </div>
+                {/* Main Settings Area */}
+                <div className="lg:col-span-2 space-y-8">
+                    {/* Subscription Card - Highlighted */}
+                    <section className="glass-card relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
+                            <SparklesIcon className="w-32 h-32 text-primary rotate-12" />
+                        </div>
+
+                        <div className="p-8 relative z-10">
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                                    <CreditCardIcon className="w-6 h-6" />
+                                </div>
+                                <h2 className="text-xl font-bold text-title">Assinatura e Plano</h2>
+                            </div>
+
+                            <div className="flex flex-col md:flex-row gap-8 items-center bg-white/5 rounded-2xl p-6 border border-white/10">
+                                <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <h3 className="text-2xl font-bold text-white">VitrineX PRO</h3>
+                                        <span className="bg-gradient-to-r from-amber-400 to-orange-500 text-black text-[10px] font-black px-2 py-0.5 rounded-full">RECOMENDADO</span>
+                                    </div>
+                                    <p className="text-gray-400 text-sm mb-6 leading-relaxed">
+                                        Libere todo o potencial da inteligência artificial para o seu marketing. Criações ilimitadas, acesso ao Gemini Ultra e suporte prioritário.
+                                    </p>
+
+                                    <ul className="space-y-2 mb-8">
+                                        {[
+                                            'Geração de Imagens Ilimitada',
+                                            'IA de Vídeo Avançada',
+                                            'Agendamento Multi-plataforma',
+                                            'Análise de Tendências em Tempo Real',
+                                            'Remoção de marca d\'água'
+                                        ].map((feature, i) => (
+                                            <li key={i} className="flex items-center gap-2 text-sm text-gray-300">
+                                                <CheckBadgeIcon className="w-4 h-4 text-primary" />
+                                                {feature}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+
+                                <div className="text-center md:border-l border-white/10 md:pl-8 min-w-[200px]">
+                                    <div className="mb-4">
+                                        <span className="text-4xl font-black text-white">R$ 97</span>
+                                        <span className="text-muted text-sm ml-1">/mês</span>
+                                    </div>
+                                    <a
+                                        href={planLink}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex w-full items-center justify-center gap-2 px-6 py-4 bg-primary hover:bg-primary-hover text-white font-bold rounded-xl transition-all shadow-lg shadow-primary/20 transform hover:scale-[1.05] active:scale-[0.98]"
+                                    >
+                                        Assinar Agora
+                                        <ArrowTopRightOnSquareIcon className="w-5 h-5" />
+                                    </a>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="w-full mt-4 text-xs opacity-60 hover:opacity-100"
+                                        onClick={handleVerifyPayment}
+                                        isLoading={verifying}
+                                    >
+                                        Já paguei? Verificar status
+                                    </Button>
+                                    <p className="mt-3 text-[10px] text-muted">Cancelamento fácil a qualquer momento.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Account Settings */}
+                    <section className="glass-card p-8">
+                        <h2 className="text-xl font-bold text-title mb-6">Informações da Conta</h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-muted uppercase tracking-wider">Nome Completo</label>
+                                <input
+                                    type="text"
+                                    defaultValue={user?.user_metadata?.full_name || ''}
+                                    placeholder="Seu nome"
+                                    className="w-full bg-surface-hover border border-border rounded-xl px-4 py-3 text-title focus:outline-none focus:border-primary transition-colors"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-muted uppercase tracking-wider">E-mail</label>
+                                <input
+                                    type="email"
+                                    value={user?.email || ''}
+                                    disabled
+                                    className="w-full bg-surface-hover/50 border border-border rounded-xl px-4 py-3 text-muted cursor-not-allowed"
+                                />
+                            </div>
+                        </div>
+                        <div className="mt-8">
+                            <Button variant="primary">Salvar Alterações</Button>
+                        </div>
+                    </section>
                 </div>
-                <Button
-                  onClick={handleConnectDrive}
-                  variant={isDriveLinked ? "outline" : "secondary"}
-                  disabled={isDriveLinked}
-                  size="sm"
-                >
-                  {isDriveLinked ? 'Conectado' : 'Conectar Drive'}
-                </Button>
-              </div>
             </div>
-
-            <div className="pt-4 flex justify-end">
-              <Button onClick={handleSaveProfile} isLoading={savingProfile} variant="primary">
-                Salvar Canais
-              </Button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* System Preferences Section */}
-      <div className="bg-surface p-8 rounded-xl shadow-card border border-border">
-        <h3 className="text-xl font-semibold text-title mb-6 flex items-center gap-2">
-          <Cog6ToothIcon className="w-5 h-5 text-primary" /> Preferências do Sistema
-        </h3>
-        <div className="space-y-6">
-          {/* Theme Selector */}
-          <div>
-            <label className="block text-sm font-medium text-title mb-2 flex items-center gap-2">
-              <PaintBrushIcon className="w-4 h-4" /> Tema da Interface
-            </label>
-            <div className="flex gap-2 rounded-lg bg-background p-1 border border-border w-fit">
-              <button onClick={() => toggleTheme()} className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${theme === 'light' ? 'bg-white text-title shadow-sm' : 'text-muted hover:text-title'}`}>
-                <SunIcon className="w-4 h-4 inline mr-1.5" /> Claro
-              </button>
-              <button onClick={() => toggleTheme()} className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${theme === 'dark' ? 'bg-slate-700 text-white shadow-sm' : 'text-muted hover:text-title'}`}>
-                <MoonIcon className="w-4 h-4 inline mr-1.5" /> Escuro
-              </button>
-            </div>
-          </div>
-          {/* Language Selector */}
-          <div>
-            <label className="block text-sm font-medium text-title mb-2 flex items-center gap-2">
-              <GlobeAltIcon className="w-4 h-4" /> Idioma
-            </label>
-            <div className="flex gap-2 rounded-lg bg-background p-1 border border-border w-fit">
-              <button onClick={() => setLanguage('pt-BR')} className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${language === 'pt-BR' ? 'bg-white text-title shadow-sm' : 'text-muted hover:text-title'}`}>
-                Português
-              </button>
-              <button onClick={() => setLanguage('en-US')} className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${language === 'en-US' ? 'bg-white text-title shadow-sm' : 'text-muted hover:text-title'}`}>
-                English
-              </button>
-            </div>
-          </div>
-
-          {/* Data Management Section */}
-          <div className="pt-4 border-t border-border">
-            <h4 className="text-sm font-medium text-title mb-3">Gerenciamento de Dados (Ficar Seguro)</h4>
-            <p className="text-xs text-muted mb-4">
-              Seus dados (posts, campanhas) ficam salvos neste navegador. Exporte regularmente para não perder nada.
-            </p>
-            <Button
-              onClick={downloadFullBackup}
-              variant="secondary"
-              className="w-full sm:w-auto"
-            >
-              <ArrowDownOnSquareIcon className="w-4 h-4 mr-2" />
-              Baixar Cópia da Memória (.JSON)
-            </Button>
-
-            <div className="pt-6 mt-4 border-t border-border flex justify-center">
-              <Button
-                onClick={() => navigateTo('CodeAudit')}
-                variant="ghost"
-                className="text-xs text-muted hover:text-primary"
-              >
-                <CpuChipIcon className="w-4 h-4 mr-2" />
-                Abrir Auditoria de Código
-              </Button>
-            </div>
-          </div>
         </div>
-      </div>
-
-
-
-    </div>
-  );
+    );
 };
 
 export default Settings;

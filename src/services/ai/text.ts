@@ -208,7 +208,7 @@ export const aiManagerStrategy = async (prompt: string, userId: string): Promise
     return { strategyText: response, suggestions: ["Otimizar SEO", "Campanha de Retargeting"] };
 };
 
-export const searchTrends = async (query: string, language: string = 'en-US'): Promise<Trend[]> => {
+export const searchTrends = async (query: string, language: string = 'en-US', userId: string = 'anonymous'): Promise<Trend[]> => {
     const prompt = language === 'pt-BR'
         ? `Encontre as tendências de marketing atuais para "${query}". Forneça um resumo detalhado em português.`
         : `Find current marketing trends for "${query}". Provide a detailed summary.`;
@@ -231,7 +231,7 @@ export const searchTrends = async (query: string, language: string = 'en-US'): P
             data: result.text || 'Sem dados.',
             sources: [],
             createdAt: new Date().toISOString(),
-            userId: 'mock-user-123'
+            userId: userId
         }];
     } catch (error) {
         console.error("searchTrends failed", error);
@@ -239,7 +239,7 @@ export const searchTrends = async (query: string, language: string = 'en-US'): P
     }
 };
 
-export const campaignBuilder = async (campaignPrompt: string): Promise<{ campaign: Campaign }> => {
+export const campaignBuilder = async (campaignPrompt: string, userId: string = 'anonymous'): Promise<{ campaign: Campaign }> => {
     const planPrompt = `Crie um plano de campanha de marketing 360 completo:
     
     Contexto: ${campaignPrompt}
@@ -287,7 +287,7 @@ export const campaignBuilder = async (campaignPrompt: string): Promise<{ campaig
             ads: plan.ads || [],
             timeline: plan.timeline || '',
             createdAt: new Date().toISOString(),
-            userId: 'mock-user-123'
+            userId: userId
         }
     };
 };

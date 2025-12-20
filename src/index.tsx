@@ -1,18 +1,20 @@
+// src/index.tsx
+// Entry point principal - usa index.standalone para dev local
+// Para build Canva, usar: npm run build:canva
+
 import * as React from 'react';
 import * as ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
 
+// Renderização do React (modo standalone para desenvolvimento)
 const rootElement = document.getElementById('root');
-if (!rootElement) {
-  throw new Error("Could not find root element to mount to");
-}
 
-const root = ReactDOM.createRoot(rootElement);
-root.render(
-  <React.StrictMode>
-    <React.Fragment>
+if (rootElement) {
+  const root = ReactDOM.createRoot(rootElement);
+  root.render(
+    <React.StrictMode>
       <App />
-    </React.Fragment>
-  </React.StrictMode>
-);
+    </React.StrictMode>
+  );
+}

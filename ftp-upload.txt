@@ -1,0 +1,18 @@
+open 82.112.247.163
+u786088869.red-owl-902155.hostingersite.com
+VitrineX.AI2025
+cd public_html
+binary
+lcd c:\Users\Jeanc\OneDrive\?rea de Trabalho\VitrineX-AI - APP\dist
+put index.html
+put .htaccess
+put icon.svg
+put manifest.webmanifest
+put sw.js
+put registerSW.js
+put workbox-8c29f6e4.js
+mkdir assets
+cd assets
+lcd assets
+mput *.*
+bye

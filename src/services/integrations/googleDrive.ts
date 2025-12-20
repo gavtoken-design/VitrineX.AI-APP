@@ -73,9 +73,13 @@ export const getStoredToken = async (): Promise<string | null> => {
     if (!stored) return null;
     try {
         const token = JSON.parse(stored);
-        if (Date.now() > token.expiresAt) return null;
+        if (Date.now() > token.expiresAt) {
+            console.log('Google Drive token expired.');
+            return null;
+        }
         return token.value;
-    } catch {
+    } catch (e) {
+        console.warn('Failed to parse stored Google Drive token.', e);
         return null;
     }
 };

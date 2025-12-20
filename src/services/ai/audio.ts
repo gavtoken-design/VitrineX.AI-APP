@@ -1,4 +1,4 @@
-import { GEMINI_TTS_MODEL } from '../../constants';
+import { GEMINI_TTS_MODEL, GEMINI_LIVE_AUDIO_MODEL } from '../../constants';
 import { getGeminiClient } from './gemini';
 import { proxyFetch } from '../core/api';
 
@@ -34,7 +34,7 @@ export const generateSpeech = async (text: string, voiceName: string = 'Kore'): 
 
         // STEP 2: Audio Generation (Gemini 2.5 Flash Native Audio)
         const audioResponse = await client.models.generateContent({
-            model: GEMINI_TTS_MODEL, // Centralized constant for version control
+            model: GEMINI_LIVE_AUDIO_MODEL, // Updated to Native Audio Model
             contents: [
                 {
                     role: 'user',

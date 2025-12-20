@@ -9,6 +9,8 @@ interface AuthContextType {
     session: Session | null;
     profile: UserProfile | null;
     loading: boolean;
+    signIn: (email: string, password: string) => Promise<void>;
+    signUp: (email: string, password: string, metadata?: any) => Promise<void>;
     signOut: () => Promise<void>;
 }
 
@@ -82,13 +84,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
+    const signIn = async (email: string, password: string) => {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        // State updates handled by onAuthStateChange
+    };
+
+    const signUp = async (email: string, password: string, metadata?: any) => {
+        const { error } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+                data: metadata,
+            },
+        });
+        if (error) throw error;
+        // State updates handled by onAuthStateChange
+    };
+
     const signOut = async () => {
         await supabase.auth.signOut();
         // State updates handled by onAuthStateChange
     };
 
     return (
-        <AuthContext.Provider value={{ user, session, profile, loading, signOut }}>
+        <AuthContext.Provider value={{ user, session, profile, loading, signIn, signUp, signOut }}>
             {children}
         </AuthContext.Provider>
     );

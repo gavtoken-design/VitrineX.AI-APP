@@ -6,10 +6,11 @@ import Textarea from '../components/ui/Textarea';
 import Button from '../components/ui/Button';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import { campaignBuilder } from '../services/ai';
-import { saveCampaign } from '../services/core/firestore';
+import { saveCampaign } from '../services/core/db';
 import { Campaign } from '../types';
-import { useNavigate } from '../hooks/useNavigate'; // Custom hook for navigation
+import { useNavigate } from '../hooks/useNavigate';
 import { useToast } from '../contexts/ToastContext';
+import { useAuth } from '../contexts/AuthContext';
 import {
   CurrencyDollarIcon,
   HashtagIcon,
@@ -33,6 +34,8 @@ const CampaignBuilder: React.FC = () => {
 
   const { navigateTo } = useNavigate();
   const { addToast } = useToast();
+  const { user } = useAuth();
+  const userId = user?.id || 'anonymous';
 
   const calculateROI = useCallback(() => {
     const price = costPrice * (1 + profitMargin / 100);
@@ -55,7 +58,7 @@ const CampaignBuilder: React.FC = () => {
     setGeneratedCampaign(null);
 
     try {
-      const { campaign } = await campaignBuilder(campaignPrompt);
+      const { campaign } = await campaignBuilder(campaignPrompt, userId);
       setGeneratedCampaign(campaign);
       addToast({ type: 'success', title: 'Sucesso!', message: `Campanha "${campaign.name}" criada e salva com sucesso!` });
     } catch (err) {

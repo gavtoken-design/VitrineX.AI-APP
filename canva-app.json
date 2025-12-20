@@ -1,0 +1,42 @@
+{
+  "$schema": "https://www.canva.dev/schemas/app/v1/manifest-schema.json",
+  "manifest_schema_version": 1,
+  "runtime": {
+    "permissions": [
+      {
+        "name": "canva:design:content:read",
+        "type": "mandatory"
+      },
+      {
+        "name": "canva:design:content:write",
+        "type": "mandatory"
+      },
+      {
+        "name": "canva:asset:private:read",
+        "type": "mandatory"
+      },
+      {
+        "name": "canva:asset:private:write",
+        "type": "mandatory"
+      }
+    ]
+  },
+  "name": "VitrineX AI",
+  "tagline": "Automação de Marketing com Inteligência Artificial",
+  "description": "Plataforma completa de automação de marketing com IA. Crie conteúdo, designs, posts para redes sociais, campanhas e muito mais com o poder da inteligência artificial.",
+  "homepageUrl": "https://vitrinex.ai",
+  "privacyPolicyUrl": "https://vitrinex.ai/privacy",
+  "termsOfServiceUrl": "https://vitrinex.ai/terms",
+  "extensions": [
+    {
+      "type": "OBJECT_PANEL",
+      "name": "VitrineX AI - Design Editor",
+      "tagline": "Editor inteligente com IA"
+    }
+  ],
+  "intent": {
+    "design_editor": {
+      "enrolled": true
+    }
+  }
+}

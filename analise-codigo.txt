@@ -1,0 +1,312 @@
+
+ÔØî PROBLEMAS ENCONTRADOS:
+
+- src\App.tsx
+   ÔÇó atribui├º├úo_em_if
+   ÔÇó await_faltando
+   ÔÇó any_excessivo
+   ÔÇó null_undefined_risco
+
+- src\components\features\ArtifactPanel.tsx
+   ÔÇó null_undefined_risco
+
+- src\components\features\AudioVisualizer.tsx
+   ÔÇó atribui├º├úo_em_if
+   ÔÇó null_undefined_risco
+
+- src\components\features\BrandAssetsManager.tsx
+   ÔÇó any_excessivo
+   ÔÇó null_undefined_risco
+
+- src\components\features\ChatInput.tsx
+   ÔÇó null_undefined_risco
+
+- src\components\features\ChatMessage.tsx
+   ÔÇó atribui├º├úo_em_if
+   ÔÇó null_undefined_risco
+
+- src\components\features\InteractiveActionCenter.tsx
+   ÔÇó atribui├º├úo_em_if
+   ÔÇó await_faltando
+   ÔÇó any_excessivo
+   ÔÇó null_undefined_risco
+
+- src\components\features\MediaActionsToolbar.tsx
+   ÔÇó null_undefined_risco
+
+- src\components\features\MultimodalChatInput.tsx
+   ÔÇó atribui├º├úo_em_if
+   ÔÇó null_undefined_risco
+
+- src\components\features\NotificationDropdown.tsx
+   ÔÇó null_undefined_risco
+
+- src\components\features\SaveToLibraryButton.tsx
+   ÔÇó atribui├º├úo_em_if
+   ÔÇó await_faltando
+   ÔÇó null_undefined_risco
+
+- src\components\features\SlashCommandPopover.tsx
+   ÔÇó atribui├º├úo_em_if
+
+- src\components\features\TutorialOverlay.tsx
+   ÔÇó null_undefined_risco
+
+- src\components\features\TypingIndicator.tsx
+   ÔÇó null_undefined_risco
+
+- src\components\features\VoiceoverControl.tsx
+   ÔÇó await_faltando
+   ÔÇó any_excessivo
+   ÔÇó null_undefined_risco
+
+- src\components\layout\BottomNav.tsx
+   ÔÇó atribui├º├úo_em_if
+   ÔÇó null_undefined_risco
+
+- src\components\layout\MobileNavMenu.tsx
+   ÔÇó null_undefined_risco
+
+- src\components\layout\Navbar.tsx
+   ÔÇó null_undefined_risco
+
+- src\components\layout\NavigationItems.tsx
+   ÔÇó null_undefined_risco
+
+- src\components\layout\Sidebar.tsx
+   ÔÇó null_undefined_risco
+
+- src\components\ui\animated-shader-background.tsx
+   ÔÇó null_undefined_risco
+
+- src\components\ui\Button.tsx
+   ÔÇó null_undefined_risco
+
+- src\components\ui\HowToUse.tsx
+   ÔÇó null_undefined_risco
+
+- src\components\ui\Icon.tsx
+   ÔÇó null_undefined_risco
+
+- src\components\ui\Input.tsx
+   ÔÇó null_undefined_risco
+
+- src\components\ui\LoadingSpinner.tsx
+   ÔÇó null_undefined_risco
+
+- src\components\ui\Logo.tsx
+   ÔÇó null_undefined_risco
+
+- src\components\ui\particle-effect-for-hero.tsx
+   ÔÇó null_undefined_risco
+
+- src\components\ui\Skeleton.tsx
+   ÔÇó null_undefined_risco
+
+- src\components\ui\Textarea.tsx
+   ÔÇó null_undefined_risco
+
+- src\components\ui\Toast.tsx
+   ÔÇó null_undefined_risco
+
+- src\constants\chat-animations.ts
+   ÔÇó null_undefined_risco
+
+- src\constants\commemorative-dates.ts
+   ÔÇó null_undefined_risco
+
+- src\constants.ts
+   ÔÇó any_excessivo
+   ÔÇó null_undefined_risco
+
+- src\contexts\AuthContext.tsx
+   ÔÇó atribui├º├úo_em_if
+   ÔÇó await_faltando
+   ÔÇó any_excessivo
+
+- src\contexts\LanguageContext.tsx
+   ÔÇó atribui├º├úo_em_if
+   ÔÇó any_excessivo
+   ÔÇó null_undefined_risco
+
+- src\contexts\NotificationContext.tsx
+   ÔÇó null_undefined_risco
+
+- src\contexts\ThemeContext.tsx
+   ÔÇó atribui├º├úo_em_if
+   ÔÇó null_undefined_risco
+
+- src\contexts\ToastContext.tsx
+   ÔÇó atribui├º├úo_em_if
+   ÔÇó null_undefined_risco
+
+- src\contexts\TutorialContext.tsx
+   ÔÇó atribui├º├úo_em_if
+   ÔÇó null_undefined_risco
+
+- src\core\hiddenSources\sources.ts
+   ÔÇó null_undefined_risco
+
+- src\hooks\useDownloader.ts
+   ÔÇó atribui├º├úo_em_if
+
+- src\hooks\useMediaActions.ts
+   ÔÇó await_faltando
+
+- src\hooks\useNavigate.ts
+   ÔÇó atribui├º├úo_em_if
+   ÔÇó console_log
+   ÔÇó null_undefined_risco
+
+- src\hooks\useQueries.ts
+   ÔÇó await_faltando
+
+- src\i18n\translations.ts
+   ÔÇó null_undefined_risco
+
+- src\index.tsx
+   ÔÇó null_undefined_risco
+
+- src\pages\AdStudio.tsx
+   ÔÇó await_faltando
+   ÔÇó null_undefined_risco
+
+- src\pages\AudioTools.tsx
+   ÔÇó await_faltando
+   ÔÇó any_excessivo
+   ÔÇó null_undefined_risco
+
+- src\pages\CalendarManager.tsx
+   ÔÇó atribui├º├úo_em_if
+   ÔÇó null_undefined_risco
+
+- src\pages\CampaignBuilder.tsx
+   ÔÇó await_faltando
+   ÔÇó null_undefined_risco
+
+- src\pages\CodeAudit.tsx
+   ÔÇó null_undefined_risco
+
+- src\pages\CodePlayground.tsx
+   ÔÇó atribui├º├úo_em_if
+   ÔÇó await_faltando
+   ÔÇó any_excessivo
+   ÔÇó null_undefined_risco
+
+- src\pages\ContentGenerator.tsx
+   ÔÇó atribui├º├úo_em_if
+   ÔÇó await_faltando
+   ÔÇó null_undefined_risco
+
+- src\pages\ContentLibrary.tsx
+   ÔÇó atribui├º├úo_em_if
+   ÔÇó await_faltando
+   ÔÇó null_undefined_risco
+
+- src\pages\CreativeStudio.tsx
+   ÔÇó atribui├º├úo_em_if
+   ÔÇó await_faltando
+   ÔÇó any_excessivo
+   ÔÇó null_undefined_risco
+
+- src\pages\Dashboard.tsx
+   ÔÇó await_faltando
+   ÔÇó any_excessivo
+   ÔÇó null_undefined_risco
+
+- src\pages\LandingPage.tsx
+   ÔÇó null_undefined_risco
+
+- src\pages\Settings.tsx
+   ÔÇó await_faltando
+   ÔÇó any_excessivo
+   ÔÇó null_undefined_risco
+
+- src\pages\SmartScheduler.tsx
+   ÔÇó await_faltando
+   ÔÇó null_undefined_risco
+
+- src\pages\TrendHunter.tsx
+   ÔÇó atribui├º├úo_em_if
+   ÔÇó await_faltando
+   ÔÇó null_undefined_risco
+
+- src\services\ai\antigravity.ts
+   ÔÇó any_excessivo
+   ÔÇó null_undefined_risco
+
+- src\services\ai\audio.ts
+   ÔÇó await_faltando
+   ÔÇó console_log
+   ÔÇó any_excessivo
+   ÔÇó null_undefined_risco
+
+- src\services\ai\gemini.ts
+   ÔÇó any_excessivo
+   ÔÇó null_undefined_risco
+
+- src\services\ai\image.ts
+   ÔÇó atribui├º├úo_em_if
+   ÔÇó any_excessivo
+   ÔÇó null_undefined_risco
+
+- src\services\ai\knowledge.ts
+   ÔÇó any_excessivo
+
+- src\services\ai\text.ts
+   ÔÇó any_excessivo
+   ÔÇó null_undefined_risco
+
+- src\services\ai\tools.ts
+   ÔÇó any_excessivo
+   ÔÇó null_undefined_risco
+
+- src\services\ai\video.ts
+   ÔÇó any_excessivo
+
+- src\services\calendar\index.ts
+   ÔÇó null_undefined_risco
+
+- src\services\core\api.ts
+   ÔÇó await_faltando
+   ÔÇó any_excessivo
+
+- src\services\core\auth.ts
+   ÔÇó await_faltando
+   ÔÇó any_excessivo
+
+- src\services\core\db.ts
+   ÔÇó atribui├º├úo_em_if
+   ÔÇó any_excessivo
+   ÔÇó null_undefined_risco
+
+- src\services\integrations\drive.ts
+   ÔÇó console_log
+
+- src\services\learning.ts
+   ÔÇó await_faltando
+
+- src\services\media\storage.ts
+   ÔÇó console_log
+   ÔÇó null_undefined_risco
+
+- src\services\notifications\index.ts
+   ÔÇó atribui├º├úo_em_if
+   ÔÇó any_excessivo
+   ÔÇó null_undefined_risco
+
+- src\types.ts
+   ÔÇó any_excessivo
+
+- src\utils\imageProcessing.ts
+   ÔÇó null_undefined_risco
+
+- src\utils\mediaUtils.ts
+   ÔÇó await_faltando
+   ÔÇó null_undefined_risco
+
+- src\utils\secureStorage.ts
+   ÔÇó any_excessivo
+   ÔÇó null_undefined_risco
+
+Revis├úo finalizada. Corrija isso antes de tentar debugar comportamento.
