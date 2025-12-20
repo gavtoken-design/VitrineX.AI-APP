@@ -74,9 +74,17 @@ const InteractiveActionCenter: React.FC = () => {
         case 'image_generation':
           // Logic mapping to adjust_module_settings -> image_generation
           const imagePrompt = style ? `${prompt}, estilo ${style}` : prompt;
-          const imgRes = await generateImage(imagePrompt, { imageSize: size as any });
-          outputUrl = imgRes.imageUrl;
-          outputText = imgRes.text || 'Imagem gerada com sucesso.';
+          const imageResponse = await generateImage(imagePrompt, { numberOfImages: 1 });
+
+          if (imageResponse.type === 'error') {
+            setError(imageResponse.message);
+            outputText = imageResponse.message;
+          } else if (imageResponse.type === 'image') {
+            outputUrl = imageResponse.imageUrl;
+            outputText = 'Imagem gerada com sucesso.';
+          } else if (imageResponse.type === 'text') {
+            outputText = imageResponse.text;
+          }
           break;
 
         case 'audio_generation':

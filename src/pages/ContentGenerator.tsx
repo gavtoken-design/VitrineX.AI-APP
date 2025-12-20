@@ -269,7 +269,7 @@ ${avatar.buyingBehavior}
       } else {
         fullPrompt = `Generate a compelling social media post (text only) for: "${prompt}". Include relevant hashtags.`;
       }
-      
+
       if (targetAudience !== 'general') {
         fullPrompt += ` The target audience is ${targetAudience}.`;
       }
@@ -304,7 +304,13 @@ ${avatar.buyingBehavior}
         setLoadingImages(prev => [...prev, post.id]);
         try {
           const imageResponse = await generateImage(post.content_text.substring(0, 150), { model: GEMINI_IMAGE_MODEL });
-          let finalImageUrl = imageResponse.imageUrl || PLACEHOLDER_IMAGE_BASE64;
+
+          let finalImageUrl = PLACEHOLDER_IMAGE_BASE64;
+          if (imageResponse.type === 'image') {
+            finalImageUrl = imageResponse.imageUrl;
+          } else if (imageResponse.type === 'error') {
+            console.error(`Post ${post.id} image generation error:`, imageResponse.message);
+          }
 
           if (finalImageUrl.startsWith('data:') && user) {
             const res = await fetch(finalImageUrl);
@@ -358,8 +364,14 @@ ${avatar.buyingBehavior}
     try {
       const imageDescription = `An alternative image for: "${postToUpdate.content_text.substring(0, 100)}..."`;
       const imageResponse = await generateImage(imageDescription, { model: GEMINI_IMAGE_MODEL });
-      let finalImageUrl = imageResponse.imageUrl || PLACEHOLDER_IMAGE_BASE64;
-      
+
+      let finalImageUrl = PLACEHOLDER_IMAGE_BASE64;
+      if (imageResponse.type === 'image') {
+        finalImageUrl = imageResponse.imageUrl;
+      } else if (imageResponse.type === 'error') {
+        throw new Error(imageResponse.message);
+      }
+
       if (finalImageUrl.startsWith('data:') && user) {
         const res = await fetch(finalImageUrl);
         const blob = await res.blob();
@@ -447,7 +459,7 @@ ${avatar.buyingBehavior}
           </Button>
         </div>
       </div>
-      
+
       {loadingText && <div className="flex justify-center"><LoadingSpinner /></div>}
       {generatedPosts.length > 0 && (
         <div className="space-y-8">
@@ -526,7 +538,7 @@ ${avatar.buyingBehavior}
         </div>
       )}
 
-       <div className="bg-lightbg p-6 rounded-lg shadow-sm border border-gray-800 mb-8 mt-8">
+      <div className="bg-lightbg p-6 rounded-lg shadow-sm border border-gray-800 mb-8 mt-8">
         <h3 className="text-xl font-semibold text-textlight mb-4">Perfis de Avatar</h3>
         <p className="text-muted text-sm mb-4">Gere 4 personas distintas de compradores baseadas na tendência acima</p>
         <Button
@@ -571,13 +583,13 @@ ${avatar.buyingBehavior}
                   <div>
                     <strong className="text-textlight">Interesses:</strong>
                     <ul className="list-disc list-inside text-muted">
-                      {avatar.interests.map((interest, i) => ( <li key={i}>{interest}</li> ))}
+                      {avatar.interests.map((interest, i) => (<li key={i}>{interest}</li>))}
                     </ul>
                   </div>
                   <div>
                     <strong className="text-textlight">Dores:</strong>
                     <ul className="list-disc list-inside text-muted">
-                      {avatar.painPoints.map((pain, i) => ( <li key={i}>{pain}</li> ))}
+                      {avatar.painPoints.map((pain, i) => (<li key={i}>{pain}</li>))}
                     </ul>
                   </div>
                   <div>
@@ -590,34 +602,34 @@ ${avatar.buyingBehavior}
           </div>
         )}
       </div>
-      
-    <div className="bg-lightbg p-6 rounded-lg shadow-sm border border-gray-800 mb-8" >
+
+      <div className="bg-lightbg p-6 rounded-lg shadow-sm border border-gray-800 mb-8" >
         <h3 className="text-xl font-semibold text-textlight mb-4">Análise de Perfil</h3>
         <p className="text-muted text-sm mb-4">Cole um texto e a IA identificará o perfil do avatar</p>
         <Textarea
-            id="profileAnalysisText"
-            label=""
-            value={profileAnalysisText}
-            onChange={(e) => setProfileAnalysisText(e.target.value)}
-            rows={4}
-            placeholder="Cole aqui um texto, post ou descrição para identificar o perfil da persona..."
-            className="mb-3"
+          id="profileAnalysisText"
+          label=""
+          value={profileAnalysisText}
+          onChange={(e) => setProfileAnalysisText(e.target.value)}
+          rows={4}
+          placeholder="Cole aqui um texto, post ou descrição para identificar o perfil da persona..."
+          className="mb-3"
         />
         <Button
-            onClick={analyzeProfile}
-            isLoading={loadingProfileAnalysis}
-            variant="secondary"
+          onClick={analyzeProfile}
+          isLoading={loadingProfileAnalysis}
+          variant="secondary"
         >
-            {loadingProfileAnalysis ? 'Analisando...' : 'Analisar Perfil'}
+          {loadingProfileAnalysis ? 'Analisando...' : 'Analisar Perfil'}
         </Button>
 
         {profileAnalysisResult && (
-            <div className="bg-surface p-4 rounded-lg border border-border mt-4">
-                <h4 className="font-semibold text-textlight mb-2">Resultado da Análise:</h4>
-                <pre className="text-sm text-muted whitespace-pre-wrap">{profileAnalysisResult}</pre>
-            </div>
+          <div className="bg-surface p-4 rounded-lg border border-border mt-4">
+            <h4 className="font-semibold text-textlight mb-2">Resultado da Análise:</h4>
+            <pre className="text-sm text-muted whitespace-pre-wrap">{profileAnalysisResult}</pre>
+          </div>
         )}
-    </div>
+      </div>
 
       {creativeIdeas.length > 0 && selectedAvatar && (
         <div className="bg-lightbg p-6 rounded-lg shadow-sm border border-gray-800 mb-8 animate-slide-in-from-bottom">

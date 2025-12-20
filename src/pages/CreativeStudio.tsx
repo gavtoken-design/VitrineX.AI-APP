@@ -157,11 +157,18 @@ const CreativeStudio: React.FC = () => {
 
     try {
       const response = await generateImage(prompt, {
-        model: IMAGEN_ULTRA_MODEL, // Ultra quality generation
-        aspectRatio: imageAspectRatio,
-        imageSize: imageSize,
+        model: IMAGEN_ULTRA_MODEL,
+        aspectRatio: imageAspectRatio as any,
+        numberOfImages: 1,
       });
-      if (!response.imageUrl) throw new Error('A API não retornou imagem.');
+
+      if (response.type === 'error') throw new Error(response.message);
+      if (response.type === 'text') {
+        setGeneratedAnalysis(response.text);
+        return;
+      }
+
+      if (response.type !== 'image' || !response.imageUrl) throw new Error('A API não retornou imagem.');
       let finalImageUrl = response.imageUrl;
 
       // Upload to Storage if Base64 and User is logged in
@@ -230,7 +237,14 @@ const CreativeStudio: React.FC = () => {
         // PASSO 1: Analisar a imagem carregada
         addToast({ type: 'info', message: 'Analisando imagem...' });
         const analysisPrompt = `Analise esta imagem em detalhes: elementos visuais, cores, composição, estilo, objetos presentes.`;
-        const imageAnalysis = await analyzeImage(base64Data, mimeType, analysisPrompt);
+        const analysisResponse = await analyzeImage(base64Data, mimeType, analysisPrompt);
+
+        let imageAnalysis = '';
+        if (analysisResponse.type === 'text') {
+          imageAnalysis = analysisResponse.text;
+        } else if (analysisResponse.type === 'error') {
+          throw new Error(analysisResponse.message);
+        }
 
         // PASSO 2: Criar prompt enriquecido com análise + instrução do usuário
         const enrichedPrompt = `Baseado nesta análise da imagem original:
@@ -244,15 +258,17 @@ Crie uma nova imagem que atenda à instrução do usuário, mantendo coerência 
         addToast({ type: 'info', message: 'Gerando nova imagem...' });
         const response = await generateImage(enrichedPrompt, {
           model: IMAGEN_ULTRA_MODEL,
-          aspectRatio: imageAspectRatio,
-          imageSize: imageSize,
+          aspectRatio: imageAspectRatio as any,
+          numberOfImages: 1,
         });
 
-        if (!response.imageUrl) throw new Error('Falha na geração da imagem.');
+        if (response.type === 'error') throw new Error(response.message);
+        if (response.type !== 'image' || !response.imageUrl) throw new Error('Falha na geração da imagem.');
+
         let finalEditedUrl = response.imageUrl;
 
         // Upload if Base64
-        if (response.imageUrl && response.imageUrl.startsWith('data:') && user) {
+        if (response.imageUrl.startsWith('data:') && user) {
           try {
             const res = await fetch(response.imageUrl);
             const blob = await res.blob();
@@ -317,8 +333,14 @@ Crie uma nova imagem que atenda à instrução do usuário, mantendo coerência 
       const analysisPrompt = prompt.trim();
 
       try {
-        const analysis = await analyzeImage(base64Data, file.type, analysisPrompt);
-        setGeneratedAnalysis(analysis);
+        const mimeTypeToUse = file.type;
+        const response = await analyzeImage(base64Data, mimeTypeToUse, analysisPrompt);
+        if (response.type === 'error') throw new Error(response.message);
+        if (response.type === 'text') {
+          setGeneratedAnalysis(response.text);
+        } else if (response.type === 'image') {
+          setGeneratedMediaUrl(response.imageUrl);
+        }
         addToast({ type: 'success', message: 'Análise concluída.' });
       } catch (err) {
         setError(getFriendlyErrorMessage(err, 'análise'));
@@ -333,8 +355,9 @@ Crie uma nova imagem que atenda à instrução do usuário, mantendo coerência 
     if (!generatedMediaUrl) return;
     setLoading(true);
     try {
-      const response = await editImage("Remove the background completely, leaving only the main subject on a transparent-looking or solid white background.", generatedMediaUrl, IMAGEN_ULTRA_MODEL);
-      if (response.imageUrl) setGeneratedMediaUrl(response.imageUrl);
+      const response = await editImage("Remove the background completely, leaving only the main subject on a transparent-looking or solid white background.", generatedMediaUrl, 'image/png', { model: IMAGEN_ULTRA_MODEL });
+      if (response.type === 'image') setGeneratedMediaUrl(response.imageUrl);
+      else if (response.type === 'error') throw new Error(response.message);
       addToast({ type: 'success', message: 'Fundo removido!' });
     } catch (e) {
       addToast({ type: 'error', message: 'Erro ao remover fundo.' });
@@ -351,8 +374,9 @@ Crie uma nova imagem que atenda à instrução do usuário, mantendo coerência 
     setLoading(true);
     try {
       const editPrompt = `Replace the main subject with: ${prompt}. Keep the same style, lighting and background.`;
-      const response = await editImage(editPrompt, generatedMediaUrl, IMAGEN_ULTRA_MODEL);
-      if (response.imageUrl) setGeneratedMediaUrl(response.imageUrl);
+      const response = await editImage(editPrompt, generatedMediaUrl, 'image/png', { model: IMAGEN_ULTRA_MODEL });
+      if (response.type === 'image') setGeneratedMediaUrl(response.imageUrl);
+      else if (response.type === 'error') throw new Error(response.message);
       addToast({ type: 'success', message: 'Personagem trocado!' });
     } catch (e) {
       addToast({ type: 'error', message: 'Erro ao trocar personagem.' });
@@ -365,8 +389,9 @@ Crie uma nova imagem que atenda à instrução do usuário, mantendo coerência 
     if (!generatedMediaUrl) return;
     setLoading(true);
     try {
-      const response = await editImage("Create a variation of this image with slightly different composition but same style and subject.", generatedMediaUrl, IMAGEN_ULTRA_MODEL);
-      if (response.imageUrl) setGeneratedMediaUrl(response.imageUrl);
+      const response = await editImage("Create a variation of this image with slightly different composition but same style and subject.", generatedMediaUrl, 'image/png', { model: IMAGEN_ULTRA_MODEL });
+      if (response.type === 'image') setGeneratedMediaUrl(response.imageUrl);
+      else if (response.type === 'error') throw new Error(response.message);
       addToast({ type: 'success', message: 'Variação gerada!' });
     } catch (e) {
       addToast({ type: 'error', message: 'Erro ao gerar variação.' });

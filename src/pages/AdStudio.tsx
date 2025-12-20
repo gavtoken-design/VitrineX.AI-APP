@@ -99,13 +99,18 @@ const AdStudio: React.FC = () => {
       const imageResponse = await generateImage(adData.visual_description, {
         model: IMAGEN_ULTRA_MODEL,
         aspectRatio: '1:1', // Common for most platforms
-        imageSize: '1K',
+        numberOfImages: 1,
       });
 
-      let finalImageUrl = imageResponse.imageUrl || PLACEHOLDER_IMAGE_BASE64;
+      let finalImageUrl = PLACEHOLDER_IMAGE_BASE64;
+      if (imageResponse.type === 'image') {
+        finalImageUrl = imageResponse.imageUrl;
+      } else if (imageResponse.type === 'error') {
+        console.error("Ad image generation error:", imageResponse.message);
+      }
 
       // Upload if Base64 and User Logged In
-      if (imageResponse.imageUrl && imageResponse.imageUrl.startsWith('data:') && user) {
+      if (imageResponse.type === 'image' && imageResponse.imageUrl.startsWith('data:') && user) {
         try {
           const res = await fetch(imageResponse.imageUrl);
           const blob = await res.blob();
