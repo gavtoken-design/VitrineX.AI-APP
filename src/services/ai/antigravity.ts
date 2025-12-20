@@ -21,6 +21,10 @@ export interface AntigravityResult {
         inputSize: number;
         outputSize: number;
     };
+    verification?: {
+        status: 'pending' | 'clean' | 'errors_found';
+        details?: string;
+    };
     error?: string;
 }
 
@@ -116,11 +120,30 @@ REGRAS TOTAIS:
                 .replace(/\/\/.*(?:assuming|maybe|for now|talvez|provavelmente).*/gi, '')
                 .trim();
 
+            // DUPLA VERIFICAÇÃO (Requisito: Verificar ajuste novamente)
+            // Apenas para fixSafe bem-sucedido e se não for uma chamada recursiva
+            let verificationStatus: 'clean' | 'errors_found' = 'clean';
+            let verificationDetails = '';
+
+            try {
+                const secondPass = await sanitizarCodigoAntigravit(cleanedOutput, {
+                    ...options,
+                    mode: 'scanOnly'
+                });
+
+                if (secondPass.success && secondPass.output.length > 10) {
+                    verificationStatus = 'errors_found';
+                    verificationDetails = secondPass.output;
+                }
+            } catch (vErr) {
+                console.warn("[Antigravit] Falha no segundo passe de verificação:", vErr);
+            }
+
             const endTime = Date.now();
             const duration = endTime - startTime;
 
             // Audit Log (Regra 11)
-            console.info(`[Antigravit] ${mode} | ${language} | ${duration}ms | In: ${codigo.length} | Out: ${cleanedOutput.length}`);
+            console.info(`[Antigravit] ${mode} | ${language} | ${duration}ms | Verification: ${verificationStatus}`);
 
             return {
                 success: true,
@@ -131,6 +154,10 @@ REGRAS TOTAIS:
                     modelUsed: modelToUse,
                     inputSize: codigo.length,
                     outputSize: cleanedOutput.length
+                },
+                verification: {
+                    status: verificationStatus,
+                    details: verificationDetails
                 }
             };
         } else {

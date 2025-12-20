@@ -9,10 +9,11 @@ export default function CanvaEmbedButton() {
     return (
         <>
             <button
-                className="px-4 py-2 bg-indigo-600 text-white rounded"
+                className="px-3 py-1.5 md:px-4 md:py-2 bg-indigo-600 text-white rounded text-xs md:text-sm font-medium transition-all hover:bg-indigo-700 whitespace-nowrap"
                 onClick={open}
             >
-                Criar design no Canva
+                <span className="hidden md:inline">Criar design no Canva</span>
+                <span className="md:hidden">Canva</span>
             </button>
 
             {show && (
