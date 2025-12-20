@@ -12,6 +12,7 @@ import {
     CheckCircleIcon
 } from '@heroicons/react/24/outline';
 import { BellIcon as BellIconSolid } from '@heroicons/react/24/solid';
+import { LiquidGlassCard } from '../ui/LiquidGlassCard';
 
 const NotificationDropdown: React.FC = () => {
     const {
@@ -151,51 +152,60 @@ const NotificationDropdown: React.FC = () => {
                                     <p className="text-sm text-muted mt-1">Você não tem novas notificações.</p>
                                 </div>
                             ) : (
-                                <ul className="divide-y divide-border">
+                                <div className="space-y-3 p-2">
                                     {notifications.map((notification) => (
-                                        <li
+                                        <LiquidGlassCard
                                             key={notification.id}
-                                            className={`relative group transition-colors hover:bg-background/80 ${!notification.read ? 'bg-primary/5' : ''
-                                                }`}
+                                            className="group relative overflow-hidden transition-all hover:scale-[1.02]"
+                                            blurIntensity="md"
+                                            glowIntensity="xs"
+                                            shadowIntensity="sm"
+                                            borderRadius="16px"
+                                            onClick={() => handleNotificationClick(notification)}
                                         >
-                                            <div
-                                                className="p-4 pr-10 cursor-pointer"
-                                                onClick={() => handleNotificationClick(notification)}
-                                            >
-                                                <div className="flex gap-3 items-start">
-                                                    <div className={`mt-1 p-1.5 rounded-full bg-background border border-border flex-shrink-0 ${!notification.read ? 'ring-2 ring-primary/20' : ''
-                                                        }`}>
+                                            <div className={`relative flex items-center p-3 z-10 ${!notification.read ? 'bg-primary/5' : ''}`}>
+                                                {/* Icon Container */}
+                                                <div className="flex-shrink-0 mr-3">
+                                                    <div className={`p-2 rounded-xl bg-background/50 border border-white/10 ${!notification.read ? 'ring-1 ring-primary/30' : ''}`}>
                                                         {getIcon(notification.type)}
                                                     </div>
-                                                    <div className="flex-1 min-w-0">
-                                                        <p className={`text-sm font-medium mb-0.5 ${!notification.read ? 'text-title' : 'text-body'}`}>
-                                                            {notification.title}
-                                                        </p>
-                                                        <p className="text-xs text-muted leading-relaxed line-clamp-2">
-                                                            {notification.message}
-                                                        </p>
-                                                        <p className="text-[10px] text-muted/80 mt-2 flex items-center gap-1">
-                                                            {formatDate(notification.timestamp)}
-                                                            {!notification.read && (
-                                                                <span className="w-1.5 h-1.5 rounded-full bg-primary ml-1"></span>
-                                                            )}
-                                                        </p>
+                                                </div>
+
+                                                {/* Content */}
+                                                <div className="flex-grow pr-3 min-w-0">
+                                                    <div className={`text-sm font-semibold ${!notification.read ? 'text-white' : 'text-white/80'}`}>
+                                                        {notification.title}
+                                                    </div>
+                                                    <div className="text-xs text-white/60 line-clamp-2 mt-0.5">
+                                                        {notification.message}
                                                     </div>
                                                 </div>
+
+                                                {/* Time & Actions */}
+                                                <div className="flex-shrink-0 flex flex-col items-end justify-between self-stretch py-0.5">
+                                                    <div className="text-[10px] text-white/40 font-medium">
+                                                        {formatDate(notification.timestamp)}
+                                                    </div>
+
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            clearNotification(notification.id);
+                                                        }}
+                                                        className="p-1.5 text-white/30 hover:text-red-400 hover:bg-white/5 rounded-full opacity-0 group-hover:opacity-100 transition-all"
+                                                        title="Remover"
+                                                    >
+                                                        <XMarkIcon className="w-3.5 h-3.5" />
+                                                    </button>
+                                                </div>
+
+                                                {!notification.read && (
+                                                    <div className="absolute top-1/2 right-0 -translate-y-1/2 w-1 h-8 bg-primary/50 rounded-l-full blur-[2px]" />
+                                                )}
                                             </div>
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    clearNotification(notification.id);
-                                                }}
-                                                className="absolute top-2 right-2 p-1.5 text-muted hover:text-red-400 hover:bg-red-400/10 rounded-full opacity-0 group-hover:opacity-100 transition-all"
-                                                title="Remover"
-                                            >
-                                                <XMarkIcon className="w-4 h-4" />
-                                            </button>
-                                        </li>
+                                        </LiquidGlassCard>
                                     ))}
-                                </ul>
+                                </div>
                             )}
                         </div>
                     </div>

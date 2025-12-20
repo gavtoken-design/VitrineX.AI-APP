@@ -17,6 +17,7 @@ interface LiquidGlassCardProps {
     shadowIntensity?: 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl';
     borderRadius?: string;
     glowIntensity?: 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+    onClick?: (event: React.MouseEvent<HTMLDivElement>) => void;
 }
 
 export const LiquidGlassCard = ({
