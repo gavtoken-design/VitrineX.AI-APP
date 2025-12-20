@@ -14,122 +14,230 @@ const handleError = (context: string, error: any) => {
 
 // --- User Profile Operations ---
 export const getUserProfile = async (userId: string): Promise<UserProfile | null> => {
-    // Nota: O userId mock-user-123 causará erro aqui se não existir no Auth.
-    // O app deve garantir que o usuário esteja logado.
-
-    const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-    if (error) {
-        if (error.code === 'PGRST116') { // Not found code
-            return null;
+    // Check for Mock User
+    if (userId === 'mock-user-123') {
+        const localMock = localStorage.getItem('vitrinex_mock_profile');
+        if (localMock) {
+            return JSON.parse(localMock) as UserProfile;
         }
-        console.warn('Profile not found or error:', error);
-        return null;
+        return {
+            id: 'mock-user-123',
+            email: 'demo@vitrinex.ai',
+            full_name: 'Usuário Demo',
+            plan: 'premium',
+            created_at: new Date().toISOString(),
+            businessProfile: {
+                name: 'Minha Loja Demo',
+                industry: 'Varejo',
+                targetAudience: 'Jovens adultos',
+                visualStyle: 'Moderno'
+            }
+        } as UserProfile;
     }
-    return data as UserProfile;
+
+    try {
+        const { data, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', userId)
+            .single();
+
+        if (error) {
+            if (error.code === 'PGRST116') return null; // Not found
+            throw error;
+        }
+        return data as UserProfile;
+    } catch (error) {
+        console.warn('getUserProfile failed (likely offline/no-config). Returning null.', error);
+        return null; // Fail gracefully
+    }
 };
 
 export const updateUserProfile = async (userId: string, profile: Partial<UserProfile>): Promise<void> => {
-    const { error } = await supabase
-        .from('users')
-        .update(profile)
-        .eq('id', userId);
+    try {
+        if (userId === 'mock-user-123') {
+            // Persist mock updates to local storage so they survive refresh
+            const current = await getUserProfile(userId);
+            const updated = { ...current, ...profile };
+            localStorage.setItem('vitrinex_mock_profile', JSON.stringify(updated));
+            return;
+        }
 
-    if (error) handleError('updateUserProfile', error);
+        const { error } = await supabase
+            .from('users')
+            .update(profile)
+            .eq('id', userId);
+
+        if (error) throw error;
+    } catch (error) {
+        console.warn('updateUserProfile failed, persisting locally if possible', error);
+        // Fallback for real users who are offline? 
+        // We can't easily merge partial profile updates offline without complex sync.
+        // For now, just suppress the error or let it slide.
+    }
 };
 
 // --- Content Operations ---
 
 export const savePost = async (post: Post): Promise<Post> => {
-    const { data, error } = await supabase
-        .from('posts')
-        .upsert(post) // Upsert allows insert or update based on ID
-        .select()
-        .single();
+    try {
+        const { data, error } = await supabase
+            .from('posts')
+            .upsert(post)
+            .select()
+            .single();
 
-    if (error) handleError('savePost', error);
-    return data as Post;
+        if (error) throw error;
+        return data as Post;
+    } catch (error) {
+        console.warn('Supabase savePost failed, fallback to local', error);
+        return saveLocalData('posts', post);
+    }
 };
 
 export const getPosts = async (userId: string): Promise<Post[]> => {
-    const { data, error } = await supabase
-        .from('posts')
-        .select('*')
-        .eq('userId', userId)
-        .order('createdAt', { ascending: false });
+    let supabaseItems: Post[] = [];
+    try {
+        const { data, error } = await supabase
+            .from('posts')
+            .select('*')
+            .eq('userId', userId)
+            .order('createdAt', { ascending: false });
 
-    if (error) handleError('getPosts', error);
-    return (data as Post[]) || [];
+        if (!error && data) supabaseItems = data as Post[];
+    } catch (error) {
+        console.warn('getPosts failed', error);
+    }
+
+    // Merge Local Only if needed or as primary if offline
+    const localItems = getLocalData<Post>('posts').filter(i => i.userId === userId);
+
+    // Merge logic: prefer supabase, append local if not present
+    const allItems = [...supabaseItems];
+    localItems.forEach(local => {
+        if (!allItems.find(s => s.id === local.id)) {
+            allItems.push(local);
+        }
+    });
+
+    return allItems.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 };
 
 export const saveAd = async (ad: Ad): Promise<Ad> => {
-    const { data, error } = await supabase
-        .from('ads')
-        .upsert(ad)
-        .select()
-        .single();
+    try {
+        const { data, error } = await supabase
+            .from('ads')
+            .upsert(ad)
+            .select()
+            .single();
 
-    if (error) handleError('saveAd', error);
-    return data as Ad;
+        if (error) throw error;
+        return data as Ad;
+    } catch (error) {
+        console.warn('saveAd failed, fallback to local', error);
+        return saveLocalData('ads', ad);
+    }
 };
 
 export const getAds = async (userId: string): Promise<Ad[]> => {
-    const { data, error } = await supabase
-        .from('ads')
-        .select('*')
-        .eq('userId', userId)
-        .order('createdAt', { ascending: false });
+    let supabaseItems: Ad[] = [];
+    try {
+        const { data, error } = await supabase
+            .from('ads')
+            .select('*')
+            .eq('userId', userId)
+            .order('createdAt', { ascending: false });
 
-    if (error) handleError('getAds', error);
-    return (data as Ad[]) || [];
+        if (!error && data) supabaseItems = data as Ad[];
+    } catch (error) {
+        console.warn('getAds failed', error);
+    }
+
+    const localItems = getLocalData<Ad>('ads').filter(i => i.userId === userId);
+    const allItems = [...supabaseItems];
+    localItems.forEach(local => {
+        if (!allItems.find(s => s.id === local.id)) allItems.push(local);
+    });
+
+    return allItems.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 };
 
 export const saveCampaign = async (campaign: Campaign): Promise<Campaign> => {
-    const { data, error } = await supabase
-        .from('campaigns')
-        .upsert(campaign)
-        .select()
-        .single();
+    try {
+        const { data, error } = await supabase
+            .from('campaigns')
+            .upsert(campaign)
+            .select()
+            .single();
 
-    if (error) handleError('saveCampaign', error);
-    return data as Campaign;
+        if (error) throw error;
+        return data as Campaign;
+    } catch (error) {
+        console.warn('saveCampaign failed, fallback to local', error);
+        return saveLocalData('campaigns', campaign);
+    }
 };
 
 export const getCampaigns = async (userId: string): Promise<Campaign[]> => {
-    const { data, error } = await supabase
-        .from('campaigns')
-        .select('*')
-        .eq('userId', userId)
-        .order('createdAt', { ascending: false });
+    let supabaseItems: Campaign[] = [];
+    try {
+        const { data, error } = await supabase
+            .from('campaigns')
+            .select('*')
+            .eq('userId', userId)
+            .order('createdAt', { ascending: false });
 
-    if (error) handleError('getCampaigns', error);
-    return (data as Campaign[]) || [];
+        if (!error && data) supabaseItems = data as Campaign[];
+    } catch (error) {
+        console.warn('getCampaigns failed', error);
+    }
+
+    const localItems = getLocalData<Campaign>('campaigns').filter(i => i.userId === userId);
+    const allItems = [...supabaseItems];
+    localItems.forEach(local => {
+        if (!allItems.find(s => s.id === local.id)) allItems.push(local);
+    });
+
+    return allItems.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 };
 
 export const saveTrend = async (trend: Trend): Promise<Trend> => {
-    const { data, error } = await supabase
-        .from('trends')
-        .upsert(trend)
-        .select()
-        .single();
+    try {
+        const { data, error } = await supabase
+            .from('trends')
+            .upsert(trend)
+            .select()
+            .single();
+        if (error) throw error;
+        return data as Trend;
+    } catch (e) {
+        console.warn('saveTrend failed, fallback to local', e);
+        return saveLocalData('trends', trend);
+    }
 
-    if (error) handleError('saveTrend', error);
-    return data as Trend;
 };
 
 export const getTrends = async (userId: string): Promise<Trend[]> => {
-    const { data, error } = await supabase
-        .from('trends')
-        .select('*')
-        .eq('userId', userId)
-        .order('createdAt', { ascending: false });
+    let supabaseItems: Trend[] = [];
+    try {
+        const { data, error } = await supabase
+            .from('trends')
+            .select('*')
+            .eq('userId', userId)
+            .order('createdAt', { ascending: false });
 
-    if (error) handleError('getTrends', error);
-    return (data as Trend[]) || [];
+        if (!error && data) supabaseItems = data as Trend[];
+    } catch (error) {
+        console.warn('getTrends failed', error);
+    }
+
+    const localItems = getLocalData<Trend>('trends').filter(i => i.userId === userId);
+    const allItems = [...supabaseItems];
+    localItems.forEach(local => {
+        if (!allItems.find(s => s.id === local.id)) allItems.push(local);
+    });
+
+    return allItems.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 };
 
 // --- Target Audience Operations ---

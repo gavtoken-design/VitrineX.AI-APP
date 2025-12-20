@@ -6,7 +6,7 @@ import type {
 } from "@canva/intents/data";
 import { AppUiProvider } from "@canva/app-ui-kit";
 import { createRoot } from "react-dom/client";
-import { SelectionUI } from "./selection_ui";
+import SelectionUI from "./selection_ui";
 import "@canva/app-ui-kit/styles.css";
 import { getRealEstateData } from "./data";
 

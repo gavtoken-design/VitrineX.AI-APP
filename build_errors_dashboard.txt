@@ -1,0 +1,84 @@
+node_modules/@supabase/supabase-js/dist/index.d.cts(176,46): error TS2304: Cannot find name 'InternalSupabaseKey'.
+node_modules/@tanstack/query-core/build/legacy/focusManager.d.ts(6,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+node_modules/@tanstack/query-core/build/legacy/hydration-DksKBgQq.d.ts(9,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+node_modules/@tanstack/query-core/build/legacy/hydration-DksKBgQq.d.ts(115,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+node_modules/@tanstack/query-core/build/legacy/hydration-DksKBgQq.d.ts(156,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+node_modules/@tanstack/query-core/build/legacy/hydration-DksKBgQq.d.ts(205,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+node_modules/@tanstack/query-core/build/legacy/hydration-DksKBgQq.d.ts(266,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+node_modules/@tanstack/query-core/build/legacy/hydration-DksKBgQq.d.ts(424,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+node_modules/@tanstack/query-core/build/legacy/hydration-DksKBgQq.d.ts(441,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+node_modules/@tanstack/query-core/build/legacy/onlineManager.d.ts(6,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+node_modules/@tanstack/query-core/build/legacy/queriesObserver.d.ts(11,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+node_modules/@tanstack/query-core/build/legacy/removable.d.ts(2,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+node_modules/@tanstack/query-core/build/legacy/timeoutManager.d.ts(41,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+node_modules/framer-motion/dist/types.d-DagZKalS.d.ts(33,11): error TS2320: Interface 'MotionStyle' cannot simultaneously extend types 'MakeMotionHelper<Omit<CSSProperties, "perspective" | "rotate" | "scale">>' and 'MakeMotionHelper<TransformProperties>'.
+  Named property 'x' of types 'MakeMotionHelper<Omit<CSSProperties, "perspective" | "rotate" | "scale">>' and 'MakeMotionHelper<TransformProperties>' are not identical.
+src/App.tsx(6,31): error TS6142: Module './contexts/ThemeContext' was resolved to 'C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/contexts/ThemeContext.tsx', but '--jsx' is not set.
+src/App.tsx(7,34): error TS6142: Module './contexts/LanguageContext' was resolved to 'C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/contexts/LanguageContext.tsx', but '--jsx' is not set.
+src/App.tsx(8,39): error TS6142: Module './contexts/AuthContext' was resolved to 'C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/contexts/AuthContext.tsx', but '--jsx' is not set.
+src/App.tsx(9,31): error TS6142: Module './contexts/ToastContext' was resolved to 'C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/contexts/ToastContext.tsx', but '--jsx' is not set.
+src/App.tsx(10,38): error TS6142: Module './contexts/NotificationContext' was resolved to 'C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/contexts/NotificationContext.tsx', but '--jsx' is not set.
+src/App.tsx(11,34): error TS6142: Module './contexts/TutorialContext' was resolved to 'C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/contexts/TutorialContext.tsx', but '--jsx' is not set.
+src/App.tsx(16,21): error TS6142: Module './components/layout/Sidebar' was resolved to 'C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/components/layout/Sidebar.tsx', but '--jsx' is not set.
+src/App.tsx(17,20): error TS6142: Module './components/layout/Navbar' was resolved to 'C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/components/layout/Navbar.tsx', but '--jsx' is not set.
+src/App.tsx(18,23): error TS6142: Module './components/layout/BottomNav' was resolved to 'C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/components/layout/BottomNav.tsx', but '--jsx' is not set.
+src/App.tsx(19,27): error TS6142: Module './components/layout/MobileNavMenu' was resolved to 'C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/components/layout/MobileNavMenu.tsx', but '--jsx' is not set.
+src/App.tsx(22,23): error TS6142: Module './pages/Dashboard' was resolved to 'C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/pages/Dashboard.tsx', but '--jsx' is not set.
+src/App.tsx(23,30): error TS6142: Module './pages/ContentGenerator' was resolved to 'C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/pages/ContentGenerator.tsx', but '--jsx' is not set.
+src/App.tsx(24,25): error TS6142: Module './pages/TrendHunter' was resolved to 'C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/pages/TrendHunter.tsx', but '--jsx' is not set.
+src/App.tsx(25,28): error TS6142: Module './pages/CreativeStudio' was resolved to 'C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/pages/CreativeStudio.tsx', but '--jsx' is not set.
+src/App.tsx(26,28): error TS6142: Module './pages/SmartScheduler' was resolved to 'C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/pages/SmartScheduler.tsx', but '--jsx' is not set.
+src/App.tsx(27,28): error TS6142: Module './pages/ContentLibrary' was resolved to 'C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/pages/ContentLibrary.tsx', but '--jsx' is not set.
+src/App.tsx(28,22): error TS6142: Module './pages/AdStudio' was resolved to 'C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/pages/AdStudio.tsx', but '--jsx' is not set.
+src/App.tsx(29,29): error TS6142: Module './pages/CampaignBuilder' was resolved to 'C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/pages/CampaignBuilder.tsx', but '--jsx' is not set.
+src/App.tsx(30,29): error TS6142: Module './pages/CalendarManager' was resolved to 'C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/pages/CalendarManager.tsx', but '--jsx' is not set.
+src/App.tsx(31,28): error TS6142: Module './pages/CodePlayground' was resolved to 'C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/pages/CodePlayground.tsx', but '--jsx' is not set.
+src/App.tsx(32,22): error TS6142: Module './pages/AuthPage' was resolved to 'C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/pages/AuthPage.tsx', but '--jsx' is not set.
+src/App.tsx(33,22): error TS6142: Module './pages/Settings' was resolved to 'C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/pages/Settings.tsx', but '--jsx' is not set.
+src/App.tsx(34,23): error TS6142: Module './pages/CodeAudit' was resolved to 'C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/pages/CodeAudit.tsx', but '--jsx' is not set.
+src/App.tsx(35,25): error TS6142: Module './pages/LandingPage' was resolved to 'C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/pages/LandingPage.tsx', but '--jsx' is not set.
+src/App.tsx(38,32): error TS6142: Module './components/ui/Toast' was resolved to 'C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/components/ui/Toast.tsx', but '--jsx' is not set.
+src/App.tsx(118,24): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+src/App.tsx(119,31): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+src/App.tsx(120,26): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+src/App.tsx(121,29): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+src/App.tsx(122,29): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+src/App.tsx(123,29): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+src/App.tsx(124,23): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+src/App.tsx(125,30): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+src/App.tsx(126,30): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+src/App.tsx(127,29): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+src/App.tsx(128,23): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+src/App.tsx(129,26): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+src/App.tsx(130,24): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+src/App.tsx(133,41): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+src/App.tsx(138,9): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+src/App.tsx(140,17): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+src/App.tsx(141,21): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+src/App.tsx(144,17): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+src/App.tsx(146,17): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+src/App.tsx(150,25): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+src/App.tsx(154,21): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+src/App.tsx(157,25): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+src/App.tsx(162,25): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+src/App.tsx(163,29): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+src/App.tsx(164,33): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+src/App.tsx(165,37): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+src/App.tsx(181,29): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+src/App.tsx(182,33): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+src/App.tsx(187,33): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+src/App.tsx(199,21): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+src/App.tsx(209,9): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+src/App.tsx(210,13): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+src/App.tsx(211,17): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+src/App.tsx(212,21): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+src/App.tsx(213,25): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+src/App.tsx(214,29): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+src/App.tsx(215,33): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+src/hooks/useNavigate.ts(4,28): error TS6142: Module '../App' was resolved to 'C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/App.tsx', but '--jsx' is not set.
+src/hooks/useNotifications.ts(2,25): error TS6142: Module '../contexts/AuthContext' was resolved to 'C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/contexts/AuthContext.tsx', but '--jsx' is not set.
+src/hooks/useNotifications.ts(4,26): error TS6142: Module '../contexts/ToastContext' was resolved to 'C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/contexts/ToastContext.tsx', but '--jsx' is not set.
+src/lib/supabase.ts(4,21): error TS1343: The 'import.meta' meta-property is only allowed when the '--module' option is 'es2020', 'es2022', 'esnext', 'system', 'node16', 'node18', 'node20', or 'nodenext'.
+src/lib/supabase.ts(5,25): error TS1343: The 'import.meta' meta-property is only allowed when the '--module' option is 'es2020', 'es2022', 'esnext', 'system', 'node16', 'node18', 'node20', or 'nodenext'.
+src/lib/supabase.ts(8,25): error TS1343: The 'import.meta' meta-property is only allowed when the '--module' option is 'es2020', 'es2022', 'esnext', 'system', 'node16', 'node18', 'node20', or 'nodenext'.
+src/lib/supabase.ts(8,62): error TS1343: The 'import.meta' meta-property is only allowed when the '--module' option is 'es2020', 'es2022', 'esnext', 'system', 'node16', 'node18', 'node20', or 'nodenext'.

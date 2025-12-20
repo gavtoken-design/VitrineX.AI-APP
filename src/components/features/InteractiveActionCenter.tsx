@@ -150,7 +150,7 @@ const InteractiveActionCenter: React.FC = () => {
     }
   };
 
-  const modules = [
+  const modules: { id: ModuleType; label: string; icon: React.ElementType }[] = [
     { id: 'content_generation', label: 'Geração de Conteúdo', icon: CommandLineIcon },
     { id: 'image_generation', label: 'Geração de Imagem', icon: PhotoIcon },
     { id: 'audio_generation', label: 'Geração de Áudio', icon: SpeakerWaveIcon },
@@ -176,7 +176,7 @@ const InteractiveActionCenter: React.FC = () => {
             return (
               <button
                 key={m.id}
-                onClick={() => setSelectedModule(m.id as ModuleType)}
+                onClick={() => setSelectedModule(m.id)}
                 className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${isActive
                   ? 'bg-accent text-darkbg shadow-md shadow-accent/20'
                   : 'text-textmuted hover:bg-white/5 hover:text-white'

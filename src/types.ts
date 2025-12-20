@@ -21,6 +21,9 @@ export interface UserProfile {
   plan: 'free' | 'premium' | 'enterprise';
   businessProfile: BusinessProfile;
   contactInfo?: {
+    phone?: string;
+    address?: string;
+    cnpj?: string;
     whatsapp?: string;
     instagram?: string; // e.g. @vitrinex
     tiktok?: string;

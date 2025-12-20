@@ -1,7 +1,7 @@
 
 import * as React from 'react';
 import { useState, useRef, useEffect } from 'react';
-import { useNotifications, Notification } from '../../contexts/NotificationContext';
+import { useNotificationCenter, Notification } from '../../contexts/NotificationContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import {
     BellIcon,
@@ -21,7 +21,7 @@ const NotificationDropdown: React.FC = () => {
         markAllAsRead,
         clearNotification,
         clearAll
-    } = useNotifications();
+    } = useNotificationCenter();
 
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);

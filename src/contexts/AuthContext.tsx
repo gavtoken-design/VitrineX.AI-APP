@@ -10,7 +10,7 @@ interface AuthContextType {
     profile: UserProfile | null;
     loading: boolean;
     signIn: (email: string, password: string) => Promise<void>;
-    signUp: (email: string, password: string, metadata?: any) => Promise<void>;
+    signUp: (email: string, password: string, metadata?: Record<string, unknown>) => Promise<void>;
     signOut: () => Promise<void>;
 }
 
@@ -26,6 +26,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         let mounted = true;
 
         const initAuth = async () => {
+            // Check for mock session first
+            // Safe check for Supabase URL
+            const hasSupabase = import.meta.env.VITE_SUPABASE_URL;
+
+            if (!hasSupabase && localStorage.getItem('mock_session')) {
+                const mockUser: User = {
+                    id: 'mock-user-123',
+                    app_metadata: {},
+                    user_metadata: { full_name: 'Usuário Demo' },
+                    aud: 'authenticated',
+                    created_at: new Date().toISOString(),
+                };
+                setUser(mockUser);
+                setSession({
+                    access_token: 'mock-token',
+                    refresh_token: 'mock-refresh',
+                    expires_in: 3600,
+                    token_type: 'bearer',
+                    user: mockUser
+                });
+                setLoading(false);
+                return;
+            }
+
             try {
                 const { data, error } = await supabase.auth.getSession();
                 if (error) throw error;
@@ -48,7 +72,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         initAuth();
 
         // Listen for auth changes safely
-        let subscription: any = null;
+        let subscription: { unsubscribe: () => void } | null = null;
         try {
             const { data } = supabase.auth.onAuthStateChange((_event, session) => {
                 if (!mounted) return;
@@ -69,7 +93,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         return () => {
             mounted = false;
-            if (subscription?.unsubscribe) subscription.unsubscribe();
+            if (subscription) subscription.unsubscribe();
         };
     }, []);
 
@@ -85,12 +109,61 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const signIn = async (email: string, password: string) => {
+        // Safe check for Supabase URL
+        const hasSupabase = import.meta.env.VITE_SUPABASE_URL;
+
+        if (!hasSupabase) {
+            // Mock Login for development/demo
+            console.log('Mode: Mock Login');
+            const mockUser: User = {
+                id: 'mock-user-123',
+                app_metadata: {},
+                user_metadata: { full_name: 'Usuário Demo' },
+                aud: 'authenticated',
+                created_at: new Date().toISOString(),
+            };
+            setUser(mockUser);
+            setSession({
+                access_token: 'mock-token',
+                refresh_token: 'mock-refresh',
+                expires_in: 3600,
+                token_type: 'bearer',
+                user: mockUser
+            });
+            // Persist mock session
+            localStorage.setItem('mock_session', 'true');
+            return;
+        }
+
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        // State updates handled by onAuthStateChange
     };
 
-    const signUp = async (email: string, password: string, metadata?: any) => {
+    const signUp = async (email: string, password: string, metadata?: Record<string, unknown>) => {
+        const hasSupabase = import.meta.env.VITE_SUPABASE_URL;
+
+        if (!hasSupabase) {
+            // Mock Signup
+            console.log('Mode: Mock Signup');
+            const mockUser: User = {
+                id: 'mock-user-123',
+                app_metadata: {},
+                user_metadata: metadata || { full_name: 'Usuário Demo' },
+                aud: 'authenticated',
+                created_at: new Date().toISOString(),
+            };
+            setUser(mockUser);
+            setSession({
+                access_token: 'mock-token',
+                refresh_token: 'mock-refresh',
+                expires_in: 3600,
+                token_type: 'bearer',
+                user: mockUser
+            });
+            localStorage.setItem('mock_session', 'true');
+            return;
+        }
+
         const { error } = await supabase.auth.signUp({
             email,
             password,
@@ -99,12 +172,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             },
         });
         if (error) throw error;
-        // State updates handled by onAuthStateChange
     };
 
     const signOut = async () => {
+        const hasSupabase = import.meta.env.VITE_SUPABASE_URL;
+
+        if (!hasSupabase) {
+            setUser(null);
+            setSession(null);
+            setProfile(null);
+            localStorage.removeItem('mock_session');
+            return;
+        }
         await supabase.auth.signOut();
-        // State updates handled by onAuthStateChange
     };
 
     return (

@@ -99,9 +99,9 @@ const Dashboard: React.FC = () => {
   const [testingApi, setTestingApi] = useState(false);
 
   const totalPosts = data?.library?.length || 0; // Use Library count for Total Content
-  const totalAds = data?.ads.length || 0;
-  const upcomingSchedule = data?.schedule.filter(s => new Date(s.datetime) > new Date()).length || 0;
-  const detectedTrends = data?.trends.length || 0;
+  const totalAds = data?.ads?.length || 0;
+  const upcomingSchedule = data?.schedule?.filter(s => new Date(s.datetime) > new Date()).length || 0;
+  const detectedTrends = data?.trends?.length || 0;
 
   // Derive Recent Activity from Library and Schedule
   const recentActivities = React.useMemo(() => {
@@ -199,11 +199,12 @@ const Dashboard: React.FC = () => {
         title: 'Sistema Conectado!',
         message: `O motor de criação está pronto para uso.`
       });
-    } catch (e: any) {
+    } catch (e) {
+      const err = e as Error;
       addToast({
         type: 'error',
         title: 'Falha na Conexão',
-        message: e.message
+        message: err.message
       });
     } finally {
       setTestingApi(false);

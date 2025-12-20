@@ -68,8 +68,9 @@ export const testGeminiConnection = async (explicitKey?: string, userId?: string
     if (!text) throw new Error("Resposta vazia da IA.");
 
     return text;
-  } catch (error: any) {
-    const errorMessage = error.message || error.toString();
+  } catch (error) {
+    const err = error as Error;
+    const errorMessage = err.message || err.toString();
     console.error("Erro detalhado:", errorMessage);
     throw new Error(`Falha na conexão Gemini 2.5: ${errorMessage}`);
   }
@@ -91,12 +92,13 @@ export const verifySystemCapabilities = async (explicitKey?: string, userId?: st
       audio: true,
       message: 'Sistema Totalmente Operacional (v2.5)'
     };
-  } catch (error: any) {
+  } catch (error) {
+    const err = error as Error;
     return {
       text: false,
       vision: false,
       audio: false,
-      message: error.message || 'Falha geral na validação'
+      message: err.message || 'Falha geral na validação'
     };
   }
 };

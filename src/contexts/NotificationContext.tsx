@@ -109,7 +109,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     );
 };
 
-export const useNotifications = () => {
+export const useNotificationCenter = () => {
     const context = useContext(NotificationContext);
     if (!context) {
         throw new Error('useNotifications must be used within NotificationProvider');

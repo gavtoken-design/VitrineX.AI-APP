@@ -8,7 +8,7 @@ import Button from '../ui/Button';
 export interface LogoSettings {
     file: File | null;
     previewUrl: string | null;
-    position: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'center';
+    position: 'top-left' | 'top-center' | 'top-right' | 'center-left' | 'center' | 'center-right' | 'bottom-left' | 'bottom-center' | 'bottom-right';
     opacity: number;
     scale: number;
 }
@@ -84,13 +84,13 @@ const BrandAssetsManager: React.FC<BrandAssetsManagerProps> = ({ settings, onSet
                         <div>
                             <label className="text-xs font-medium text-muted block mb-2">Posição</label>
                             <div className="grid grid-cols-3 gap-1 w-24 mx-auto">
-                                {['top-left', 'top-center', 'top-right', 'center-left', 'center', 'center-right', 'bottom-left', 'bottom-center', 'bottom-right'].map((pos) => {
-                                    const isCornerOrCenter = ['top-left', 'top-right', 'center', 'bottom-left', 'bottom-right'].includes(pos);
+                                {(['top-left', 'top-center', 'top-right', 'center-left', 'center', 'center-right', 'bottom-left', 'bottom-center', 'bottom-right'] as const).map((pos) => {
+                                    const isCornerOrCenter = (['top-left', 'top-right', 'center', 'bottom-left', 'bottom-right'] as const).includes(pos as any);
                                     if (!isCornerOrCenter) return <div key={pos} />; // Empty cells for grid layout if simplified
                                     return (
                                         <button
                                             key={pos}
-                                            onClick={() => onSettingsChange({ ...settings, position: pos as any })}
+                                            onClick={() => onSettingsChange({ ...settings, position: pos })}
                                             className={`w-full aspect-square rounded-sm border ${settings.position === pos ? 'bg-primary border-primary' : 'bg-background border-border hover:bg-white/5'}`}
                                         />
                                     );

@@ -228,9 +228,42 @@ const Settings: React.FC = () => {
                                     className="w-full bg-surface-hover/50 border border-border rounded-xl px-4 py-3 text-muted cursor-not-allowed"
                                 />
                             </div>
+                            {/* New Fields */}
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-muted uppercase tracking-wider">Telefone / WhatsApp</label>
+                                <input
+                                    type="tel"
+                                    defaultValue={profile?.contactInfo?.phone || ''}
+                                    placeholder="(11) 99999-9999"
+                                    className="w-full bg-surface-hover border border-border rounded-xl px-4 py-3 text-title focus:outline-none focus:border-primary transition-colors"
+                                    onChange={(e) => {
+                                        // TODO: Implement state/form handling properly
+                                    }}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-muted uppercase tracking-wider">CNPJ</label>
+                                <input
+                                    type="text"
+                                    defaultValue={profile?.contactInfo?.cnpj || ''}
+                                    placeholder="00.000.000/0001-00"
+                                    className="w-full bg-surface-hover border border-border rounded-xl px-4 py-3 text-title focus:outline-none focus:border-primary transition-colors"
+                                />
+                            </div>
+                            <div className="md:col-span-2 space-y-2">
+                                <label className="text-xs font-bold text-muted uppercase tracking-wider">Endereço Comercial</label>
+                                <input
+                                    type="text"
+                                    defaultValue={profile?.contactInfo?.address || ''}
+                                    placeholder="Rua Exemplo, 123 - Cidade/UF"
+                                    className="w-full bg-surface-hover border border-border rounded-xl px-4 py-3 text-title focus:outline-none focus:border-primary transition-colors"
+                                />
+                            </div>
                         </div>
                         <div className="mt-8">
-                            <Button variant="primary">Salvar Alterações</Button>
+                            <Button variant="primary" onClick={() => addToast({ type: 'success', title: 'Salvo', message: 'Dados atualizados (simulação)' })}>
+                                Salvar Alterações
+                            </Button>
                         </div>
                     </section>
                 </div>

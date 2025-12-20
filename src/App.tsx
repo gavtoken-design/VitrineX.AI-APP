@@ -10,6 +10,7 @@ import { ToastProvider } from './contexts/ToastContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { TutorialProvider } from './contexts/TutorialContext';
 import { NavigationContext } from './hooks/useNavigate';
+import { useNotifications } from './hooks/useNotifications';
 
 // Layout
 import Sidebar from './components/layout/Sidebar';
@@ -59,6 +60,9 @@ const AppContent: React.FC = () => {
     const [activeModule, setActiveModuleState] = useState<ModuleName>('Dashboard');
     const [isMobile, setIsMobile] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+    // Initialize background notifications
+    useNotifications();
 
     // Sync activeModule with authentication state
     useEffect(() => {
@@ -200,21 +204,38 @@ const AppContent: React.FC = () => {
     );
 }
 
+// React Query
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+// ... other imports
+
+// Initialize QueryClient
+const queryClient = new QueryClient({
+    defaultOptions: {
+        queries: {
+            refetchOnWindowFocus: false,
+            retry: 1,
+        },
+    },
+});
+
 const App: React.FC = () => {
     return (
-        <ThemeProvider>
-            <LanguageProvider>
-                <AuthProvider>
-                    <NotificationProvider>
-                        <ToastProvider>
-                            <TutorialProvider>
-                                <AppContent />
-                            </TutorialProvider>
-                        </ToastProvider>
-                    </NotificationProvider>
-                </AuthProvider>
-            </LanguageProvider>
-        </ThemeProvider>
+        <QueryClientProvider client={queryClient}>
+            <ThemeProvider>
+                <LanguageProvider>
+                    <AuthProvider>
+                        <NotificationProvider>
+                            <ToastProvider>
+                                <TutorialProvider>
+                                    <AppContent />
+                                </TutorialProvider>
+                            </ToastProvider>
+                        </NotificationProvider>
+                    </AuthProvider>
+                </LanguageProvider>
+            </ThemeProvider>
+        </QueryClientProvider>
     );
 };
 

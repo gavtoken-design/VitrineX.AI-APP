@@ -14,7 +14,7 @@ export interface GenerateTextOptions {
     model?: string;
     systemInstruction?: string;
     responseMimeType?: string;
-    responseSchema?: any;
+    responseSchema?: Record<string, unknown>;
     thinkingBudget?: number;
     useThinking?: boolean;
     temperature?: number;
@@ -23,8 +23,8 @@ export interface GenerateTextOptions {
     maxOutputTokens?: number;
     stopSequences?: string[];
     seed?: number;
-    tools?: any[];
-    toolConfig?: any;
+    tools?: Record<string, unknown>[];
+    toolConfig?: Record<string, unknown>;
     userId?: string;
 }
 
@@ -58,13 +58,13 @@ export const generateText = async (prompt: string, options?: GenerateTextOptions
             config: {
                 ...generationConfig,
                 systemInstruction: getSystemInstruction(options?.systemInstruction, !!options?.tools),
-                tools: options?.tools as any
+                tools: options?.tools
             }
         });
 
         // Basic autonomous agent loop for Gemini SDK
         if (result.functionCalls && result.functionCalls.length > 0) {
-            let history: any[] = [{ role: 'user', parts: [{ text: prompt }] }];
+            let history: { role: string; parts: any[] }[] = [{ role: 'user', parts: [{ text: prompt }] }];
             let currentResponse = result;
             let iterations = 0;
             const MAX_ITERATIONS = 5;
@@ -74,9 +74,10 @@ export const generateText = async (prompt: string, options?: GenerateTextOptions
                 const calls = currentResponse.functionCalls;
                 const toolResponses: any[] = [];
 
-                // Add modedel's turn to history
+                // Add model's turn to history
                 // The new SDK patterns often expect candidate content to be sent back
-                history.push(currentResponse.candidates?.[0]?.content || { role: 'model', parts: [{ functionCall: calls[0] }] });
+                const modelContent = currentResponse.candidates?.[0]?.content;
+                history.push(modelContent ? (modelContent as { role: string; parts: any[] }) : { role: 'model', parts: [{ functionCall: calls[0] }] });
 
                 if (calls) {
                     for (const call of calls) {
@@ -111,7 +112,7 @@ export const generateText = async (prompt: string, options?: GenerateTextOptions
                     config: {
                         ...generationConfig,
                         systemInstruction: getSystemInstruction(options?.systemInstruction, !!options?.tools),
-                        tools: options?.tools as any
+                        tools: options?.tools
                     }
                 });
             }
@@ -120,9 +121,10 @@ export const generateText = async (prompt: string, options?: GenerateTextOptions
 
         return result.text || '';
 
-    } catch (error: any) {
-        console.error("SDK generation failed:", error);
-        if (error.message?.includes('429')) {
+    } catch (error) {
+        const err = error as Error & { message?: string };
+        console.error("SDK generation failed:", err);
+        if (err.message?.includes('429')) {
             throw new Error("Limite de requisições atingido. Por favor, aguarde ou faça o upgrade da licença.");
         }
         throw error;
@@ -145,9 +147,9 @@ export const countTokens = async (text: string, modelId: string = GEMINI_FLASH_M
 
 export const sendMessageToChat = async (
     history: ChatMessage[],
-    message: string | any[],
+    message: string | { text: string }[],
     onChunk: (text: string) => void,
-    options: { model?: string; systemInstruction?: string; useKnowledgeBase?: boolean; useThinking?: boolean; userId?: string; tools?: any[] },
+    options: { model?: string; systemInstruction?: string; useKnowledgeBase?: boolean; useThinking?: boolean; userId?: string; tools?: Record<string, unknown>[] },
     signal?: AbortSignal
 ): Promise<string> => {
     const modelToUse = options.useThinking ? GEMINI_THINKING_MODEL : (options.model || GEMINI_PRO_MODEL);
@@ -179,7 +181,7 @@ export const sendMessageToChat = async (
             config: {
                 temperature: 1.0,
                 systemInstruction: getSystemInstruction(options.systemInstruction, !!(options.tools || options.useKnowledgeBase)),
-                tools: options.tools as any
+                tools: options.tools
             }
         });
 
@@ -220,7 +222,7 @@ export const searchTrends = async (query: string, language: string = 'en-US', us
             model: GEMINI_FLASH_MODEL,
             contents: [{ role: 'user', parts: [{ text: prompt }] }],
             config: {
-                tools: [{ googleSearch: {} }] as any
+                tools: [{ googleSearch: {} }]
             }
         });
 
