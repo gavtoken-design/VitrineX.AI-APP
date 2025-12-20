@@ -71,11 +71,37 @@ export const generateImageInternal = async (prompt: string, options?: ImageOptio
 
         return { type: 'error', code: 'GENERATION_FAILED', message: 'Nenhuma imagem retornada pelo SDK.' };
     } catch (innerError: any) {
-        console.error("Image generation SDK fallback failed:", innerError);
-        return {
-            type: 'error',
-            code: 'GENERATION_FAILED',
-            message: innerError.message || 'Falha na geração client-side'
-        };
+        console.warn("Image generation SDK failed, attempting Pollinations.ai fallback:", innerError);
+
+        // 4. Fallback to Pollinations.ai (Free/No-Key)
+        try {
+            const encodedPrompt = encodeURIComponent(prompt);
+            // Add seed to ensure consistency if needed, or random param
+            const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=768&nologo=true`;
+
+            const fallbackResponse = await fetch(pollinationsUrl);
+            if (!fallbackResponse.ok) {
+                throw new Error(`Pollinations API failed with status ${fallbackResponse.status}`);
+            }
+
+            const arrayBuffer = await fallbackResponse.arrayBuffer();
+            const buffer = Buffer.from(arrayBuffer);
+            const base64 = buffer.toString('base64');
+            const mimeType = 'image/jpeg'; // Pollinations usually returns JPEG
+
+            return {
+                type: 'image',
+                imageUrl: `data:${mimeType};base64,${base64}`,
+                mimeType: mimeType,
+                base64: base64
+            };
+        } catch (fallbackError: any) {
+            console.error("All image generation methods failed.", fallbackError);
+            return {
+                type: 'error',
+                code: 'GENERATION_FAILED',
+                message: innerError.message || 'Falha na geração (SDK e Fallback)'
+            };
+        }
     }
 };

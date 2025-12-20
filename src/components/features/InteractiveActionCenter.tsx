@@ -329,6 +329,24 @@ const InteractiveActionCenter: React.FC = () => {
                     {result}
                   </div>
                 )}
+
+                {/* Integration: Generate Audio from Text Result */}
+                {selectedModule === 'content_generation' && result && !mediaUrl && (
+                  <div className="mt-4 flex justify-end">
+                    <Button
+                      onClick={() => {
+                        setPrompt(result.substring(0, 500)); // Set text as prompt (limit length if needed)
+                        setSelectedModule('audio_generation'); // Switch to audio tab
+                        // Optionally auto-trigger execute? Maybe better to let user review.
+                      }}
+                      variant="outline"
+                      className="text-sm"
+                    >
+                      <SpeakerWaveIcon className="w-4 h-4 mr-2" />
+                      Gerar Áudio deste Texto
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </div>
