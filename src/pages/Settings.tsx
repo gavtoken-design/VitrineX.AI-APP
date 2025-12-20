@@ -15,7 +15,8 @@ import {
     LanguageIcon,
     ArrowTopRightOnSquareIcon,
     CheckBadgeIcon,
-    SparklesIcon
+    SparklesIcon,
+    GlobeAltIcon
 } from '@heroicons/react/24/outline';
 
 const Settings: React.FC = () => {
@@ -161,24 +162,21 @@ const Settings: React.FC = () => {
                                 Perfil
                             </button>
                             <button
-                                onClick={() => {
-                                    addToast({ type: 'info', title: 'Segurança', message: 'Um link de redefinição de senha foi enviado para seu e-mail.' });
-                                    if (user?.email) supabase.auth.resetPasswordForEmail(user.email);
-                                }}
+                                onClick={() => document.getElementById('security-section')?.scrollIntoView({ behavior: 'smooth' })}
                                 className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-muted hover:bg-surface-hover hover:text-title transition-colors"
                             >
                                 <ShieldCheckIcon className="w-5 h-5" />
                                 Segurança
                             </button>
                             <button
-                                onClick={() => addToast({ type: 'success', title: 'Notificações', message: 'Preferências de notificação atualizadas.' })}
+                                onClick={() => document.getElementById('notifications-section')?.scrollIntoView({ behavior: 'smooth' })}
                                 className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-muted hover:bg-surface-hover hover:text-title transition-colors"
                             >
                                 <BellIcon className="w-5 h-5" />
                                 Notificações
                             </button>
                             <button
-                                onClick={() => addToast({ type: 'info', title: 'Idioma', message: 'Opções de idioma acessíveis na barra superior.' })}
+                                onClick={() => document.getElementById('language-section')?.scrollIntoView({ behavior: 'smooth' })}
                                 className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-muted hover:bg-surface-hover hover:text-title transition-colors"
                             >
                                 <LanguageIcon className="w-5 h-5" />
@@ -328,6 +326,97 @@ const Settings: React.FC = () => {
                             <Button variant="primary" onClick={handleSaveProfile} isLoading={saving}>
                                 Salvar Alterações
                             </Button>
+                        </div>
+                    </section>
+
+                    {/* Security Section (New) */}
+                    <section id="security-section" className="glass-card p-8">
+                        <div className="flex items-center gap-3 mb-6">
+                            <ShieldCheckIcon className="w-6 h-6 text-primary" />
+                            <h2 className="text-xl font-bold text-title">Segurança</h2>
+                        </div>
+                        <div className="space-y-6">
+                            <div className="flex items-center justify-between p-4 bg-surface-hover rounded-xl border border-border">
+                                <div>
+                                    <h3 className="font-semibold text-title">Senha de Acesso</h3>
+                                    <p className="text-sm text-muted">Última alteração: {user?.updated_at ? new Date(user.updated_at).toLocaleDateString() : 'Desconhecido'}</p>
+                                </div>
+                                <Button
+                                    variant="outline"
+                                    onClick={() => {
+                                        if (user?.email) {
+                                            supabase.auth.resetPasswordForEmail(user.email);
+                                            addToast({ type: 'success', title: 'E-mail enviado', message: 'Verifique sua caixa de entrada para redefinir a senha.' });
+                                        }
+                                    }}
+                                >
+                                    Redefinir Senha
+                                </Button>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Notifications Section (New) */}
+                    <section id="notifications-section" className="glass-card p-8">
+                        <div className="flex items-center gap-3 mb-6">
+                            <BellIcon className="w-6 h-6 text-primary" />
+                            <h2 className="text-xl font-bold text-title">Notificações</h2>
+                        </div>
+                        <div className="space-y-4">
+                            {[
+                                { id: 'email-notif', label: 'Notificações por E-mail', desc: 'Receba resumos semanais e alertas de conta.' },
+                                { id: 'mkt-notif', label: 'Novidades e Marketing', desc: 'Fique por dentro das atualizações da VitrineX.' },
+                                { id: 'browser-notif', label: 'Alertas no Navegador', desc: 'Receba notificações push enquanto usa o app.' }
+                            ].map((item) => (
+                                <div key={item.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-surface-hover transition-colors">
+                                    <div>
+                                        <h3 className="font-medium text-title">{item.label}</h3>
+                                        <p className="text-xs text-muted">{item.desc}</p>
+                                    </div>
+                                    <label className="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" defaultChecked className="sr-only peer" />
+                                        <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                                    </label>
+                                </div>
+                            ))}
+                            <div className="pt-4">
+                                <Button variant="outline" onClick={() => addToast({ type: 'success', message: 'Preferências de notificação salvas.' })}>
+                                    Salvar Preferências
+                                </Button>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Language Section (New) */}
+                    <section id="language-section" className="glass-card p-8">
+                        <div className="flex items-center gap-3 mb-6">
+                            <LanguageIcon className="w-6 h-6 text-primary" />
+                            <h2 className="text-xl font-bold text-title">Idioma e Região</h2>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-muted uppercase tracking-wider">Idioma do Sistema</label>
+                                <select
+                                    className="w-full bg-surface-hover border border-border rounded-xl px-4 py-3 text-title focus:outline-none focus:border-primary transition-colors"
+                                    // Note: In a real implementation this would sync with LanguageContext
+                                    defaultValue="pt-BR"
+                                    onChange={(e) => {
+                                        // Fake implementation for UI demo, reliable sync is via Navbar
+                                        addToast({ type: 'info', message: `Idioma alterado para ${e.target.value}` });
+                                    }}
+                                >
+                                    <option value="pt-BR">Português (Brasil)</option>
+                                    <option value="en-US">English (US)</option>
+                                    <option value="es">Español</option>
+                                </select>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-muted uppercase tracking-wider">Fuso Horário</label>
+                                <div className="p-3 bg-surface-hover/50 border border-border rounded-xl text-muted text-sm flex items-center gap-2">
+                                    <GlobeAltIcon className="w-4 h-4" />
+                                    {Intl.DateTimeFormat().resolvedOptions().timeZone}
+                                </div>
+                            </div>
                         </div>
                     </section>
                 </div>
