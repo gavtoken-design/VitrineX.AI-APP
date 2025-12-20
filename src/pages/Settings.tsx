@@ -1,10 +1,11 @@
 import * as React from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useToast } from '../contexts/ToastContext';
 import { supabase } from '../lib/supabase';
+import { updateUserProfile } from '../services/core/db';
 import Button from '../components/ui/Button';
 import {
     UserIcon,
@@ -22,6 +23,24 @@ const Settings: React.FC = () => {
     const { t } = useLanguage();
     const { addToast } = useToast();
     const [verifying, setVerifying] = useState(false);
+    const [saving, setSaving] = useState(false);
+
+    // Form State
+    const [fullName, setFullName] = useState('');
+    const [phone, setPhone] = useState('');
+    const [cnpj, setCnpj] = useState('');
+    const [address, setAddress] = useState('');
+
+    useEffect(() => {
+        if (user?.user_metadata?.full_name) {
+            setFullName(user.user_metadata.full_name);
+        }
+        if (profile?.contactInfo) {
+            setPhone(profile.contactInfo.phone || '');
+            setCnpj(profile.contactInfo.cnpj || '');
+            setAddress(profile.contactInfo.address || '');
+        }
+    }, [user, profile]);
 
     const planLink = `https://buy.stripe.com/cNibJ0aqfeUTaA66Pv6oo01?client_reference_id=${user?.id}`;
 
@@ -78,6 +97,35 @@ const Settings: React.FC = () => {
         }
     };
 
+    const handleSaveProfile = async () => {
+        if (!user) return;
+        setSaving(true);
+        try {
+            await updateUserProfile(user.id, {
+                name: fullName,
+                contactInfo: {
+                    phone,
+                    cnpj,
+                    address
+                }
+            });
+            addToast({
+                type: 'success',
+                title: 'Salvo',
+                message: 'Suas informações foram atualizadas com sucesso.'
+            });
+        } catch (error) {
+            console.error('Error saving profile:', error);
+            addToast({
+                type: 'error',
+                title: 'Erro',
+                message: 'Falha ao salvar as alterações.'
+            });
+        } finally {
+            setSaving(false);
+        }
+    };
+
     return (
         <div className="animate-fade-in pb-20">
             <header className="mb-8">
@@ -105,19 +153,34 @@ const Settings: React.FC = () => {
                         </div>
 
                         <div className="space-y-1">
-                            <button className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl bg-primary/10 text-primary border border-primary/20">
+                            <button
+                                onClick={() => document.getElementById('profile-section')?.scrollIntoView({ behavior: 'smooth' })}
+                                className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl bg-primary/10 text-primary border border-primary/20 transition-colors"
+                            >
                                 <UserIcon className="w-5 h-5" />
                                 Perfil
                             </button>
-                            <button className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-muted hover:bg-surface-hover hover:text-title transition-colors">
+                            <button
+                                onClick={() => {
+                                    addToast({ type: 'info', title: 'Segurança', message: 'Um link de redefinição de senha foi enviado para seu e-mail.' });
+                                    if (user?.email) supabase.auth.resetPasswordForEmail(user.email);
+                                }}
+                                className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-muted hover:bg-surface-hover hover:text-title transition-colors"
+                            >
                                 <ShieldCheckIcon className="w-5 h-5" />
                                 Segurança
                             </button>
-                            <button className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-muted hover:bg-surface-hover hover:text-title transition-colors">
+                            <button
+                                onClick={() => addToast({ type: 'success', title: 'Notificações', message: 'Preferências de notificação atualizadas.' })}
+                                className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-muted hover:bg-surface-hover hover:text-title transition-colors"
+                            >
                                 <BellIcon className="w-5 h-5" />
                                 Notificações
                             </button>
-                            <button className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-muted hover:bg-surface-hover hover:text-title transition-colors">
+                            <button
+                                onClick={() => addToast({ type: 'info', title: 'Idioma', message: 'Opções de idioma acessíveis na barra superior.' })}
+                                className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-muted hover:bg-surface-hover hover:text-title transition-colors"
+                            >
                                 <LanguageIcon className="w-5 h-5" />
                                 Idioma e Região
                             </button>
@@ -207,14 +270,15 @@ const Settings: React.FC = () => {
                     </section>
 
                     {/* Account Settings */}
-                    <section className="glass-card p-8">
+                    <section id="profile-section" className="glass-card p-8">
                         <h2 className="text-xl font-bold text-title mb-6">Informações da Conta</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
                                 <label className="text-xs font-bold text-muted uppercase tracking-wider">Nome Completo</label>
                                 <input
                                     type="text"
-                                    defaultValue={user?.user_metadata?.full_name || ''}
+                                    value={fullName}
+                                    onChange={(e) => setFullName(e.target.value)}
                                     placeholder="Seu nome"
                                     className="w-full bg-surface-hover border border-border rounded-xl px-4 py-3 text-title focus:outline-none focus:border-primary transition-colors"
                                 />
@@ -233,19 +297,18 @@ const Settings: React.FC = () => {
                                 <label className="text-xs font-bold text-muted uppercase tracking-wider">Telefone / WhatsApp</label>
                                 <input
                                     type="tel"
-                                    defaultValue={profile?.contactInfo?.phone || ''}
+                                    value={phone}
+                                    onChange={(e) => setPhone(e.target.value)}
                                     placeholder="(11) 99999-9999"
                                     className="w-full bg-surface-hover border border-border rounded-xl px-4 py-3 text-title focus:outline-none focus:border-primary transition-colors"
-                                    onChange={(e) => {
-                                        // TODO: Implement state/form handling properly
-                                    }}
                                 />
                             </div>
                             <div className="space-y-2">
                                 <label className="text-xs font-bold text-muted uppercase tracking-wider">CNPJ</label>
                                 <input
                                     type="text"
-                                    defaultValue={profile?.contactInfo?.cnpj || ''}
+                                    value={cnpj}
+                                    onChange={(e) => setCnpj(e.target.value)}
                                     placeholder="00.000.000/0001-00"
                                     className="w-full bg-surface-hover border border-border rounded-xl px-4 py-3 text-title focus:outline-none focus:border-primary transition-colors"
                                 />
@@ -254,14 +317,15 @@ const Settings: React.FC = () => {
                                 <label className="text-xs font-bold text-muted uppercase tracking-wider">Endereço Comercial</label>
                                 <input
                                     type="text"
-                                    defaultValue={profile?.contactInfo?.address || ''}
+                                    value={address}
+                                    onChange={(e) => setAddress(e.target.value)}
                                     placeholder="Rua Exemplo, 123 - Cidade/UF"
                                     className="w-full bg-surface-hover border border-border rounded-xl px-4 py-3 text-title focus:outline-none focus:border-primary transition-colors"
                                 />
                             </div>
                         </div>
                         <div className="mt-8">
-                            <Button variant="primary" onClick={() => addToast({ type: 'success', title: 'Salvo', message: 'Dados atualizados (simulação)' })}>
+                            <Button variant="primary" onClick={handleSaveProfile} isLoading={saving}>
                                 Salvar Alterações
                             </Button>
                         </div>

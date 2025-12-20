@@ -64,7 +64,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     }
                 }
             } catch (err) {
-                // Silently handle offline mode
+                // Silently handle offline mode but log for dev
+                console.error('Auth initialization error:', err);
                 if (mounted) setLoading(false);
             }
         };

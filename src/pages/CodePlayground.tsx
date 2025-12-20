@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useState } from 'react';
-import { CodeBracketIcon, SparklesIcon, ArrowDownTrayIcon, EyeIcon, XMarkIcon, ShareIcon } from '@heroicons/react/24/outline';
+import { CodeBracketIcon, SparklesIcon, ArrowDownTrayIcon, EyeIcon, XMarkIcon, ShareIcon, ArrowTopRightOnSquareIcon, GlobeAltIcon, LinkIcon, ClipboardDocumentIcon } from '@heroicons/react/24/outline';
 import Button from '../components/ui/Button';
 import Textarea from '../components/ui/Textarea';
 import Input from '../components/ui/Input';
@@ -8,6 +8,7 @@ import { useToast } from '../contexts/ToastContext';
 import { useAuth } from '../contexts/AuthContext';
 import { generateText } from '../services/ai';
 import { saveLibraryItem } from '../services/core/db';
+import { uploadFile } from '../services/media/storage';
 import HowToUse from '../components/ui/HowToUse';
 import { GEMINI_PRO_MODEL } from '../constants';
 
@@ -19,6 +20,7 @@ const CodePlayground: React.FC = () => {
   const [pageDescription, setPageDescription] = useState('');
   const [generatedCode, setGeneratedCode] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [loading, setLoading] = useState(false); // Used for publishing
   const [showPreview, setShowPreview] = useState(false);
   const { addToast } = useToast();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -140,6 +142,35 @@ O código deve ser copy-paste ready.`;
     }
   };
 
+  // State for sharing
+  const [publishedUrl, setPublishedUrl] = useState<string | null>(null);
+
+  const handlePublish = async () => {
+    if (!generatedCode || !user) {
+      if (!user) addToast({ type: 'warning', message: 'Faça login para publicar páginas.' });
+      return;
+    }
+
+    setLoading(true); // Reusing loading state if possible or create new? Using setIsGenerating(true) might be confusing visually logic-wise but setIsGenerating controls the big button spinner. 
+    // Let's create a local loading state or reuse a generic one. CodePlayground has isGenerating.
+    // I'll use a specific loading state for publish to avoid blocking generation UI? 
+    // Actually, locking UI is fine.
+
+    try {
+      const file = new File([generatedCode], `vitrinex-page-${Date.now()}.html`, { type: 'text/html' });
+      // Use uploadFile service
+      // We need to cast 'html' or 'other' if type is strict.
+      const uploadedItem = await uploadFile(file, user.id, 'other' as any);
+
+      setPublishedUrl(uploadedItem.file_url);
+      addToast({ type: 'success', title: 'Página Publicada!', message: 'Link gerado com sucesso.' });
+    } catch (error: any) {
+      addToast({ type: 'error', message: `Erro ao publicar: ${error.message}` });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleDownload = () => {
     if (!generatedCode) return;
 
@@ -163,8 +194,13 @@ O código deve ser copy-paste ready.`;
   const handleSendCode = () => {
     if (!generatedCode) return;
 
-    const subject = encodeURIComponent('Página HTML criada com VitrineX AI');
-    const body = encodeURIComponent(`Olá!\n\nCriei esta página HTML usando o VitrineX AI:\n\n${generatedCode.substring(0, 500)}...\n\n[Código completo anexado]`);
+    // If we have a published URL, send that instead!
+    const contentToSend = publishedUrl
+      ? `Confira minha página criada com VitrineX AI: ${publishedUrl}`
+      : `Olá!\n\nCriei esta página HTML usando o VitrineX AI:\n\n${generatedCode.substring(0, 500)}...\n\n[Código completo anexado]`;
+
+    const subject = encodeURIComponent('Minha Página VitrineX AI');
+    const body = encodeURIComponent(contentToSend);
 
     // Open email client
     window.location.href = `mailto:?subject=${subject}&body=${body}`;
@@ -310,6 +346,27 @@ O código deve ser copy-paste ready.`;
                   <ArrowDownTrayIcon className="w-4 h-4 mr-2" />
                   Baixar .html
                 </Button>
+                <Button onClick={() => {
+                  const blob = new Blob([generatedCode], { type: 'text/html' });
+                  const url = URL.createObjectURL(blob);
+                  window.open(url, '_blank');
+                }} variant="outline" size="sm" className="flex-1" title="Abrir em Nova Aba">
+                  <ArrowTopRightOnSquareIcon className="w-4 h-4 mr-2" />
+                  Abrir Página
+                </Button>
+
+                <Button
+                  onClick={handlePublish}
+                  variant="primary"
+                  size="sm"
+                  className="flex-1 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 border-none text-white shadow-lg shadow-purple-500/20"
+                  isLoading={loading}
+                  title="Publicar na Web"
+                >
+                  <GlobeAltIcon className="w-4 h-4 mr-2" />
+                  Publicar
+                </Button>
+
                 <Button onClick={handleSendCode} variant="ghost" size="sm" className="flex-1">
                   <ShareIcon className="w-4 h-4 mr-2" />
                   Enviar
@@ -323,6 +380,33 @@ O código deve ser copy-paste ready.`;
                   {showPreview ? 'Ocultar' : 'Ver'} Preview
                 </Button>
               </div>
+
+              {publishedUrl && (
+                <div className="mt-4 p-4 bg-green-900/10 border border-green-500/20 rounded-xl flex items-center justify-between animate-in fade-in slide-in-from-top-2">
+                  <div className="flex items-center gap-3 overflow-hidden">
+                    <div className="p-2 bg-green-500/10 rounded-lg text-green-500">
+                      <LinkIcon className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold text-green-500 uppercase tracking-wider">Página Publicada</p>
+                      <a href={publishedUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-green-400 hover:underline truncate block">
+                        {publishedUrl}
+                      </a>
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => {
+                      navigator.clipboard.writeText(publishedUrl);
+                      addToast({ type: 'success', message: 'Link copiado!' });
+                    }}
+                    className="text-green-500 hover:text-green-400 hover:bg-green-500/10"
+                  >
+                    <ClipboardDocumentIcon className="w-5 h-5" />
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -360,7 +444,7 @@ O código deve ser copy-paste ready.`;
           Especifique cores, layout, seções e estilo desejado.
         </p>
       </div>
-    </div>
+    </div >
   );
 };
 

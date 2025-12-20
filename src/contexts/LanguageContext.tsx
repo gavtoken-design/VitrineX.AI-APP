@@ -25,16 +25,14 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   const t = (key: string): string => {
-    // @ts-ignore
-    let current: any = translations[language];
+    const current = translations[language];
 
     if (current[key]) return current[key];
 
     // Fallback to EN if missing
-    // @ts-ignore
-    if (translations['en-US'][key]) {
-      // @ts-ignore
-      return translations['en-US'][key];
+    const en = translations['en-US'];
+    if (en[key]) {
+      return en[key];
     }
 
     return key;

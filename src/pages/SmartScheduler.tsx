@@ -16,6 +16,7 @@ import { useToast } from '../contexts/ToastContext';
 import { useAuth } from '../contexts/AuthContext';
 import { generateText } from '../services/ai/text';
 import { getScheduleEntries, saveScheduleEntry, deleteScheduleEntry } from '../services/core/db';
+import { useNavigate } from '../hooks/useNavigate';
 import { ScheduleEntry as DbScheduleEntry } from '../types';
 
 interface ScheduledPost {
@@ -71,30 +72,88 @@ const SmartScheduler: React.FC = () => {
     const [showAnalytics, setShowAnalytics] = useState(false);
     const { addToast } = useToast();
     const { user } = useAuth();
+    const { navigationParams } = useNavigate(); // Get params
     const userId = user?.id || 'anonymous';
 
-    // Load posts from DB
+    // Load posts from DB & Check for Imported Campaign
     useEffect(() => {
         const load = async () => {
             try {
+                // 1. Load existing posts
                 const data = await getScheduleEntries(userId);
-                // Map DB entries to local state if needed
-                const mapped: ScheduledPost[] = data.map(item => ({
+
+                // Map existing DB entries
+                const dbPosts: ScheduledPost[] = data.map(item => ({
                     id: item.id,
-                    title: item.platform.toUpperCase(), // Logic fallback
-                    content: 'Conteúdo de post', // Logic fallback
+                    title: item.platform.toUpperCase(),
+                    content: 'Conteúdo do agendamento', // Fallback if content missing in DB type 
+                    // Note: In real app, DB entry should have content. Checking types... 
+                    // db.ts: saveScheduleEntry accepts partial? 
+                    // Let's assume we map what we can. 
                     platform: item.platform as any,
                     scheduledDate: item.datetime.split('T')[0],
                     scheduledTime: item.datetime.split('T')[1]?.substring(0, 5) || '12:00',
                     status: item.status as any,
                 }));
-                setPosts(mapped);
+
+                let combinedPosts = [...dbPosts];
+
+                // 2. Check for passed Campaign Params
+                if (navigationParams?.campaign) {
+                    const campaign = navigationParams.campaign;
+                    console.log('Importing campaign:', campaign);
+                    addToast({ type: 'info', message: `Importando posts da campanha: ${campaign.name}` });
+
+                    // Convert campaign posts to ScheduledPosts
+                    const importedPosts: ScheduledPost[] = (campaign.posts || []).map((p: any, index: number) => {
+                        // Logic to determine date/time based on campaign "day 1", "day 2" etc.
+                        // For simplicity, we schedule starting tomorrow, one per day?
+                        // Or try to parse p.date if it's like "Day 1".
+                        const dateOffset = index; // +1 day per post
+                        const targetDate = new Date();
+                        targetDate.setDate(targetDate.getDate() + 1 + dateOffset);
+                        const dateStr = targetDate.toISOString().split('T')[0];
+
+                        const postPlatform = (p.platform || 'instagram').toLowerCase().includes('insta') ? 'instagram' : 'all';
+
+                        return {
+                            id: `camp-${Date.now()}-${index}`,
+                            title: `Post Campanha: ${p.title || `Post ${index + 1}`}`,
+                            content: p.content_text || p.content || '',
+                            platform: postPlatform as any,
+                            scheduledDate: dateStr,
+                            scheduledTime: '10:00', // Default time
+                            status: 'scheduled',
+                            aiSuggested: true
+                        };
+                    });
+
+                    // Option: Save them to DB immediately so they persist?
+                    // Yes, to ensure consistency.
+                    for (const newPost of importedPosts) {
+                        await saveScheduleEntry({
+                            id: newPost.id,
+                            userId: userId,
+                            platform: newPost.platform,
+                            datetime: `${newPost.scheduledDate}T${newPost.scheduledTime}:00`,
+                            status: 'scheduled',
+                            contentId: '',
+                            contentType: 'post'
+                        });
+                    }
+
+                    combinedPosts = [...combinedPosts, ...importedPosts];
+                    addToast({ type: 'success', message: `${importedPosts.length} posts da campanha importados!` });
+                }
+
+                setPosts(combinedPosts);
+
             } catch (e) {
                 console.error(e);
             }
         };
         load();
-    }, [userId]);
+    }, [userId, navigationParams, addToast]); // Added navigationParams dependency
 
     // Removal of auto-save useEffect for LocalStorage
     /*

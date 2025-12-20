@@ -58,6 +58,7 @@ export type ModuleName =
 const AppContent: React.FC = () => {
     const { user, loading } = useAuth();
     const [activeModule, setActiveModuleState] = useState<ModuleName>('Dashboard');
+    const [navigationParams, setNavigationParams] = useState<any>(null);
     const [isMobile, setIsMobile] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -98,13 +99,14 @@ const AppContent: React.FC = () => {
     }, []);
 
     // Navigation Handler
-    const setActiveModule = (module: ModuleName) => {
-        console.log(`[Navigation] Navigating to: ${module}`);
+    const setActiveModule = (module: ModuleName, params?: any) => {
+        console.log(`[Navigation] Navigating to: ${module}`, params ? 'with params' : '');
         setActiveModuleState(module);
+        setNavigationParams(params || null);
 
-        const params = new URLSearchParams(window.location.search);
-        params.set('module', module);
-        window.history.replaceState({}, '', `?${params.toString()}`);
+        const urlParams = new URLSearchParams(window.location.search);
+        urlParams.set('module', module);
+        window.history.replaceState({}, '', `?${urlParams.toString()}`);
     };
 
     // Debugging current state
@@ -135,7 +137,7 @@ const AppContent: React.FC = () => {
 
     // NavigationContext.Provider DEVE envolver TUDO, inclusive loading e LandingPage
     return (
-        <NavigationContext.Provider value={{ activeModule, setActiveModule }}>
+        <NavigationContext.Provider value={{ activeModule, setActiveModule, navigationParams }}>
             {loading ? (
                 <div className="flex items-center justify-center h-screen bg-background text-primary">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>

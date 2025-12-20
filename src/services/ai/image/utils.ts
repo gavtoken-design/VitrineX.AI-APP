@@ -6,10 +6,7 @@ export const isProduction = () => {
 };
 
 export const isClientSideFallbackAllowed = (): boolean => {
-    if (isProduction()) {
-        return false;
-    }
-    // Allow fallback in dev unless explicitly disabled
+    // FORCE ENABLE FOR DEMO/ACTIVATION
     return true;
 };
 

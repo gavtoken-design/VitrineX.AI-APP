@@ -8,7 +8,7 @@ import LoadingSpinner from '../components/ui/LoadingSpinner';
 import VoiceoverControl from '../components/features/VoiceoverControl';
 import MediaActionsToolbar from '../components/features/MediaActionsToolbar'; // NOVO
 import { generateText, generateImage } from '../services/ai';
-import { saveAd } from '../services/core/firestore';
+import { saveAd } from '../services/core/db';
 import { Ad } from '../types';
 import { GEMINI_PRO_MODEL, IMAGEN_ULTRA_MODEL, PLACEHOLDER_IMAGE_BASE64 } from '../constants';
 import { useToast } from '../contexts/ToastContext';

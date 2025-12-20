@@ -103,93 +103,103 @@ const NotificationDropdown: React.FC = () => {
             </button>
 
             {isOpen && (
-                <div className="fixed top-[70px] left-4 right-4 md:absolute md:top-auto md:left-auto md:right-0 md:mt-4 md:w-96 liquid-modal rounded-2xl z-50 overflow-hidden liquid-emerge origin-top-right">
-                    <div className="p-4 border-b border-white/10 flex justify-between items-center bg-white/5 backdrop-blur-md">
-                        <div className="flex items-center gap-2">
-                            <h3 className="font-bold text-white liquid-text-glow">Notificações</h3>
-                            {unreadCount > 0 && (
-                                <span className="bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full font-medium">
-                                    {unreadCount} novas
-                                </span>
+                <>
+                    {/* Overlay for mobile to handle outside clicks better and dim background if needed */}
+                    <div className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm md:hidden" onClick={() => setIsOpen(false)} />
+
+                    <div className="
+                        fixed left-4 right-4 top-20 z-50 
+                        md:absolute md:top-full md:right-0 md:left-auto md:w-96 md:mt-2 
+                        liquid-modal rounded-2xl overflow-hidden shadow-2xl border border-white/10 
+                        origin-top-right animate-in fade-in zoom-in-95 duration-200
+                    ">
+                        <div className="p-4 border-b border-white/10 flex justify-between items-center bg-white/5 backdrop-blur-md">
+                            <div className="flex items-center gap-2">
+                                <h3 className="font-bold text-white liquid-text-glow">Notificações</h3>
+                                {unreadCount > 0 && (
+                                    <span className="bg-primary/20 text-primary-400 text-xs px-2 py-0.5 rounded-full font-medium border border-primary/20">
+                                        {unreadCount} novas
+                                    </span>
+                                )}
+                            </div>
+                            {notifications.length > 0 && (
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={markAllAsRead}
+                                        className="text-xs text-primary-400 hover:text-primary hover:underline font-medium transition-colors"
+                                    >
+                                        Ler todas
+                                    </button>
+                                    <button
+                                        onClick={clearAll}
+                                        className="text-xs text-muted hover:text-red-400 transition-colors p-1 hover:bg-white/5 rounded"
+                                        title="Limpar tudo"
+                                    >
+                                        <XMarkIcon className="w-4 h-4" />
+                                    </button>
+                                </div>
                             )}
                         </div>
-                        {notifications.length > 0 && (
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={markAllAsRead}
-                                    className="text-xs text-primary hover:underline font-medium"
-                                >
-                                    Ler todas
-                                </button>
-                                <button
-                                    onClick={clearAll}
-                                    className="text-xs text-muted hover:text-red-400 transition-colors"
-                                    title="Limpar tudo"
-                                >
-                                    <XMarkIcon className="w-4 h-4" />
-                                </button>
-                            </div>
-                        )}
-                    </div>
 
-                    <div className="max-h-[70vh] overflow-y-auto custom-scrollbar">
-                        {notifications.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-                                <div className="bg-white/5 p-4 rounded-full mb-3 liquid-float">
-                                    <BellIcon className="w-8 h-8 text-white/50" />
+                        <div className="max-h-[70vh] overflow-y-auto custom-scrollbar">
+                            {notifications.length === 0 ? (
+                                <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+                                    <div className="bg-white/5 p-4 rounded-full mb-3 liquid-float">
+                                        <BellIcon className="w-8 h-8 text-white/50" />
+                                    </div>
+                                    <p className="text-body font-medium">Tudo limpo por aqui!</p>
+                                    <p className="text-sm text-muted mt-1">Você não tem novas notificações.</p>
                                 </div>
-                                <p className="text-body font-medium">Tudo limpo por aqui!</p>
-                                <p className="text-sm text-muted mt-1">Você não tem novas notificações.</p>
-                            </div>
-                        ) : (
-                            <ul className="divide-y divide-border">
-                                {notifications.map((notification) => (
-                                    <li
-                                        key={notification.id}
-                                        className={`relative group transition-colors hover:bg-background/80 ${!notification.read ? 'bg-primary/5' : ''
-                                            }`}
-                                    >
-                                        <div
-                                            className="p-4 pr-10 cursor-pointer"
-                                            onClick={() => handleNotificationClick(notification)}
+                            ) : (
+                                <ul className="divide-y divide-border">
+                                    {notifications.map((notification) => (
+                                        <li
+                                            key={notification.id}
+                                            className={`relative group transition-colors hover:bg-background/80 ${!notification.read ? 'bg-primary/5' : ''
+                                                }`}
                                         >
-                                            <div className="flex gap-3 items-start">
-                                                <div className={`mt-1 p-1.5 rounded-full bg-background border border-border flex-shrink-0 ${!notification.read ? 'ring-2 ring-primary/20' : ''
-                                                    }`}>
-                                                    {getIcon(notification.type)}
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <p className={`text-sm font-medium mb-0.5 ${!notification.read ? 'text-title' : 'text-body'}`}>
-                                                        {notification.title}
-                                                    </p>
-                                                    <p className="text-xs text-muted leading-relaxed line-clamp-2">
-                                                        {notification.message}
-                                                    </p>
-                                                    <p className="text-[10px] text-muted/80 mt-2 flex items-center gap-1">
-                                                        {formatDate(notification.timestamp)}
-                                                        {!notification.read && (
-                                                            <span className="w-1.5 h-1.5 rounded-full bg-primary ml-1"></span>
-                                                        )}
-                                                    </p>
+                                            <div
+                                                className="p-4 pr-10 cursor-pointer"
+                                                onClick={() => handleNotificationClick(notification)}
+                                            >
+                                                <div className="flex gap-3 items-start">
+                                                    <div className={`mt-1 p-1.5 rounded-full bg-background border border-border flex-shrink-0 ${!notification.read ? 'ring-2 ring-primary/20' : ''
+                                                        }`}>
+                                                        {getIcon(notification.type)}
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className={`text-sm font-medium mb-0.5 ${!notification.read ? 'text-title' : 'text-body'}`}>
+                                                            {notification.title}
+                                                        </p>
+                                                        <p className="text-xs text-muted leading-relaxed line-clamp-2">
+                                                            {notification.message}
+                                                        </p>
+                                                        <p className="text-[10px] text-muted/80 mt-2 flex items-center gap-1">
+                                                            {formatDate(notification.timestamp)}
+                                                            {!notification.read && (
+                                                                <span className="w-1.5 h-1.5 rounded-full bg-primary ml-1"></span>
+                                                            )}
+                                                        </p>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                clearNotification(notification.id);
-                                            }}
-                                            className="absolute top-2 right-2 p-1.5 text-muted hover:text-red-400 hover:bg-red-400/10 rounded-full opacity-0 group-hover:opacity-100 transition-all"
-                                            title="Remover"
-                                        >
-                                            <XMarkIcon className="w-4 h-4" />
-                                        </button>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    clearNotification(notification.id);
+                                                }}
+                                                className="absolute top-2 right-2 p-1.5 text-muted hover:text-red-400 hover:bg-red-400/10 rounded-full opacity-0 group-hover:opacity-100 transition-all"
+                                                title="Remover"
+                                            >
+                                                <XMarkIcon className="w-4 h-4" />
+                                            </button>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                        </div>
                     </div>
-                </div>
+                </>
             )}
         </div>
     );
