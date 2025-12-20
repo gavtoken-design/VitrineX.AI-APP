@@ -38,6 +38,7 @@ interface ScheduledPost {
         comments: number;
         shares: number;
     };
+    mediaUrl?: string; // Image/Video URL or Base64
 }
 
 const STORAGE_KEY = 'vitrinex_scheduled_posts';
@@ -68,6 +69,7 @@ const SmartScheduler: React.FC = () => {
     const [isRecurring, setIsRecurring] = useState(false);
     const [recurringFrequency, setRecurringFrequency] = useState<'daily' | 'weekly' | 'monthly'>('weekly');
     const [recurringEndDate, setRecurringEndDate] = useState('');
+    const [newImage, setNewImage] = useState<string | null>(null);
     const [isGeneratingAI, setIsGeneratingAI] = useState(false);
     const [showAnalytics, setShowAnalytics] = useState(false);
     const { addToast } = useToast();
@@ -86,7 +88,8 @@ const SmartScheduler: React.FC = () => {
                 const dbPosts: ScheduledPost[] = data.map(item => ({
                     id: item.id,
                     title: item.platform.toUpperCase(),
-                    content: 'Conteúdo do agendamento', // Fallback if content missing in DB type 
+                    content: item.content || 'Conteúdo do agendamento', // Load content from DB/Local
+                    mediaUrl: item.mediaUrl, // Load media from DB/Local
                     // Note: In real app, DB entry should have content. Checking types... 
                     // db.ts: saveScheduleEntry accepts partial? 
                     // Let's assume we map what we can. 
@@ -303,7 +306,8 @@ const SmartScheduler: React.FC = () => {
                 frequency: recurringFrequency,
                 endDate: recurringEndDate || undefined
             } : undefined,
-            aiSuggested: isGeneratingAI
+            aiSuggested: isGeneratingAI,
+            mediaUrl: newImage || undefined
         };
 
         try {
@@ -315,7 +319,9 @@ const SmartScheduler: React.FC = () => {
                 datetime: `${newPost.scheduledDate}T${newPost.scheduledTime}:00`,
                 status: 'scheduled',
                 contentId: '', // Corrected property name
-                contentType: 'post' // Added required property
+                contentType: 'post', // Added required property
+                content: newPost.content,
+                mediaUrl: newPost.mediaUrl
             });
 
             setPosts([...posts, newPost]);
@@ -327,6 +333,8 @@ const SmartScheduler: React.FC = () => {
             setNewTime('');
             setIsRecurring(false);
             setRecurringEndDate('');
+            setNewImage(null);
+
 
             addToast({ type: 'success', message: '📅 Post agendado com sucesso!' });
         } catch (e) {
@@ -433,6 +441,47 @@ const SmartScheduler: React.FC = () => {
                             className="w-full px-4 py-3 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
                             rows={4}
                         />
+
+                        {/* Image Upload */}
+                        <div className="mt-2">
+                            <label className="block text-sm font-medium text-title mb-2">
+                                Mídia (Imagem)
+                            </label>
+                            <div className="flex items-center gap-4">
+                                <label className="cursor-pointer bg-background border border-border hover:bg-surface text-title px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+                                    <SparklesIcon className="w-5 h-5" />
+                                    Escolher Imagem
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={(e) => {
+                                            const file = e.target.files?.[0];
+                                            if (file) {
+                                                const reader = new FileReader();
+                                                reader.onloadend = () => {
+                                                    setNewImage(reader.result as string);
+                                                };
+                                                reader.readAsDataURL(file);
+                                            }
+                                        }}
+                                    />
+                                </label>
+                                {newImage && (
+                                    <div className="relative group">
+                                        <img src={newImage} alt="Preview" className="h-16 w-16 object-cover rounded-md border border-border" />
+                                        <button
+                                            onClick={() => setNewImage(null)}
+                                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600"
+                                            title="Remover imagem"
+                                        >
+                                            <TrashIcon className="w-3 h-3" />
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -572,6 +621,11 @@ const SmartScheduler: React.FC = () => {
                                         <p className="text-xs text-muted">
                                             📅 {new Date(post.scheduledDate).toLocaleDateString('pt-BR')} às {post.scheduledTime}
                                         </p>
+                                        {post.mediaUrl && (
+                                            <div className="mt-2">
+                                                <img src={post.mediaUrl} alt="Post media" className="h-20 w-auto rounded-md border border-border object-cover" />
+                                            </div>
+                                        )}
                                     </div>
                                     <Button
                                         onClick={() => handleDeletePost(post.id)}

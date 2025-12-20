@@ -124,6 +124,8 @@ export interface ScheduleEntry {
   platform: string; // e.g., 'Instagram', 'Facebook'
   contentId: string; // Reference to LibraryItem ID or Post/Ad ID
   contentType: 'post' | 'ad' | 'audio' | 'video' | 'image' | 'text'; // Added types for content
+  content?: string; // Optional: Direct content text
+  mediaUrl?: string; // Optional: Direct media URL (or base64)
   status: 'scheduled' | 'published' | 'failed';
 }
 

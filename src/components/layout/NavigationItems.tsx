@@ -72,7 +72,7 @@ export const useNavItems = () => {
     {
       section: 'sidebar.system', items: [
         { name: "ContentLibrary" as ModuleName, label: 'sidebar.library', icon: 'library' as IconName },
-        { id: "nav-code-audit", name: "CodeAudit" as ModuleName, label: 'sidebar.code_audit', icon: 'code' as IconName },
+
         { id: "nav-settings", name: "Settings" as ModuleName, label: 'sidebar.config', icon: 'settings' as IconName }
       ]
     }

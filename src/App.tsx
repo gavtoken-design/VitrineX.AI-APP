@@ -31,7 +31,6 @@ import CalendarManager from './pages/CalendarManager';
 import CodePlayground from './pages/CodePlayground';
 import AuthPage from './pages/AuthPage';
 import Settings from './pages/Settings';
-import CodeAudit from './pages/CodeAudit';
 import LandingPage from './pages/LandingPage';
 
 // Components
@@ -52,8 +51,7 @@ export type ModuleName =
     | 'CalendarManager'
     | 'CodePlayground'
     | 'Settings'
-    | 'LandingPage'
-    | 'CodeAudit';
+    | 'LandingPage';
 
 const AppContent: React.FC = () => {
     const { user, loading } = useAuth();
@@ -128,8 +126,7 @@ const AppContent: React.FC = () => {
             CalendarManager: <CalendarManager />,
             CodePlayground: <CodePlayground />,
             Settings: <Settings />,
-            LandingPage: <LandingPage />,
-            CodeAudit: <CodeAudit />
+            LandingPage: <LandingPage />
         };
 
         return modules[activeModule] ?? <Dashboard />;
