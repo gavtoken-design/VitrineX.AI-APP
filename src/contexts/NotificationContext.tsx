@@ -31,19 +31,53 @@ const NotificationContext = createContext<NotificationContextType | undefined>(u
 const STORAGE_KEY = 'vitrinex_notifications';
 const MAX_NOTIFICATIONS = 50; // Limitar para não sobrecarregar
 
+const MOCK_NOTIFICATIONS: Notification[] = [
+    {
+        id: 'mock-1',
+        type: 'system',
+        title: 'Bem-vindo ao VitrineX!',
+        message: 'Explore nossas novas ferramentas de IA para impulsionar suas vendas.',
+        timestamp: new Date().toISOString(),
+        read: false
+    },
+    {
+        id: 'mock-2',
+        type: 'reminder',
+        title: 'Dica do Dia',
+        message: 'Você pode agendar posts diretamente da tela de geração de conteúdo.',
+        timestamp: new Date(Date.now() - 3600000).toISOString(), // 1 hora atrás
+        read: false
+    },
+    {
+        id: 'mock-3',
+        type: 'commemorative_date',
+        title: 'Dia do Cliente chegando',
+        message: 'Que tal criar uma campanha especial para o dia 15?',
+        timestamp: new Date(Date.now() - 86400000).toISOString(), // 1 dia atrás
+        read: true
+    }
+];
+
 export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [notifications, setNotifications] = useState<Notification[]>([]);
 
-    // Carregar notificações do localStorage
+    // Carregar notificações do localStorage ou usar Mock
     useEffect(() => {
         const stored = localStorage.getItem(STORAGE_KEY);
         if (stored) {
             try {
                 const parsed = JSON.parse(stored);
-                setNotifications(parsed);
+                if (parsed.length > 0) {
+                    setNotifications(parsed);
+                } else {
+                    setNotifications(MOCK_NOTIFICATIONS);
+                }
             } catch (e) {
                 console.error('Failed to parse notifications:', e);
+                setNotifications(MOCK_NOTIFICATIONS);
             }
+        } else {
+            setNotifications(MOCK_NOTIFICATIONS);
         }
     }, []);
 
