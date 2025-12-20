@@ -2,7 +2,8 @@ import * as React from 'react';
 import { ModuleName } from '../../App';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { NavItem, useNavItems } from './NavigationItems';
-import { XMarkIcon, ArrowPathIcon, CreditCardIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, ArrowPathIcon, CreditCardIcon, SunIcon, MoonIcon } from '@heroicons/react/24/outline';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface MobileNavMenuProps {
   isOpen: boolean;
@@ -14,6 +15,7 @@ interface MobileNavMenuProps {
 const MobileNavMenu: React.FC<MobileNavMenuProps> = ({ isOpen, onClose, activeModule, setActiveModule }) => {
   const navItems = useNavItems();
   const { t } = useLanguage();
+  const { theme, toggleTheme } = useTheme();
 
   const handleNavigate = () => {
     onClose();
@@ -75,9 +77,29 @@ const MobileNavMenu: React.FC<MobileNavMenuProps> = ({ isOpen, onClose, activeMo
               </React.Fragment>
             ))}
             {/* Espaço extra no final para rolagem */}
-            <div className="h-24 flex-shrink-0"></div>
+            <div className="h-4 flex-shrink-0"></div>
           </ul>
         </nav>
+
+        {/* Footer com Toggle de Tema */}
+        <div className="p-4 border-t border-white/10 mt-auto bg-surface/30 backdrop-blur-md">
+          <button
+            onClick={toggleTheme}
+            className="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all active:scale-95 group"
+          >
+            {theme === 'light' ? (
+              <>
+                <MoonIcon className="w-5 h-5 text-primary group-hover:rotate-12 transition-transform" />
+                <span className="text-sm font-bold text-body">Ativar Modo Escuro</span>
+              </>
+            ) : (
+              <>
+                <SunIcon className="w-5 h-5 text-yellow-400 group-hover:rotate-90 transition-transform" />
+                <span className="text-sm font-bold text-body">Ativar Modo Claro</span>
+              </>
+            )}
+          </button>
+        </div>
       </aside >
     </div >
   );
