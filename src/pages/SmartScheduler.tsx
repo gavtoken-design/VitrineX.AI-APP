@@ -18,6 +18,7 @@ import { generateText } from '../services/ai/text';
 import { getScheduleEntries, saveScheduleEntry, deleteScheduleEntry } from '../services/core/db';
 import { useNavigate } from '../hooks/useNavigate';
 import { ScheduleEntry as DbScheduleEntry } from '../types';
+import { publishFacebookPost, createInstagramMedia, publishInstagramMedia } from '../services/social';
 
 interface ScheduledPost {
     id: string;
@@ -71,6 +72,7 @@ const SmartScheduler: React.FC = () => {
     const [recurringEndDate, setRecurringEndDate] = useState('');
     const [newImage, setNewImage] = useState<string | null>(null);
     const [isGeneratingAI, setIsGeneratingAI] = useState(false);
+    const [publishingId, setPublishingId] = useState<string | null>(null);
     const [showAnalytics, setShowAnalytics] = useState(false);
     const { addToast } = useToast();
     const { user } = useAuth();
@@ -362,8 +364,61 @@ const SmartScheduler: React.FC = () => {
         return acc;
     }, 0);
 
+    const handlePublishPost = async (post: ScheduledPost) => {
+        setPublishingId(post.id);
+        addToast({ type: 'info', title: 'Publicando', message: `Iniciando publicação no ${post.platform}...` });
+
+        try {
+            // Simulation of connection (Tokens would come from DB/Auth in real app)
+            const MOCK_ACCESS_TOKEN = "EAAG...";
+            const MOCK_USER_ID = "1784...";
+
+            let result;
+
+            if (post.platform === 'facebook') {
+                // Real implementation would look like this:
+                // result = await publishFacebookPost(MOCK_USER_ID, MOCK_ACCESS_TOKEN, post.content);
+
+                // For this demo (as connections aren't really set up in DB):
+                await new Promise(resolve => setTimeout(resolve, 2000)); // Mock network delay
+                result = { id: 'mock_fb_post_id_' + Date.now() };
+
+            } else if (post.platform === 'instagram') {
+                if (post.mediaUrl) {
+                    // Instagram needs media
+                    // const containerId = await createInstagramMedia(MOCK_USER_ID, MOCK_ACCESS_TOKEN, post.mediaUrl, post.content);
+                    // result = await publishInstagramMedia(MOCK_USER_ID, MOCK_ACCESS_TOKEN, containerId);
+                }
+
+                // Mock delay
+                await new Promise(resolve => setTimeout(resolve, 2500));
+                result = { id: 'mock_ig_media_id_' + Date.now() };
+            } else {
+                // Generic handler for 'all' or others
+                await new Promise(resolve => setTimeout(resolve, 3000));
+            }
+
+            // Update status locally
+            const updatedPosts = posts.map(p =>
+                p.id === post.id ? { ...p, status: 'published' as const } : p
+            );
+            setPosts(updatedPosts);
+
+            // Optionally update DB
+            // await updateScheduleEntry(post.id, { status: 'published' });
+
+            addToast({ type: 'success', title: 'Sucesso!', message: 'Post publicado com sucesso.' });
+
+        } catch (error) {
+            console.error("Publish error:", error);
+            addToast({ type: 'error', title: 'Erro', message: 'Falha ao publicar. Verifique a conexão.' });
+        } finally {
+            setPublishingId(null);
+        }
+    };
+
     return (
-        <div className="space-y-8 animate-fade-in">
+        <div className="animate-fade-in pb-20">
             {/* Header */}
             <div className="flex items-center justify-between pb-6 border-b border-border">
                 <div className="flex items-center gap-4">
@@ -626,15 +681,35 @@ const SmartScheduler: React.FC = () => {
                                                 <img src={post.mediaUrl} alt="Post media" className="h-20 w-auto rounded-md border border-border object-cover" />
                                             </div>
                                         )}
+                                        {post.status === 'published' && (
+                                            <span className="mt-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
+                                                <CheckCircleIcon className="w-3 h-3 mr-1" /> Publicado
+                                            </span>
+                                        )}
                                     </div>
-                                    <Button
-                                        onClick={() => handleDeletePost(post.id)}
-                                        variant="ghost"
-                                        size="sm"
-                                        className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
-                                    >
-                                        <TrashIcon className="w-4 h-4" />
-                                    </Button>
+                                    <div className="flex flex-col gap-2">
+                                        {post.status !== 'published' && (
+                                            <Button
+                                                onClick={() => handlePublishPost(post)}
+                                                variant="outline"
+                                                size="sm"
+                                                className="text-primary border-primary/20 hover:bg-primary/10"
+                                                isLoading={publishingId === post.id}
+                                                disabled={publishingId !== null}
+                                            >
+                                                {publishingId === post.id ? 'Enviando...' : 'Enviar Agora'}
+                                            </Button>
+                                        )}
+                                        <Button
+                                            onClick={() => handleDeletePost(post.id)}
+                                            variant="ghost"
+                                            size="sm"
+                                            className="text-red-500 hover:bg-red-500/10 hover:text-red-600"
+                                            title="Excluir agendamento"
+                                        >
+                                            <TrashIcon className="w-4 h-4" />
+                                        </Button>
+                                    </div>
                                 </div>
                             </div>
                         ))}

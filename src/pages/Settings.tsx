@@ -110,6 +110,15 @@ const Settings: React.FC = () => {
                     address
                 }
             });
+
+            // Sync with Supabase Auth Metadata for immediate UI updates (Dashboard Greeting)
+            await supabase.auth.updateUser({
+                data: {
+                    full_name: fullName,
+                    name: fullName // Backup for legacy checks
+                }
+            });
+
             addToast({
                 type: 'success',
                 title: 'Salvo',

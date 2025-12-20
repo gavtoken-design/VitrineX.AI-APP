@@ -32,28 +32,48 @@ interface SummaryCardProps {
   isLoading?: boolean;
 }
 
-const SummaryCard: React.FC<SummaryCardProps> = ({ title, value, description, icon: Icon, isLoading }) => (
-  <div className="glass-card p-6 transition-all duration-300 hover:scale-105">
-    <div className="flex justify-between items-start mb-4">
-      <div className="glass-icon-bg p-3">
+import { LiquidGlassCard } from '../components/ui/LiquidGlassCard';
+
+interface SummaryCardProps {
+  title: string;
+  value: string | number;
+  description: string;
+  icon: React.ElementType;
+  isLoading?: boolean;
+  growth?: string;
+  isPositive?: boolean;
+}
+
+const SummaryCard: React.FC<SummaryCardProps> = ({ title, value, description, icon: Icon, isLoading, growth, isPositive = true }) => (
+  <LiquidGlassCard
+    className="p-6 transition-all duration-300 hover:scale-105"
+    blurIntensity="lg"
+    shadowIntensity="md"
+    glowIntensity="sm"
+    borderRadius="24px"
+  >
+    <div className="flex justify-between items-start mb-4 relative z-40">
+      <div className="glass-icon-bg p-3 bg-white/10 rounded-xl backdrop-blur-md">
         <Icon className="w-5 h-5 text-cyan-300" />
       </div>
-      <span className="growth-badge">+15%</span>
+      <span className={`growth-badge px-2 py-1 rounded-full text-xs font-bold border ${growth && growth.includes('+') ? 'bg-green-500/20 text-green-300 border-green-500/30' : 'bg-white/10 text-gray-300 border-white/20'}`}>
+        {growth || '+0%'}
+      </span>
     </div>
-    <div>
+    <div className="relative z-40">
       {isLoading ? (
         <>
-          <Skeleton className="h-4 w-24 mb-2" />
-          <Skeleton className="h-9 w-16" />
+          <Skeleton className="h-4 w-24 mb-2 bg-white/10" />
+          <Skeleton className="h-9 w-16 bg-white/10" />
         </>
       ) : (
         <>
-          <p className="text-sm text-gray-300 mb-1">{title}</p>
-          <p className="text-3xl font-bold text-white">{value}</p>
+          <p className="text-sm text-gray-300 mb-1 font-medium tracking-wide opacity-80">{title}</p>
+          <p className="text-4xl font-bold text-white tracking-tight drop-shadow-sm">{value}</p>
         </>
       )}
     </div>
-  </div>
+  </LiquidGlassCard>
 );
 
 interface ActivityCardProps {
@@ -133,6 +153,43 @@ const Dashboard: React.FC = () => {
       .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
       .slice(0, 5);
   }, [data]);
+
+  const calculateGrowth = (items: any[] = [], dateField: string = 'createdAt'): string => {
+    if (!items || items.length === 0) return '+0%';
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    let countToday = 0;
+    let countYesterday = 0;
+
+    items.forEach(item => {
+      const date = new Date(item[dateField]);
+      if (date >= today && date < tomorrow) {
+        countToday++;
+      } else if (date >= yesterday && date < today) {
+        countYesterday++;
+      }
+    });
+
+    if (countYesterday === 0) {
+      return countToday > 0 ? `+${countToday * 100}%` : '0%';
+    }
+
+    const growth = ((countToday - countYesterday) / countYesterday) * 100;
+    return `${growth > 0 ? '+' : ''}${growth.toFixed(0)}%`;
+  };
+
+  const contentGrowth = React.useMemo(() => calculateGrowth(data?.library, 'createdAt'), [data?.library]);
+  const adsGrowth = React.useMemo(() => calculateGrowth(data?.ads, 'createdAt'), [data?.ads]);
+  const scheduleGrowth = React.useMemo(() => calculateGrowth(data?.schedule, 'datetime'), [data?.schedule]);
+  const trendsGrowth = React.useMemo(() => calculateGrowth(data?.trends, 'createdAt'), [data?.trends]);
 
   const getTimeAgo = (dateString: string) => {
     const diff = new Date().getTime() - new Date(dateString).getTime();
@@ -215,11 +272,11 @@ const Dashboard: React.FC = () => {
     <div className="animate-fade-in duration-500">
       <div id="dashboard-header" className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 border-b border-gray-200 dark:border-gray-800 pb-4 gap-4 md:gap-0">
         <div>
-          <h2 className="text-2xl font-bold text-title">{t('dashboard.title')}</h2>
-          <p className="text-muted mt-1">{t('dashboard.subtitle')}</p>
+          <h2 className="text-2xl font-bold text-title">Visão Executiva</h2>
+          <p className="text-muted mt-1">Bem-vindo de volta. Aqui está o resumo da atividade da plataforma.</p>
         </div>
         <div className="flex items-center gap-4">
-          <ClientGreeting name={user?.user_metadata?.name || "Visitante"} />
+          <ClientGreeting name={user?.user_metadata?.full_name || user?.user_metadata?.name || "Visitante"} />
           <DateTimeDisplay />
         </div>
       </div>
@@ -234,32 +291,36 @@ const Dashboard: React.FC = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
           <SummaryCard
-            title={t('dashboard.total_content')}
+            title="Conteúdo Total"
             value={totalPosts}
-            description={t('dashboard.total_content_desc')}
+            description="Total de itens na biblioteca"
             icon={DocumentTextIcon}
             isLoading={isLoading}
+            growth={contentGrowth}
           />
           <SummaryCard
-            title={t('dashboard.campaigns_card')}
+            title="Campanhas de Anúncios"
             value={totalAds}
-            description={t('dashboard.campaigns_desc')}
+            description="Campanhas ativas e rascunhos"
             icon={MegaphoneIcon}
             isLoading={isLoading}
+            growth={adsGrowth}
           />
           <SummaryCard
-            title={t('dashboard.scheduled')}
+            title="Eventos Agendados"
             value={upcomingSchedule}
-            description={t('dashboard.scheduled_desc')}
+            description="Posts programados para o futuro"
             icon={CalendarDaysIcon}
             isLoading={isLoading}
+            growth={scheduleGrowth}
           />
           <SummaryCard
-            title={t('dashboard.trends_card')}
+            title="Tendências de Mercado"
             value={detectedTrends}
-            description={t('dashboard.trends_desc')}
+            description="Tendências identificadas recentemente"
             icon={ChartBarIcon}
             isLoading={isLoading}
+            growth={trendsGrowth}
           />
         </div>
       )}
