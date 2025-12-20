@@ -303,7 +303,7 @@ ${avatar.buyingBehavior}
       for (const post of newPosts) {
         setLoadingImages(prev => [...prev, post.id]);
         try {
-          const imageResponse = await generateImage(post.content_text.substring(0, 150), { model: GEMINI_IMAGE_MODEL });
+          const imageResponse = await generateImage(prompt, { model: GEMINI_IMAGE_MODEL });
 
           let finalImageUrl = PLACEHOLDER_IMAGE_BASE64;
           if (imageResponse.type === 'image') {

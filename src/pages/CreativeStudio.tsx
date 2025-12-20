@@ -7,7 +7,7 @@ import Button from '../components/ui/Button';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import SaveToLibraryButton from '../components/features/SaveToLibraryButton';
 import MediaActionsToolbar from '../components/features/MediaActionsToolbar';
-import { generateImage, editImage, analyzeImage } from '../services/ai';
+import { generateImage, editImage, analyzeImage, generateText } from '../services/ai';
 import { saveLibraryItem } from '../services/core/db';
 import { uploadFile } from '../services/media/storage';
 import { useAuth } from '../contexts/AuthContext';
@@ -33,6 +33,7 @@ import {
   IMAGEN_ULTRA_MODEL,
   IMAGEN_STANDARD_MODEL,
   GEMINI_IMAGE_MODEL,
+  GEMINI_FLASH_MODEL,
   VEO_GENERATE_MODEL,
   PLACEHOLDER_IMAGE_BASE64,
   IMAGE_ASPECT_RATIOS,
@@ -156,10 +157,42 @@ const CreativeStudio: React.FC = () => {
     setGeneratedAnalysis(null);
 
     try {
-      const response = await generateImage(prompt, {
+      // 1. Refine Prompt (Auto-magic)
+      addToast({ type: 'info', message: 'Otimizando prompt com IA...' });
+      let finalPrompt = prompt;
+      let negativePrompt = "";
+
+      try {
+        const refinementPrompt = `Role: Expert Prompt Engineer for Imagen 3.
+Task: Convert the user's description into a high-quality, detailed English prompt optimized for photorealism and artistic quality. Also generate a strong negative prompt.
+User Input: "${prompt}"
+
+Output JSON ONLY:
+{
+  "prompt": "...",
+  "negative_prompt": "..."
+}`;
+
+        const refinedJson = await generateText(refinementPrompt, {
+          model: GEMINI_FLASH_MODEL,
+          responseMimeType: 'application/json'
+        });
+
+        const parsed = JSON.parse(refinedJson.replace(/```json/g, '').replace(/```/g, '').trim());
+        if (parsed.prompt) {
+          finalPrompt = parsed.prompt;
+          negativePrompt = parsed.negative_prompt || "";
+          addToast({ type: 'success', message: 'Prompt enriquecido com sucesso!' });
+        }
+      } catch (refineError) {
+        console.warn("Auto-refinement failed, using original prompt.", refineError);
+      }
+
+      const response = await generateImage(finalPrompt, {
         model: IMAGEN_ULTRA_MODEL,
         aspectRatio: imageAspectRatio as any,
         numberOfImages: 1,
+        negativePrompt: negativePrompt
       });
 
       if (response.type === 'error') throw new Error(response.message);

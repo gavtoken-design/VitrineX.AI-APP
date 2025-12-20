@@ -21,6 +21,7 @@ export const generateImageInternal = async (prompt: string, options?: ImageOptio
             config: {
                 aspectRatio: options?.aspectRatio,
                 numberOfImages: options?.numberOfImages || 1,
+                negativePrompt: options?.negativePrompt,
             }
         });
 
@@ -47,6 +48,7 @@ export const generateImageInternal = async (prompt: string, options?: ImageOptio
                 config: {
                     aspectRatio: options?.aspectRatio,
                     numberOfImages: options?.numberOfImages || 1,
+                    negativePrompt: options?.negativePrompt,
                 }
             });
 

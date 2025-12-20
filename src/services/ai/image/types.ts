@@ -18,6 +18,7 @@ export interface ImageOptions {
     numberOfImages?: number;
     safetySetting?: string;
     userId?: string;
+    negativePrompt?: string;
 }
 
 export interface ModelCapability {
