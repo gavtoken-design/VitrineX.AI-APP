@@ -225,7 +225,6 @@ const Settings: React.FC = () => {
                                     <ul className="space-y-2 mb-8">
                                         {[
                                             'Geração de Imagens Ilimitada',
-                                            'IA de Vídeo Avançada',
                                             'Agendamento Multi-plataforma',
                                             'Análise de Tendências em Tempo Real',
                                             'Remoção de marca d\'água'
