@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useToast } from '../contexts/ToastContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { supabase } from '../lib/supabase';
 import { updateUserProfile } from '../services/core/db';
 import Button from '../components/ui/Button';
@@ -16,12 +17,15 @@ import {
     ArrowTopRightOnSquareIcon,
     CheckBadgeIcon,
     SparklesIcon,
-    GlobeAltIcon
+    GlobeAltIcon,
+    SunIcon,
+    MoonIcon
 } from '@heroicons/react/24/outline';
 
 const Settings: React.FC = () => {
     const { user, profile, signOut } = useAuth();
     const { t } = useLanguage();
+    const { theme, toggleTheme } = useTheme();
     const { addToast } = useToast();
     const [verifying, setVerifying] = useState(false);
     const [saving, setSaving] = useState(false);
@@ -190,6 +194,13 @@ const Settings: React.FC = () => {
                             >
                                 <LanguageIcon className="w-5 h-5" />
                                 Idioma e Região
+                            </button>
+                            <button
+                                onClick={() => document.getElementById('appearance-section')?.scrollIntoView({ behavior: 'smooth' })}
+                                className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-muted hover:bg-surface-hover hover:text-title transition-colors"
+                            >
+                                <SunIcon className="w-5 h-5" />
+                                Aparência
                             </button>
                         </div>
 
@@ -425,6 +436,41 @@ const Settings: React.FC = () => {
                                     {Intl.DateTimeFormat().resolvedOptions().timeZone}
                                 </div>
                             </div>
+                        </div>
+                    </section>
+
+                    {/* Appearance Section */}
+                    <section id="appearance-section" className="glass-card p-8">
+                        <div className="flex items-center gap-3 mb-6">
+                            {theme === 'light' ? (
+                                <SunIcon className="w-6 h-6 text-primary" />
+                            ) : (
+                                <MoonIcon className="w-6 h-6 text-primary" />
+                            )}
+                            <h2 className="text-xl font-bold text-title">Aparência</h2>
+                        </div>
+                        <div className="flex items-center justify-between p-4 bg-surface-hover rounded-xl border border-border">
+                            <div>
+                                <h3 className="font-semibold text-title">Modo Escuro / Claro</h3>
+                                <p className="text-sm text-muted">
+                                    Alternar entre o tema claro e escuro.
+                                    <span className="block text-xs mt-1 text-primary">Atual: {theme === 'light' ? 'Modo Claro ☀️' : 'Modo Escuro 🌙'}</span>
+                                </p>
+                            </div>
+                            <button
+                                onClick={toggleTheme}
+                                className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${theme === 'dark' ? 'bg-primary' : 'bg-gray-300'}`}
+                            >
+                                <span
+                                    className={`${theme === 'dark' ? 'translate-x-7' : 'translate-x-1'} inline-block h-6 w-6 transform rounded-full bg-white transition-transform shadow-md flex items-center justify-center`}
+                                >
+                                    {theme === 'dark' ? (
+                                        <MoonIcon className="w-3 h-3 text-primary" />
+                                    ) : (
+                                        <SunIcon className="w-3 h-3 text-yellow-500" />
+                                    )}
+                                </span>
+                            </button>
                         </div>
                     </section>
                 </div>

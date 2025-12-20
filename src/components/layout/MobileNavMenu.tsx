@@ -82,7 +82,7 @@ const MobileNavMenu: React.FC<MobileNavMenuProps> = ({ isOpen, onClose, activeMo
         </nav>
 
         {/* Footer com Toggle de Tema */}
-        <div className="p-4 border-t border-white/10 mt-auto bg-surface/30 backdrop-blur-md">
+        <div className="p-4 border-t border-white/10 mt-auto bg-surface/30 backdrop-blur-md pb-safe">
           <button
             onClick={toggleTheme}
             className="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all active:scale-95 group"

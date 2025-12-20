@@ -8,16 +8,18 @@ import {
     TrashIcon,
     ArrowPathIcon,
     BellIcon,
-    CheckCircleIcon
+    CheckCircleIcon,
+    PhotoIcon,
+    XMarkIcon
 } from '@heroicons/react/24/outline';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import { useToast } from '../contexts/ToastContext';
 import { useAuth } from '../contexts/AuthContext';
 import { generateText } from '../services/ai/text';
-import { getScheduleEntries, saveScheduleEntry, deleteScheduleEntry } from '../services/core/db';
+import { getScheduleEntries, saveScheduleEntry, deleteScheduleEntry, getLibraryItems } from '../services/core/db';
 import { useNavigate } from '../hooks/useNavigate';
-import { ScheduleEntry as DbScheduleEntry } from '../types';
+import { ScheduleEntry as DbScheduleEntry, LibraryItem } from '../types';
 import { publishFacebookPost, createInstagramMedia, publishInstagramMedia } from '../services/social';
 
 interface ScheduledPost {
@@ -74,10 +76,35 @@ const SmartScheduler: React.FC = () => {
     const [isGeneratingAI, setIsGeneratingAI] = useState(false);
     const [publishingId, setPublishingId] = useState<string | null>(null);
     const [showAnalytics, setShowAnalytics] = useState(false);
+
+    // Library Modal State
+    const [isLibraryModalOpen, setIsLibraryModalOpen] = useState(false);
+    const [libraryItems, setLibraryItems] = useState<LibraryItem[]>([]);
+    const [isLoadingLibrary, setIsLoadingLibrary] = useState(false);
+
     const { addToast } = useToast();
     const { user } = useAuth();
     const { navigationParams } = useNavigate(); // Get params
     const userId = user?.id || 'anonymous';
+
+    // Fetch Library Items when modal opens
+    useEffect(() => {
+        if (isLibraryModalOpen) {
+            const fetchLibrary = async () => {
+                setIsLoadingLibrary(true);
+                try {
+                    const items = await getLibraryItems(userId);
+                    setLibraryItems(items);
+                } catch (error) {
+                    console.error('Failed to load library items', error);
+                    addToast({ type: 'error', message: 'Erro ao carregar biblioteca.' });
+                } finally {
+                    setIsLoadingLibrary(false);
+                }
+            };
+            fetchLibrary();
+        }
+    }, [isLibraryModalOpen, userId, addToast]);
 
     // Load posts from DB & Check for Imported Campaign
     useEffect(() => {
@@ -497,15 +524,16 @@ const SmartScheduler: React.FC = () => {
                             rows={4}
                         />
 
-                        {/* Image Upload */}
+                        {/* Image Upload & Library Import */}
                         <div className="mt-2">
                             <label className="block text-sm font-medium text-title mb-2">
                                 Mídia (Imagem)
                             </label>
-                            <div className="flex items-center gap-4">
-                                <label className="cursor-pointer bg-background border border-border hover:bg-surface text-title px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                                {/* Option 1: Upload from Device */}
+                                <label className="cursor-pointer bg-background border border-border hover:bg-surface text-title px-4 py-3 sm:py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center sm:justify-start gap-2 w-full sm:w-auto">
                                     <SparklesIcon className="w-5 h-5" />
-                                    Escolher Imagem
+                                    Do Dispositivo
                                     <input
                                         type="file"
                                         accept="image/*"
@@ -522,9 +550,21 @@ const SmartScheduler: React.FC = () => {
                                         }}
                                     />
                                 </label>
+
+                                {/* Option 2: Import from Library */}
+                                <Button
+                                    onClick={() => setIsLibraryModalOpen(true)}
+                                    variant="outline"
+                                    size="sm"
+                                    className="gap-2 w-full sm:w-auto justify-center py-3 sm:py-2"
+                                >
+                                    <PhotoIcon className="w-5 h-5" />
+                                    Da Biblioteca
+                                </Button>
+
                                 {newImage && (
-                                    <div className="relative group">
-                                        <img src={newImage} alt="Preview" className="h-16 w-16 object-cover rounded-md border border-border" />
+                                    <div className="relative group self-center sm:self-auto mt-2 sm:mt-0">
+                                        <img src={newImage} alt="Preview" className="h-24 w-24 sm:h-16 sm:w-16 object-cover rounded-md border border-border" />
                                         <button
                                             onClick={() => setNewImage(null)}
                                             className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600"
@@ -538,6 +578,57 @@ const SmartScheduler: React.FC = () => {
                         </div>
 
                     </div>
+
+                    {/* Library Selection Modal */}
+                    {isLibraryModalOpen && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+                            <div className="bg-surface border border-white/10 rounded-2xl w-full max-w-3xl max-h-[85vh] flex flex-col shadow-2xl relative">
+                                <div className="flex justify-between items-center p-4 border-b border-white/10">
+                                    <h3 className="text-xl font-bold text-title">Selecionar da Biblioteca</h3>
+                                    <button onClick={() => setIsLibraryModalOpen(false)} className="text-muted hover:text-title p-2">
+                                        <XMarkIcon className="w-6 h-6" />
+                                    </button>
+                                </div>
+                                <div className="p-4 overflow-y-auto flex-1 custom-scrollbar">
+                                    {isLoadingLibrary ? (
+                                        <div className="flex justify-center p-8">
+                                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                                        </div>
+                                    ) : libraryItems.filter(item => item.type === 'image' || item.type === 'post').length === 0 ? (
+                                        <div className="text-center py-12 text-muted">
+                                            <PhotoIcon className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                                            <p>Nenhuma imagem encontrada na biblioteca.</p>
+                                        </div>
+                                    ) : (
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                            {libraryItems.filter(item => item.type === 'image' || item.type === 'post').map((item) => (
+                                                <div
+                                                    key={item.id}
+                                                    onClick={() => {
+                                                        if (item.file_url) {
+                                                            setNewImage(item.file_url);
+                                                            setIsLibraryModalOpen(false);
+                                                            addToast({ type: 'success', message: 'Imagem selecionada!' });
+                                                        }
+                                                    }}
+                                                    className="group relative aspect-square rounded-xl overflow-hidden cursor-pointer border-2 border-transparent hover:border-primary transition-all"
+                                                >
+                                                    <img
+                                                        src={item.file_url}
+                                                        alt={item.name}
+                                                        className="w-full h-full object-cover transition-transform group-hover:scale-110"
+                                                    />
+                                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                        <span className="text-white font-bold text-sm bg-primary/80 px-2 py-1 rounded">Selecionar</span>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>

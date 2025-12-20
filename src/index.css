@@ -109,7 +109,26 @@
   ::-webkit-scrollbar-thumb:hover {
     background: rgba(var(--color-text-muted), 0.5);
   }
+}
 
+@layer utilities {
+  /* Safe Area Utilities for iOS */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+  .h-safe {
+    height: calc(100% - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  }
+  .min-h-safe {
+    min-height: calc(100% - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  }
+}
+
+/* === BOOK FLOW UTILITIES === */
+@layer components {
   /* Glassmorphism Classes */
   .glass-light {
     background: rgba(var(--color-surface), 0.7);
