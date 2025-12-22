@@ -5,10 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "tsc -p electron/tsconfig.json && vite build",
     "build:canva": "BUILD_MODE=canva vite build",
     "build:standalone": "BUILD_MODE=standalone vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "electron:dev": "tsc -p electron/tsconfig.json && electron .",
+    "dist:electron": "tsc -p electron/tsconfig.json && electron-builder"
   },
   "dependencies": {
     "@canva/app-eslint-plugin": "^1.0.0-beta.7",
@@ -29,8 +31,11 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.23.26",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^3.0.4",
     "jszip": "^3.10.1",
     "lucide-react": "^0.561.0",
+    "pptxgenjs": "^4.0.1",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "rxjs": "^7.8.1",
@@ -47,11 +52,29 @@
     "@types/react-dom": "^18.2.21",
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.18",
+    "electron": "^39.2.7",
+    "electron-builder": "^26.0.12",
     "postcss": "^8.4.35",
     "tailwindcss": "^3.4.1",
     "terser": "^5.44.1",
     "typescript": "^5.3.3",
     "vite": "^5.1.4",
     "vite-plugin-pwa": "^1.2.0"
+  },
+  "main": "dist-electron/main.js",
+  "build": {
+    "appId": "com.vitrinex.ai",
+    "productName": "VitrineX AI",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis"
+    }
   }
 }

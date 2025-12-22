@@ -102,7 +102,7 @@ const CampaignBuilder: React.FC = () => {
 
   return (
     <div className="container mx-auto py-8 lg:py-10">
-      <h2 className="text-3xl font-bold text-textdark mb-8">Construtor de Campanhas</h2>
+      <h2 className="text-3xl font-bold text-white mb-8">Construtor de Campanhas</h2>
 
       {error && (
         <div className="bg-red-900 border border-red-600 text-red-300 px-4 py-3 rounded relative mb-8" role="alert">
@@ -111,8 +111,8 @@ const CampaignBuilder: React.FC = () => {
         </div>
       )}
 
-      <div className="bg-lightbg p-6 rounded-lg shadow-sm border border-gray-800 mb-8">
-        <h3 className="text-xl font-semibold text-textlight mb-5">Descreva sua Campanha</h3>
+      <div className="bg-surface p-6 rounded-lg shadow-sm border border-gray-800 mb-8">
+        <h3 className="text-xl font-semibold text-gray-100 mb-5">Descreva sua Campanha</h3>
         <Textarea
           id="campaignPrompt"
           label="Qual campanha você gostaria de criar? Seja o mais detalhado possível:"
@@ -132,10 +132,10 @@ const CampaignBuilder: React.FC = () => {
       </div>
 
       {generatedCampaign && (
-        <div className="bg-lightbg p-6 rounded-lg shadow-sm border border-gray-800">
+        <div className="bg-surface p-6 rounded-lg shadow-sm border border-gray-800">
           {/* Nova Seção: Estratégia 360 */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-            <div className="lg:col-span-2 bg-darkbg p-6 rounded-xl border border-primary/20">
+            <div className="lg:col-span-2 bg-black/20 p-6 rounded-xl border border-primary/20">
               <h4 className="text-lg font-bold text-accent mb-4 flex items-center gap-2">
                 <PresentationChartLineIcon className="w-5 h-5" /> Estratégia 360 & Canais
               </h4>
@@ -163,7 +163,7 @@ const CampaignBuilder: React.FC = () => {
                     type="number"
                     value={costPrice}
                     onChange={(e) => setCostPrice(Number(e.target.value))}
-                    className="w-full bg-darkbg border border-gray-700 rounded p-2 text-white outline-none focus:border-primary"
+                    className="w-full bg-black/20 border border-gray-700 rounded p-2 text-white outline-none focus:border-primary"
                   />
                 </div>
                 <div>
@@ -172,7 +172,7 @@ const CampaignBuilder: React.FC = () => {
                     type="number"
                     value={profitMargin}
                     onChange={(e) => setProfitMargin(Number(e.target.value))}
-                    className="w-full bg-darkbg border border-gray-700 rounded p-2 text-white outline-none focus:border-primary"
+                    className="w-full bg-black/20 border border-gray-700 rounded p-2 text-white outline-none focus:border-primary"
                   />
                 </div>
                 <div className="pt-2 border-t border-gray-800">
@@ -191,11 +191,11 @@ const CampaignBuilder: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
             <div>
-              <h4 className="text-lg font-semibold text-textlight mb-4 flex items-center gap-2">
+              <h4 className="text-lg font-semibold text-gray-100 mb-4 flex items-center gap-2">
                 <CalendarDaysIcon className="w-5 h-5 text-primary" /> Cronograma & Posts
               </h4>
               <p className="text-sm text-muted mb-3 italic">{generatedCampaign.timeline}</p>
-              <ul className="list-disc list-inside text-textlight space-y-3 max-h-64 overflow-y-auto bg-darkbg p-4 rounded-md border border-gray-700">
+              <ul className="list-disc list-inside text-gray-100 space-y-3 max-h-64 overflow-y-auto bg-black/20 p-4 rounded-md border border-gray-700">
                 {generatedCampaign.posts.map((post, index) => (
                   <li key={post.id || index} className="text-sm">
                     <span className="text-accent font-bold">[{post.date || `Dia ${index + 1}`}]</span> {post.content_text.substring(0, 100)}...
@@ -204,10 +204,10 @@ const CampaignBuilder: React.FC = () => {
               </ul>
             </div>
             <div>
-              <h4 className="text-lg font-semibold text-textlight mb-4 flex items-center gap-2">
+              <h4 className="text-lg font-semibold text-gray-100 mb-4 flex items-center gap-2">
                 <LightBulbIcon className="w-5 h-5 text-yellow-500" /> Anúncios Gerados
               </h4>
-              <ul className="list-disc list-inside text-textlight space-y-3 max-h-64 overflow-y-auto bg-darkbg p-4 rounded-md border border-gray-700">
+              <ul className="list-disc list-inside text-gray-100 space-y-3 max-h-64 overflow-y-auto bg-black/20 p-4 rounded-md border border-gray-700">
                 {generatedCampaign.ads.map((ad, index) => (
                   <li key={ad.id || index} className="text-sm">
                     <strong>{ad.platform}:</strong> "{ad.headline}"

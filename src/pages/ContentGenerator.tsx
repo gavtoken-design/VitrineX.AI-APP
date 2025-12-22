@@ -5,6 +5,7 @@ import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import SaveToLibraryButton from '../components/features/SaveToLibraryButton';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
+import { LiquidGlassCard } from '../components/ui/LiquidGlassCard';
 import MediaActionsToolbar from '../components/features/MediaActionsToolbar';
 import {
   ArrowDownTrayIcon,
@@ -299,50 +300,13 @@ ${avatar.buyingBehavior}
         createdAt: new Date().toISOString(),
       }));
       setGeneratedPosts(newPosts);
+      addToast({ type: 'success', title: 'Conteúdo Gerado', message: `${newPosts.length} post(s) foram gerados (Texto).` });
 
-      for (const post of newPosts) {
-        setLoadingImages(prev => [...prev, post.id]);
-        try {
-          const imageResponse = await generateImage(prompt, { model: GEMINI_IMAGE_MODEL });
-
-          let finalImageUrl = PLACEHOLDER_IMAGE_BASE64;
-          if (imageResponse.type === 'image') {
-            finalImageUrl = imageResponse.imageUrl;
-          } else if (imageResponse.type === 'error') {
-            console.error(`Post ${post.id} image generation error:`, imageResponse.message);
-          }
-
-          if (finalImageUrl.startsWith('data:') && user) {
-            const res = await fetch(finalImageUrl);
-            const blob = await res.blob();
-            const file = new File([blob], `post-image-${Date.now()}.png`, { type: 'image/png' });
-            const uploadedItem = await uploadFile(file, user.id, 'image');
-            finalImageUrl = uploadedItem.file_url;
-          }
-
-          setGeneratedPosts(prev => prev.map(p => p.id === post.id ? { ...p, image_url: finalImageUrl } : p));
-
-          if (user) {
-            await saveLibraryItem({
-              id: `lib-txt-${post.id}`, userId: user.id, name: `Post - ${post.content_text.substring(0, 30)}`,
-              file_url: post.content_text, type: 'text', tags: ['content-generator', 'post', 'text'], createdAt: new Date().toISOString()
-            });
-            if (finalImageUrl !== PLACEHOLDER_IMAGE_BASE64 && !finalImageUrl.startsWith('data:')) {
-              await saveLibraryItem({
-                id: `lib-img-${post.id}`, userId: user.id, name: `Imagem - ${post.content_text.substring(0, 30)}`,
-                file_url: finalImageUrl, type: 'image', tags: ['content-generator', 'post', 'image'], createdAt: new Date().toISOString()
-              });
-            }
-          }
-        } catch (imgErr) {
-          console.error(`Failed to generate or upload image for post ${post.id}`, imgErr);
-          addToast({ type: 'error', message: `Falha ao gerar imagem para um dos posts.` });
-        } finally {
-          setLoadingImages(prev => prev.filter(id => id !== post.id));
-        }
-      }
-
-      addToast({ type: 'success', title: 'Conteúdo Gerado', message: `${newPosts.length} post(s) foram gerados.` });
+      /* 
+      // REMOVED AUTO-IMAGE GENERATION AS REQUESTED
+      // Images were being generated with the main prompt, leading to repetitive/wrong results.
+      // Users can now generate images manually per post, which uses the specific post content for better results.
+      */
 
     } catch (err) {
       console.error('Error generating content:', err);
@@ -415,7 +379,7 @@ ${avatar.buyingBehavior}
 
   return (
     <div className="container mx-auto py-8 lg:py-10 pb-40 lg:pb-10">
-      <h2 className="text-3xl font-bold text-textdark mb-8">Content Generator</h2>
+      <h2 className="text-3xl font-bold text-white mb-8">Content Generator</h2>
 
       <HowToUse
         title="Como Gerar Conteúdo"
@@ -430,8 +394,8 @@ ${avatar.buyingBehavior}
         ]}
       />
 
-      <div className="bg-lightbg p-6 rounded-lg shadow-sm border border-gray-800 mb-8">
-        <h3 className="text-xl font-semibold text-textlight mb-5">Gerar Novo Conteúdo</h3>
+      <LiquidGlassCard className="p-6 mb-8" blurIntensity="xl" glowIntensity="sm">
+        <h3 className="text-xl font-semibold text-gray-100 mb-5">Gerar Novo Conteúdo</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Textarea
             id="contentPrompt"
@@ -451,14 +415,14 @@ ${avatar.buyingBehavior}
           </label>
         </div>
         <div className="flex flex-col sm:flex-row gap-3 mt-4">
-          <Button onClick={handleGenerateOnePost} isLoading={isGenerating} variant="primary" className="w-full sm:w-auto">
+          <Button onClick={handleGenerateOnePost} isLoading={isGenerating} variant="liquid" className="w-full sm:w-auto shadow-lg shadow-indigo-500/20">
             {isGenerating ? 'Gerando...' : 'Gerar 1 Post'}
           </Button>
-          <Button onClick={handleGenerateWeek} isLoading={isGenerating} variant="secondary" className="w-full sm:w-auto">
+          <Button onClick={handleGenerateWeek} isLoading={isGenerating} variant="secondary" className="w-full sm:w-auto hover:bg-white/5">
             {isGenerating ? 'Gerando...' : 'Gerar Série'}
           </Button>
         </div>
-      </div>
+      </LiquidGlassCard>
 
       {loadingText && <div className="flex justify-center"><LoadingSpinner /></div>}
       {generatedPosts.length > 0 && (
@@ -466,12 +430,12 @@ ${avatar.buyingBehavior}
           {generatedPosts.map((post) => {
             const isImageLoading = loadingImages.includes(post.id);
             return (
-              <div key={post.id} className="bg-lightbg p-6 rounded-lg shadow-sm border border-gray-800 animate-slide-in-from-bottom duration-500">
-                <h3 className="text-xl font-semibold text-textlight mb-5">Post Gerado</h3>
+              <div key={post.id} className="bg-surface p-6 rounded-lg shadow-sm border border-gray-800 animate-slide-in-from-bottom duration-500">
+                <h3 className="text-xl font-semibold text-gray-100 mb-5">Post Gerado</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="flex flex-col">
-                    <h4 className="text-lg font-semibold text-textlight mb-3">Texto do Post</h4>
-                    <div className="prose max-w-none text-textlight leading-relaxed bg-darkbg p-4 rounded-md h-full min-h-[150px]" style={{ whiteSpace: 'pre-wrap' }}>
+                    <h4 className="text-lg font-semibold text-gray-100 mb-3">Texto do Post</h4>
+                    <div className="prose max-w-none text-gray-100 leading-relaxed bg-black/20 p-4 rounded-md h-full min-h-[150px]" style={{ whiteSpace: 'pre-wrap' }}>
                       {post.content_text}
                     </div>
                     <button
@@ -491,7 +455,7 @@ ${avatar.buyingBehavior}
                     </button>
                   </div>
                   <div className="flex flex-col">
-                    <h4 className="text-lg font-semibold text-textlight mb-3">Imagem do Post</h4>
+                    <h4 className="text-lg font-semibold text-gray-100 mb-3">Imagem do Post</h4>
                     {isImageLoading ? (
                       <div className="flex items-center justify-center h-48 bg-gray-900 rounded-md"><LoadingSpinner /></div>
                     ) : (
@@ -499,7 +463,7 @@ ${avatar.buyingBehavior}
                     )}
                     <div className="flex flex-wrap gap-3">
                       <Button onClick={() => handleRegenerateImage(post.id)} isLoading={isImageLoading} variant="outline" className="w-full sm:w-auto">
-                        {isImageLoading ? 'Regenerando...' : 'Regenerar Imagem'}
+                        {isImageLoading ? 'Gerando IA...' : (post.image_url === PLACEHOLDER_IMAGE_BASE64 ? 'Gerar Imagem' : 'Regenerar')}
                       </Button>
                       <MediaActionsToolbar
                         mediaUrl={post.image_url || ''}
@@ -512,7 +476,7 @@ ${avatar.buyingBehavior}
                 </div>
 
                 <div className="mt-8 pt-6 border-t border-gray-800">
-                  <h4 className="text-lg font-semibold text-textlight mb-4">Ações</h4>
+                  <h4 className="text-lg font-semibold text-gray-100 mb-4">Ações</h4>
                   <div className="flex flex-col sm:flex-row gap-3">
                     <SaveToLibraryButton
                       content={post.image_url || ''} type="image" userId={userId}
@@ -538,8 +502,8 @@ ${avatar.buyingBehavior}
         </div>
       )}
 
-      <div className="bg-lightbg p-6 rounded-lg shadow-sm border border-gray-800 mb-8 mt-8">
-        <h3 className="text-xl font-semibold text-textlight mb-4">Perfis de Avatar</h3>
+      <div className="bg-surface p-6 rounded-lg shadow-sm border border-gray-800 mb-8 mt-8">
+        <h3 className="text-xl font-semibold text-gray-100 mb-4">Perfis de Avatar</h3>
         <p className="text-muted text-sm mb-4">Gere 4 personas distintas de compradores baseadas na tendência acima</p>
         <Button
           onClick={generateAvatars}
@@ -556,7 +520,7 @@ ${avatar.buyingBehavior}
               <div key={avatar.id} className="bg-surface p-4 rounded-lg border border-border">
                 <div className="flex justify-between items-start mb-3">
                   <div>
-                    <h4 className="font-bold text-textlight">{avatar.name}</h4>
+                    <h4 className="font-bold text-gray-100">{avatar.name}</h4>
                     <p className="text-sm text-muted">{avatar.age} • {avatar.occupation}</p>
                   </div>
                   <Button
@@ -581,19 +545,19 @@ ${avatar.buyingBehavior}
                 </div>
                 <div className="space-y-2 text-sm">
                   <div>
-                    <strong className="text-textlight">Interesses:</strong>
+                    <strong className="text-gray-100">Interesses:</strong>
                     <ul className="list-disc list-inside text-muted">
                       {avatar.interests.map((interest, i) => (<li key={i}>{interest}</li>))}
                     </ul>
                   </div>
                   <div>
-                    <strong className="text-textlight">Dores:</strong>
+                    <strong className="text-gray-100">Dores:</strong>
                     <ul className="list-disc list-inside text-muted">
                       {avatar.painPoints.map((pain, i) => (<li key={i}>{pain}</li>))}
                     </ul>
                   </div>
                   <div>
-                    <strong className="text-textlight">Comportamento:</strong>
+                    <strong className="text-gray-100">Comportamento:</strong>
                     <p className="text-muted">{avatar.buyingBehavior}</p>
                   </div>
                 </div>
@@ -603,8 +567,8 @@ ${avatar.buyingBehavior}
         )}
       </div>
 
-      <div className="bg-lightbg p-6 rounded-lg shadow-sm border border-gray-800 mb-8" >
-        <h3 className="text-xl font-semibold text-textlight mb-4">Análise de Perfil</h3>
+      <div className="bg-surface p-6 rounded-lg shadow-sm border border-gray-800 mb-8" >
+        <h3 className="text-xl font-semibold text-gray-100 mb-4">Análise de Perfil</h3>
         <p className="text-muted text-sm mb-4">Cole um texto e a IA identificará o perfil do avatar</p>
         <Textarea
           id="profileAnalysisText"
@@ -625,15 +589,15 @@ ${avatar.buyingBehavior}
 
         {profileAnalysisResult && (
           <div className="bg-surface p-4 rounded-lg border border-border mt-4">
-            <h4 className="font-semibold text-textlight mb-2">Resultado da Análise:</h4>
+            <h4 className="font-semibold text-gray-100 mb-2">Resultado da Análise:</h4>
             <pre className="text-sm text-muted whitespace-pre-wrap">{profileAnalysisResult}</pre>
           </div>
         )}
       </div>
 
       {creativeIdeas.length > 0 && selectedAvatar && (
-        <div className="bg-lightbg p-6 rounded-lg shadow-sm border border-gray-800 mb-8 animate-slide-in-from-bottom">
-          <h3 className="text-xl font-semibold text-textlight mb-2">Ideias de Criativos</h3>
+        <div className="bg-surface p-6 rounded-lg shadow-sm border border-gray-800 mb-8 animate-slide-in-from-bottom">
+          <h3 className="text-xl font-semibold text-gray-100 mb-2">Ideias de Criativos</h3>
           <p className="text-muted text-sm mb-4">
             Baseado na persona: <strong>{selectedAvatar.name}</strong>
           </p>
@@ -643,7 +607,7 @@ ${avatar.buyingBehavior}
                 <div className="flex justify-between items-start gap-3">
                   <div className="flex-1">
                     <span className="text-xs font-bold text-primary">Prompt {index + 1}</span>
-                    <p className="text-sm text-textlight mt-1">{idea}</p>
+                    <p className="text-sm text-gray-100 mt-1">{idea}</p>
                   </div>
                   <Button
                     onClick={() => {

@@ -35,6 +35,7 @@ import LandingPage from './pages/LandingPage';
 
 // Components
 import { ToastContainer } from './components/ui/Toast';
+import AnimatedBackground from './components/ui/animated-shader-background';
 
 // Mock missing components
 const TutorialOverlay: React.FC = () => null;
@@ -151,14 +152,20 @@ const AppContent: React.FC = () => {
 
                     {/* Main Content Area */}
                     <div className="flex-1 flex flex-col min-w-0 bg-background relative overflow-hidden">
+                        {/* Global Animated Background */}
+                        <div className="absolute inset-0 z-0 opacity-40 pointer-events-none">
+                            <AnimatedBackground />
+                        </div>
 
                         {/* Header / Navbar */}
-                        <Navbar
-                            onMenuClick={() => setMobileMenuOpen(true)}
-                        />
+                        <div className="relative z-10">
+                            <Navbar
+                                onMenuClick={() => setMobileMenuOpen(true)}
+                            />
+                        </div>
 
                         {/* Module Content */}
-                        <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6 lg:p-8 scroll-smooth relative z-0">
+                        <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6 lg:p-8 scroll-smooth relative z-10">
                             <div className="max-w-7xl mx-auto h-full w-full">
                                 <AnimatePresence mode="wait">
                                     <motion.div

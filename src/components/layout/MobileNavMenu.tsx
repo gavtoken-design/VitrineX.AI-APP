@@ -1,9 +1,11 @@
 import * as React from 'react';
+import { useState } from 'react';
 import { ModuleName } from '../../App';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { NavItem, useNavItems } from './NavigationItems';
-import { XMarkIcon, ArrowPathIcon, CreditCardIcon, SunIcon, MoonIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, ArrowPathIcon, CreditCardIcon, SunIcon, MoonIcon, ArrowDownTrayIcon, UserGroupIcon } from '@heroicons/react/24/outline'; // Updated imports
 import { useTheme } from '../../contexts/ThemeContext';
+import LibraryImportModal from '../features/LibraryImportModal'; // Imported Modal
 
 interface MobileNavMenuProps {
   isOpen: boolean;
@@ -16,6 +18,7 @@ const MobileNavMenu: React.FC<MobileNavMenuProps> = ({ isOpen, onClose, activeMo
   const navItems = useNavItems();
   const { t } = useLanguage();
   const { theme, toggleTheme } = useTheme();
+  const [isLibraryModalOpen, setIsLibraryModalOpen] = useState(false); // Modal State
 
   const handleNavigate = () => {
     onClose();
@@ -53,6 +56,25 @@ const MobileNavMenu: React.FC<MobileNavMenuProps> = ({ isOpen, onClose, activeMo
 
         {/* Área de navegação rolável - Usa flex-1 para ocupar o espaço restante */}
         <nav className="flex-1 min-h-0 overflow-y-auto py-6 px-3 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-200 dark:[&::-webkit-scrollbar-thumb]:bg-gray-700 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gray-300 dark:hover:[&::-webkit-scrollbar-thumb]:bg-gray-600">
+
+          {/* Mobile Actions: Import & Persona */}
+          <div className="grid grid-cols-2 gap-2 mb-6 px-1">
+            <button
+              onClick={() => setIsLibraryModalOpen(true)}
+              className="flex flex-col items-center justify-center p-3 rounded-xl bg-surface border border-white/10 hover:border-primary/50 hover:bg-primary/5 transition-all active:scale-95"
+            >
+              <ArrowDownTrayIcon className="w-6 h-6 text-primary mb-1" />
+              <span className="text-xs font-bold text-body">Importar</span>
+            </button>
+            <button
+              onClick={() => alert("Funcionalidade em desenvolvimento: Troca de Personagem/Avatar")}
+              className="flex flex-col items-center justify-center p-3 rounded-xl bg-gradient-to-br from-purple-900/40 to-pink-900/40 border border-white/10 hover:border-purple-500/50 transition-all active:scale-95"
+            >
+              <UserGroupIcon className="w-6 h-6 text-pink-400 mb-1" />
+              <span className="text-xs font-bold text-body">Persona</span>
+            </button>
+          </div>
+
           <ul className="flex flex-col">
             {navItems.map((section, sectionIndex) => (
               <React.Fragment key={sectionIndex}>
@@ -100,8 +122,9 @@ const MobileNavMenu: React.FC<MobileNavMenuProps> = ({ isOpen, onClose, activeMo
             )}
           </button>
         </div>
-      </aside >
-    </div >
+      </aside>
+      <LibraryImportModal isOpen={isLibraryModalOpen} onClose={() => setIsLibraryModalOpen(false)} />
+    </div>
   );
 };
 

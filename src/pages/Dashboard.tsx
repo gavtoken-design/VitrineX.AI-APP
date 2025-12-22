@@ -295,35 +295,43 @@ const Dashboard: React.FC = () => {
       )}
 
       {/* Mobile Fix: Responsive Padding p-4 md:p-8 */}
-      <section className="bg-surface rounded-xl shadow-card border border-gray-100 dark:border-gray-800 p-4 md:p-8">
-        <h3 className="text-lg font-bold text-title mb-6">{t('dashboard.quick_actions')}</h3>
+      <LiquidGlassCard
+        className="p-4 md:p-8 mb-8"
+        blurIntensity="xl"
+        glowIntensity="md"
+        shadowIntensity="lg"
+      >
+        <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+          {t('dashboard.quick_actions')}
+        </h3>
         <div id="quick-actions-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          <Button onClick={handleApiTest} isLoading={testingApi} variant="ghost" size="lg" className="w-full justify-start border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 group">
-            <span className="flex items-center gap-2 font-bold text-primary">
-              <BoltIcon className="w-5 h-5 text-primary group-hover:text-primary/80 animate-pulse" />
+          <Button onClick={handleApiTest} isLoading={testingApi} variant="liquid" size="lg" className="w-full justify-start group border-none shadow-xl">
+            <span className="flex items-center gap-2 font-bold">
+              <BoltIcon className="w-5 h-5 text-yellow-300 group-hover:animate-pulse" />
               Verificar Conexão
             </span>
           </Button>
 
-          <Button onClick={() => navigateTo('ContentGenerator')} variant="primary" size="lg" className="w-full justify-between group">
+          <Button onClick={() => navigateTo('ContentGenerator')} variant="liquid" size="lg" className="w-full justify-between group border-none shadow-xl">
             <span>{t('dashboard.btn_generate')}</span>
             <DocumentTextIcon className="w-5 h-5 opacity-70 group-hover:opacity-100" />
           </Button>
-          <Button onClick={() => navigateTo('AdStudio')} variant="outline" size="lg" className="w-full justify-between group">
+          <Button onClick={() => navigateTo('AdStudio')} variant="secondary" size="lg" className="w-full justify-between group hover:bg-white/10 hover:border-white/20 transition-all">
             <span>{t('dashboard.btn_ad')}</span>
             <MegaphoneIcon className="w-5 h-5 opacity-70 group-hover:opacity-100" />
           </Button>
-          <Button onClick={() => navigateTo('TrendHunter')} variant="ghost" size="lg" className="w-full justify-start border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600">
+          <Button onClick={() => navigateTo('TrendHunter')} variant="ghost" size="lg" className="w-full justify-start border border-gray-200 dark:border-gray-700 hover:border-cyan-500/50 hover:bg-cyan-500/10 transition-all">
             {t('dashboard.btn_market')}
           </Button>
-          <Button onClick={() => navigateTo('CreativeStudio')} variant="ghost" size="lg" className="w-full justify-start border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600">
+          <Button onClick={() => navigateTo('CreativeStudio')} variant="ghost" size="lg" className="w-full justify-start border border-gray-200 dark:border-gray-700 hover:border-purple-500/50 hover:bg-purple-500/10 transition-all">
             {t('dashboard.btn_media')}
           </Button>
-          <Button onClick={() => navigateTo('SmartScheduler')} variant="ghost" size="lg" className="w-full justify-start border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600">
+          <Button onClick={() => navigateTo('SmartScheduler')} variant="ghost" size="lg" className="w-full justify-start border border-gray-200 dark:border-gray-700 hover:border-green-500/50 hover:bg-green-500/10 transition-all">
             {t('dashboard.btn_schedule')}
           </Button>
         </div>
-      </section>
+      </LiquidGlassCard>
 
       <section className="mt-8">
         <div className="flex justify-between items-center mb-4">

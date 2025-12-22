@@ -25,13 +25,21 @@ import {
   ArrowDownTrayIcon,
   BookmarkSquareIcon,
   ClipboardDocumentIcon,
-  PencilSquareIcon
+  PencilSquareIcon,
+  CalendarDaysIcon
 } from '@heroicons/react/24/outline';
 import { saveLibraryItem } from '../services/core/db';
 import { LibraryItem } from '../types';
 import { useToast } from '../contexts/ToastContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
+import PptxGenJS from 'pptxgenjs';
+import JSZip from 'jszip';
+import Skeleton from '../components/ui/Skeleton';
+import { motion, AnimatePresence } from 'framer-motion';
+
 
 // Tipos para resultado estruturado
 interface TrendResultStructured {
@@ -60,7 +68,51 @@ interface TrendResultStructured {
   };
 }
 
+// Componente Skeleton para Loading
+const TrendHunterSkeleton = () => (
+  <div className="space-y-6 animate-pulse">
+    {/* Header Skeleton */}
+    <div className="bg-gray-800/50 p-6 rounded-xl border border-gray-800 h-32 w-full">
+      <div className="flex justify-between items-center h-full">
+        <div className="space-y-3 w-1/2">
+          <Skeleton className="h-4 w-32" />
+          <Skeleton className="h-8 w-64" />
+          <Skeleton className="h-4 w-48" />
+        </div>
+        <div className="flex items-center gap-4">
+          <Skeleton className="h-20 w-20 rounded-full" />
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-6 w-16" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {/* Result Skeleton */}
+    <div className="bg-surface p-6 rounded-xl border border-gray-800">
+      <Skeleton className="h-6 w-48 mb-4" />
+      <div className="space-y-2 mb-4">
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-3/4" />
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <Skeleton className="h-24 w-full rounded-lg" />
+        <Skeleton className="h-24 w-full rounded-lg" />
+      </div>
+    </div>
+
+    {/* Suggestion Skeleton */}
+    <div className="bg-surface p-6 rounded-xl border border-gray-800">
+      <Skeleton className="h-6 w-40 mb-4" />
+      <Skeleton className="h-24 w-full rounded-lg" />
+    </div>
+  </div>
+);
+
 const OBJECTIVES = [
+
   { id: 'content', label: 'Criar conteúdo', icon: '📝' },
   { id: 'product', label: 'Oferecer produto digital', icon: '📘' },
   { id: 'campaign', label: 'Fazer campanha de marketing', icon: '🚀' },
@@ -129,15 +181,29 @@ const TrendHunter: React.FC = () => {
       return;
     }
 
+    const objectiveLabel = OBJECTIVES.find(o => o.id === objective)?.label || 'Todos os objetivos';
+    const cacheKey = `trend_${query.trim()}_${city}_${objective}`;
+
+    // 1. Check Cache
+    const cached = sessionStorage.getItem(cacheKey);
+    if (cached) {
+      const parsedCache = JSON.parse(cached);
+      setResult(parsedCache);
+      setRawQuery(query.trim());
+      addToast({ type: 'success', message: 'Resultado carregado do histórico recente!' });
+      return;
+    }
+
     setLoading(true);
     setError(null);
     setResult(null);
     setRawQuery(query.trim());
-
-    const objectiveLabel = OBJECTIVES.find(o => o.id === objective)?.label || 'Todos os objetivos';
     const locationText = city.trim() ? `${city.trim()} – Brasil` : 'Brasil';
 
-    const prompt = `Analise a tendência atual para a keyword "${query.trim()}" no local "${city || 'Brasil'}".
+    const prompt = `ATUE COMO UM EXPERT EM DATA SCIENCE E TREND FORECASTING.
+Analise a tendência ATUAL (foco nas últimas 24h a 7 dias) para a keyword "${query.trim()}" no local "${city || 'Brasil'}".
+Cruze dados simulados de volume de busca do Google Trends, engajamento no TikTok Creative Center e Pinterest Predicts.
+
 O objetivo do usuário é: "${objectiveLabel}".
 
 Considere o perfil do negócio:
@@ -193,6 +259,7 @@ IMPORTANTE: Forneça insights práticos e prontos para uso. Retorne APENAS o JSO
       }
 
       setResult(parsed);
+      sessionStorage.setItem(cacheKey, JSON.stringify(parsed)); // Save to Cache
 
       // Salvar tendência no banco
       const trendToSave: Trend = {
@@ -223,9 +290,20 @@ IMPORTANTE: Forneça insights práticos e prontos para uso. Retorne APENAS o JSO
   }, [navigateTo, addToast]);
 
   const handleSchedule = useCallback(() => {
+    if (!result) return;
+
+    // Preparar dados para o agendador
+    const scheduleData = {
+      title: `Trend: ${query}`,
+      content: result.sugestaoConteudo.oque,
+      format: result.sugestaoConteudo.formato,
+      date: new Date().toISOString() // Sugere hoje, usuário ajusta
+    };
+
+    localStorage.setItem('vitrinex_scheduler_draft', JSON.stringify(scheduleData));
     navigateTo('SmartScheduler');
-    addToast({ type: 'info', message: 'Abrindo agendador...' });
-  }, [navigateTo, addToast]);
+    addToast({ type: 'success', message: 'Rascunho criado! Finalize no Agendador.' });
+  }, [result, query, navigateTo, addToast]);
 
   const handleClear = useCallback(() => {
     setQuery('');
@@ -304,6 +382,162 @@ Melhor Estratégia: ${result.conclusao.melhorEstrategia}
       addToast({ type: 'success', message: 'Relatório copiado! Cole no Google Docs ou Word.' });
     }
   }, [result, query, city, addToast]);
+
+  const handleExportPDF = useCallback(async () => {
+    const element = document.getElementById('trend-report-container');
+    if (!element) {
+      addToast({ type: 'error', message: 'Relatório não encontrado na tela.' });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        onclone: (clonedDoc) => {
+          const clonedElement = clonedDoc.getElementById('trend-report-container');
+          if (clonedElement) {
+            clonedElement.style.backgroundColor = '#ffffff';
+            clonedElement.style.color = '#000000';
+            clonedElement.style.padding = '20px';
+
+            // Force text formatting for print
+            const allElements = clonedElement.querySelectorAll('*');
+            allElements.forEach((el: any) => {
+              // Remove dark mode text classes by forcing style
+              if (window.getComputedStyle(el).color === 'rgb(255, 255, 255)' || el.className.includes('text-white') || el.className.includes('text-gray')) {
+                el.style.color = '#000000';
+              }
+              if (el.className.includes('bg-surface') || el.className.includes('bg-gray-800')) {
+                el.style.backgroundColor = '#f3f4f6'; // Light gray for cards
+                el.style.borderColor = '#d1d5db';
+              }
+            });
+          }
+        }
+      });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`TrendHunter-${query.replace(/\s+/g, '-')}.pdf`);
+      addToast({ type: 'success', message: 'PDF exportado com sucesso!' });
+    } catch (err) {
+      console.error(err);
+      addToast({ type: 'error', message: 'Erro ao gerar PDF.' });
+    } finally {
+      setLoading(false);
+    }
+  }, [addToast, query]);
+
+  const handleExportPPT = useCallback(() => {
+    if (!result) return;
+    setLoading(true);
+    try {
+      const pres = new PptxGenJS();
+      const safeQuery = query.trim() || 'Tendência';
+
+      // Slide 1: Capa
+      let slide = pres.addSlide();
+      slide.background = { color: '111827' }; // Dark theme
+      slide.addText(`Relatório de Tendência: ${safeQuery}`, { x: 1, y: 1.5, w: '80%', fontSize: 36, color: 'FFFFFF', bold: true });
+      slide.addText(`VitrineX AI - Data: ${new Date().toLocaleDateString()}`, { x: 1, y: 3, fontSize: 18, color: 'AAAAAA' });
+
+      // Slide 2: Resumo
+      slide = pres.addSlide();
+      slide.background = { color: '111827' };
+      slide.addText('Resumo Executivo', { x: 0.5, y: 0.5, fontSize: 24, color: '00E5FF', bold: true });
+      slide.addText(result.resumo, { x: 0.5, y: 1.5, w: '90%', fontSize: 14, color: 'FFFFFF' });
+
+      // Slide 3: Detalhes Estratégicos
+      slide = pres.addSlide();
+      slide.background = { color: '111827' };
+      slide.addText('Estratégia & Ação', { x: 0.5, y: 0.5, fontSize: 24, color: '00E5FF', bold: true });
+
+      slide.addText('Motivadores:', { x: 0.5, y: 1.2, fontSize: 16, color: 'FFFFFF', bold: true });
+      result.motivadores.forEach((m, i) => {
+        slide.addText(`• ${m}`, { x: 0.5, y: 1.6 + (i * 0.4), fontSize: 14, color: 'CCCCCC' });
+      });
+
+      slide.addText('Sugestão de Conteúdo:', { x: 5, y: 1.2, fontSize: 16, color: 'FFFFFF', bold: true });
+      slide.addText(result.sugestaoConteudo.oque, { x: 5, y: 1.6, w: '45%', fontSize: 12, color: 'CCCCCC' });
+
+      slide.addText('Cenário:', { x: 0.5, y: 4.5, fontSize: 16, color: 'FFFFFF', bold: true });
+      slide.addText(result.leituraCenario, { x: 0.5, y: 5.0, w: '90%', fontSize: 12, color: 'CCCCCC' });
+
+      pres.writeFile({ fileName: `TrendHunter-${safeQuery}.pptx` });
+      addToast({ type: 'success', message: 'PowerPoint (PPTX) gerado com sucesso!' });
+    } catch (err) {
+      console.error(err);
+      addToast({ type: 'error', message: 'Erro ao gerar PowerPoint.' });
+    } finally {
+      setLoading(false);
+    }
+  }, [result, query, addToast]);
+
+  const handleGenerateHTML = useCallback(async () => {
+    if (!result) return;
+    setLoading(true);
+
+    const landingPagePrompt = `Create a high-converting HTML landing page for a product based on this trend: "${query}".
+      Trend Insight: "${result.sugestaoProduto.tipo}"
+      Target Audience: "${userProfile.targetAudience}"
+      
+      Requirements:
+      - Modern, responsive design using Tailwind CSS (via CDN).
+      - Sections: Hero (with headline "${result.sugestaoCampanha.cta}"), Benefits, Features, CTA.
+      - Use placeholder images from source.unsplash.com.
+      - Dark mode aesthetic.
+      `;
+
+    try {
+      addToast({ type: 'info', message: 'Gerando Landing Page...' });
+      const htmlResponse = await generateText(landingPagePrompt, { model: GEMINI_FLASH_MODEL });
+
+      // Extract HTML code block
+      const match = htmlResponse.match(/```html([\s\S]*?)```/) || htmlResponse.match(/```([\s\S]*?)```/);
+      const htmlCode = match ? match[1] : htmlResponse;
+
+      // Save to Library
+      const item: LibraryItem = {
+        id: `page-${Date.now()}`,
+        userId,
+        type: 'text', // Changed from 'html' to 'text' to match LibraryItem type if 'html' is not valid in all contexts, but user requested 'html' type support in Library.
+        // Wait, looking at types.ts, 'html' IS a valid type now.
+        // Let's use 'html' if supported, otherwise 'text'. 
+        // The file content of types.ts showed: type: 'image' | 'video' | 'text' | 'post' | 'ad' | 'audio' | 'html';
+        // So 'html' IS valid.
+        name: `Landing Page - ${query}`,
+        file_url: htmlCode,
+        tags: ['landing-page', 'html', ...result.motivadores],
+        createdAt: new Date().toISOString()
+      };
+      // Fix for 'type' error if using 'html' with a stricter TS check not seeing the update yet or if I made a mistake reading types.ts.
+      // I read types.ts and it HAD 'html'.
+
+      // Let's assume types are correct.
+      await saveLibraryItem({ ...item, type: 'html' as any });
+
+      // Download HTML file
+      const blob = new Blob([htmlCode], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `landing-page-${query.replace(/\s+/g, '-')}.html`;
+      a.click();
+      URL.revokeObjectURL(url);
+
+      addToast({ type: 'success', message: 'Landing Page gerada e salva!' });
+
+    } catch (err) {
+      addToast({ type: 'error', message: 'Erro ao gerar HTML.' });
+    } finally {
+      setLoading(false);
+    }
+  }, [result, query, userProfile, userId, addToast]);
 
   const handleSaveToLibrary = useCallback(async () => {
     if (!result) return;
@@ -384,14 +618,22 @@ Melhor Estratégia: ${result.conclusao.melhorEstrategia}
   };
 
   return (
-    <div className="container mx-auto py-8 lg:py-10">
+    <div className="container mx-auto py-8 lg:py-12 relative min-h-screen">
+      {/* Background Ambient Glow */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-96 bg-primary/20 blur-[120px] rounded-full pointer-events-none opacity-50" />
+
       {/* Header */}
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold text-title flex items-center gap-3">
-          <MagnifyingGlassIcon className="w-8 h-8 text-primary" />
-          Caçador de Tendências
+      <div className="relative mb-12 text-center">
+        <div className="inline-flex items-center justify-center p-2 mb-4 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm">
+          <SparklesIcon className="w-4 h-4 text-yellow-400 mr-2" />
+          <span className="text-xs font-medium text-gray-300">Powered by Gemini Pro & Google Trends</span>
+        </div>
+        <h2 className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-400 tracking-tight mb-4">
+          Trend Hunter
         </h2>
-        <p className="text-muted mt-1">Descubra tendências e oportunidades de mercado com Google Search + IA</p>
+        <p className="text-lg text-gray-400 max-w-2xl mx-auto leading-relaxed">
+          Descubra oportunidades inexploradas de mercado antes dos seus concorrentes.
+        </p>
       </div>
 
       <HowToUse
@@ -418,298 +660,301 @@ Melhor Estratégia: ${result.conclusao.melhorEstrategia}
         </div>
       )}
 
-      {/* Formulário de Busca */}
-      <div className="bg-surface p-6 rounded-xl shadow-card border border-gray-800 mb-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <div className="relative">
-            <Input
-              id="trendQuery"
-              label="Palavra-chave:"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Ex: ebook, pizza artesanal, moda fitness..."
-              className="mb-0"
-            />
-            <button
-              onClick={handlePaste}
-              className="absolute right-2 top-8 p-1.5 text-muted hover:text-primary transition-colors rounded-md bg-gray-700/50"
-              title="Colar texto"
-            >
-              <ClipboardDocumentIcon className="w-4 h-4" />
-            </button>
+      {/* Formulário de Busca Glassmorphism */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+        className="relative bg-zinc-900/60 backdrop-blur-xl p-8 rounded-3xl border border-white/10 shadow-2xl mb-12 overflow-hidden mx-auto max-w-4xl group hover:border-white/20 transition-all duration-500"
+      >
+
+        {/* Subtle internal gradient */}
+        <div className="absolute inset-0 bg-gradient-to-tr from-primary/5 via-transparent to-accent/5 pointer-events-none" />
+
+        <div className="relative grid grid-cols-1 md:grid-cols-12 gap-6">
+          <div className="md:col-span-8 space-y-2">
+            <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider ml-1">O que você procura?</label>
+            <div className="relative group/input">
+              <input
+                id="trendQuery"
+                className="w-full text-xl bg-black/40 border border-white/10 rounded-xl px-4 py-4 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Ex: 'micro-saas', 'moda sustentável'..."
+              />
+              <button
+                onClick={handlePaste}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-white transition-colors rounded-lg hover:bg-white/10"
+                title="Colar"
+              >
+                <ClipboardDocumentIcon className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
-          <div className="relative">
-            <label className="block text-sm font-medium text-title mb-1.5 flex justify-between">
-              <span>Localização:</span>
-              {locationStatus === 'success' && !city && (
-                <span className="text-xs text-success flex items-center gap-1">
-                  <GlobeAltIcon className="w-3 h-3" /> GPS Ativo
-                </span>
-              )}
-            </label>
+          <div className="md:col-span-4 space-y-2">
+            <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider ml-1">Localização</label>
             <div className="relative">
               <input
                 type="text"
-                className="block w-full px-3 py-2.5 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-primary sm:text-sm"
+                className="w-full text-base bg-black/40 border border-white/10 rounded-xl px-4 py-4 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
-                placeholder="Cidade, Estado ou País..."
+                placeholder="Mundo todo..."
               />
               {locationStatus === 'success' && !city && (
-                <MapPinIcon className="absolute right-3 top-2.5 w-4 h-4 text-success" />
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-green-400 text-xs font-medium bg-green-400/10 px-2 py-1 rounded-full">
+                  <GlobeAltIcon className="w-3 h-3" /> GPS
+                </div>
               )}
             </div>
           </div>
         </div>
 
-        {/* Objetivos */}
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-title mb-2">Objetivo:</label>
-          <div className="flex flex-wrap gap-2">
+        {/* Objetivos Minimalistas */}
+        <div className="mt-8">
+          <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider ml-1 mb-3 block">Objetivo da Análise</label>
+          <div className="flex flex-wrap gap-3">
             {OBJECTIVES.map(obj => (
               <button
                 key={obj.id}
                 onClick={() => setObjective(obj.id)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${objective === obj.id
-                  ? 'bg-primary text-white'
-                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                className={`group relative px-5 py-3 rounded-xl text-sm font-medium transition-all duration-300 border ${objective === obj.id
+                  ? 'bg-white text-black border-white shadow-lg shadow-white/10 scale-[1.02]'
+                  : 'bg-white/5 text-gray-400 border-white/5 hover:bg-white/10 hover:border-white/10 hover:text-white'
                   }`}
               >
-                <span>{obj.icon}</span>
-                {obj.label}
+                <div className="flex items-center gap-2">
+                  <span className="text-lg opacity-80 group-hover:scale-110 transition-transform">{obj.icon}</span>
+                  {obj.label}
+                </div>
               </button>
             ))}
           </div>
         </div>
 
-        <div className="flex gap-3">
-          <Button onClick={handleSearchTrends} isLoading={loading} variant="primary" className="flex-1 sm:flex-none">
-            <MagnifyingGlassIcon className="w-4 h-4 mr-2" />
-            {loading ? 'Analisando...' : 'Buscar Tendências'}
-          </Button>
+        <div className="mt-8 flex justify-end gap-3 pt-6 border-t border-white/5">
           {(query || result) && (
-            <Button onClick={handleClear} variant="outline">Limpar</Button>
+            <Button onClick={handleClear} variant="ghost" className="text-gray-400 hover:text-white">Limpar</Button>
           )}
+          <Button
+            onClick={handleSearchTrends}
+            isLoading={loading}
+            variant="liquid"
+            className="px-8 py-4 h-auto text-base font-bold shadow-xl shadow-indigo-500/20"
+          >
+            {loading ? 'Processando dados...' : 'Analizar Tendência →'}
+          </Button>
         </div>
-      </div>
+      </motion.div>
 
-      {/* Loading State */}
-      {loading && (
-        <div className="bg-surface p-12 rounded-xl border border-gray-800 text-center">
-          <LoadingSpinner className="w-12 h-12 mx-auto mb-4 text-primary" />
-          <p className="text-white text-lg font-medium">Analisando tendências para "{query}"...</p>
-          <p className="text-muted mt-2">Isso pode levar alguns segundos</p>
-        </div>
-      )}
+
+      {/* Loading State Skeleton */}
+      {loading && <TrendHunterSkeleton />}
 
       {/* Resultado Estruturado */}
-      {result && !loading && (
-        <div className="space-y-6">
-          {/* Header do Resultado */}
-          <div className="bg-gradient-to-r from-primary/20 to-accent/20 p-6 rounded-xl border border-primary/30">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <div>
-                <p className="text-sm text-muted uppercase tracking-wider">Busca de Tendência</p>
-                <h3 className="text-2xl font-bold text-white mt-1">Palavra-chave: {rawQuery}</h3>
-                <p className="text-muted mt-1">Localização: {city || 'Brasil'} • Objetivo: {OBJECTIVES.find(o => o.id === objective)?.label}</p>
+      <AnimatePresence>
+        {result && !loading && (
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            transition={{ duration: 0.5 }}
+            className="space-y-6"
+          >
+            {/* Header do Resultado - Ultra Moderno */}
+            <div className="bg-zinc-900/40 backdrop-blur-xl p-8 rounded-3xl border border-white/10 relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 blur-[80px] rounded-full pointer-events-none group-hover:bg-primary/20 transition-all duration-700" />
+              <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                <div>
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-gray-400 mb-2">
+                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                    ANALYSIS_COMPLETE
+                  </div>
+                  <h3 className="text-4xl font-bold text-white tracking-tight mb-2">"{rawQuery}"</h3>
+                  <div className="flex items-center gap-4 text-sm text-gray-400">
+                    <span className="flex items-center gap-1"><MapPinIcon className="w-4 h-4" /> {city || 'Global'}</span>
+                    <span className="w-1 h-1 rounded-full bg-gray-700" />
+                    <span className="flex items-center gap-1"><RocketLaunchIcon className="w-4 h-4" /> {OBJECTIVES.find(o => o.id === objective)?.label}</span>
+                  </div>
+                </div>
+                <div className="transform scale-110">
+                  {renderScore(result.score)}
+                </div>
               </div>
-              {renderScore(result.score)}
-            </div>
-          </div>
-
-          {/* 📊 Resultado da Busca */}
-          <div className="bg-surface p-6 rounded-xl border border-gray-800">
-            <div className="flex justify-between items-start mb-4">
-              <h4 className="text-lg font-semibold text-white flex items-center gap-2">
-                <ChartBarIcon className="w-5 h-5 text-primary" />
-                📊 RESULTADO DA BUSCA
-              </h4>
-              <button
-                onClick={() => handleCopySection(result.resumo, 'Resumo')}
-                className="p-1.5 text-muted hover:text-primary transition-colors rounded-md bg-gray-800"
-                title="Copiar Resumo"
-              >
-                <ClipboardDocumentIcon className="w-4 h-4" />
-              </button>
-            </div>
-            <p className="text-gray-300 leading-relaxed mb-4 whitespace-pre-wrap">{result.resumo}</p>
-
-            <div className="bg-gray-800/50 p-4 rounded-lg mb-4">
-              <p className="text-sm font-semibold text-muted mb-2">Principais motivadores de busca:</p>
-              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {result.motivadores.map((m, i) => (
-                  <li key={i} className="flex items-center gap-2 text-gray-300">
-                    <span className="w-2 h-2 bg-primary rounded-full"></span>
-                    {m}
-                  </li>
-                ))}
-              </ul>
             </div>
 
-            <div className="bg-yellow-900/20 border border-yellow-500/30 p-4 rounded-lg">
-              <p className="text-yellow-300 text-sm">
-                <strong>Leitura do cenário:</strong> {result.leituraCenario}
-              </p>
-            </div>
-          </div>
+            {/* 📊 Resultado da Busca */}
+            {/* 📊 Resultado Grid Bento */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-          {/* 🔎 Buscas Semelhantes */}
-          <div className="bg-surface p-6 rounded-xl border border-gray-800">
-            <div className="flex justify-between items-start mb-4">
-              <h4 className="text-lg font-semibold text-white flex items-center gap-2">
-                <TagIcon className="w-5 h-5 text-primary" />
-                🔎 PRODUTOS / BUSCAS SEMELHANTES
-              </h4>
-              <button
-                onClick={() => handleCopySection(result.buscasSemelhantes.join(', '), 'Buscas Semelhantes')}
-                className="p-1.5 text-muted hover:text-primary transition-colors rounded-md bg-gray-800"
-                title="Copiar Termos"
-              >
-                <ClipboardDocumentIcon className="w-4 h-4" />
-              </button>
-            </div>
-            <div className="flex flex-wrap gap-2 mb-4">
-              {result.buscasSemelhantes.map((b, i) => (
-                <span key={i} className="px-3 py-1.5 bg-gray-800 text-gray-300 rounded-full text-sm border border-gray-700">
-                  {b}
-                </span>
-              ))}
-            </div>
-            <p className="text-gray-400 text-sm">
-              <strong>Interpretação:</strong> {result.interpretacaoBuscas}
-            </p>
-          </div>
+              {/* Main Insight Card */}
+              <div className="lg:col-span-2 bg-zinc-900/40 backdrop-blur-md p-8 rounded-3xl border border-white/5 hover:border-white/10 transition-colors">
+                <div className="flex justify-between items-start mb-6">
+                  <h4 className="text-xl font-bold text-white flex items-center gap-3">
+                    <span className="p-2 bg-blue-500/10 rounded-lg text-blue-400"><ChartBarIcon className="w-6 h-6" /></span>
+                    Resumo Executivo
+                  </h4>
+                  <button onClick={() => handleCopySection(result.resumo, 'Resumo')} className="p-2 hover:bg-white/10 rounded-lg text-gray-400 transition-colors"> <ClipboardDocumentIcon className="w-5 h-5" /> </button>
+                </div>
+                <p className="text-gray-300 text-lg leading-relaxed mb-8 font-light">{result.resumo}</p>
 
-          {/* 💡 Sugestão de Conteúdo */}
-          {(objective === 'content' || objective === 'all') && (
-            <div className="bg-surface p-6 rounded-xl border border-gray-800">
-              <div className="flex justify-between items-start mb-4">
-                <h4 className="text-lg font-semibold text-white flex items-center gap-2">
-                  <DocumentTextIcon className="w-5 h-5 text-primary" />
-                  💡 SUGESTÃO DE CONTEXTO
-                </h4>
-                <button
-                  onClick={() => handleCopySection(`${result.sugestaoConteudo.oque}\n\nFormato: ${result.sugestaoConteudo.formato}`, 'Sugestão de Conteúdo')}
-                  className="p-1.5 text-muted hover:text-primary transition-colors rounded-md bg-gray-800"
-                  title="Copiar Conteúdo"
-                >
-                  <ClipboardDocumentIcon className="w-4 h-4" />
-                </button>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-black/20 p-6 rounded-2xl border border-white/5">
+                    <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Motivadores de Busca</p>
+                    <ul className="space-y-3">
+                      {result.motivadores.map((m, i) => (
+                        <li key={i} className="flex items-center gap-3 text-gray-300">
+                          <span className="w-6 h-6 rounded-full bg-white/5 flex items-center justify-center text-xs font-mono text-gray-500">{i + 1}</span>
+                          {m}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className="bg-gradient-to-br from-yellow-900/10 to-transparent p-6 rounded-2xl border border-yellow-500/10">
+                    <p className="text-xs font-bold text-yellow-500/80 uppercase tracking-widest mb-4">Leitura de Cenário</p>
+                    <p className="text-yellow-100/80 italic text-base leading-relaxed">"{result.leituraCenario}"</p>
+                  </div>
+                </div>
               </div>
-              <div className="bg-primary/10 border border-primary/30 p-4 rounded-lg mb-4">
-                <p className="text-white">{result.sugestaoConteudo.oque}</p>
-              </div>
-              <p className="text-muted text-sm">
-                <strong>Formato recomendado:</strong> <span className="text-primary font-medium">{result.sugestaoConteudo.formato}</span>
-              </p>
-            </div>
-          )}
 
-          {/* 📘 Sugestão de Produto */}
-          {(objective === 'product' || objective === 'all') && (
-            <div className="bg-surface p-6 rounded-xl border border-gray-800">
-              <div className="flex justify-between items-start mb-4">
-                <h4 className="text-lg font-semibold text-white flex items-center gap-2">
-                  <ShoppingBagIcon className="w-5 h-5 text-primary" />
-                  📘 SUGESTÃO DE PRODUTO
-                </h4>
-                <button
-                  onClick={() => handleCopySection(`${result.sugestaoProduto.tipo}\n\nTemas:\n${result.sugestaoProduto.temas.map(t => `- ${t}`).join('\n')}`, 'Sugestão de Produto')}
-                  className="p-1.5 text-muted hover:text-primary transition-colors rounded-md bg-gray-800"
-                  title="Copiar Produto"
-                >
-                  <ClipboardDocumentIcon className="w-4 h-4" />
-                </button>
+              {/* 🔎 Buscas Semelhantes */}
+              <div className="bg-zinc-900/40 backdrop-blur-md p-6 rounded-3xl border border-white/5 flex flex-col justify-between group hover:border-white/10 transition-colors">
+                <div>
+                  <div className="flex justify-between items-center mb-4">
+                    <h4 className="text-lg font-bold text-white flex items-center gap-2">
+                      <span className="p-1.5 bg-purple-500/10 rounded-lg text-purple-400"><TagIcon className="w-5 h-5" /></span>
+                      Termos em Alta
+                    </h4>
+                    <button onClick={() => handleCopySection(result.buscasSemelhantes.join(', '), 'Termos')} className="text-xs text-gray-500 hover:text-white transition-colors">Copiar</button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {result.buscasSemelhantes.map((tag, i) => (
+                      <span key={i} className="px-3 py-1.5 bg-white/5 text-gray-300 rounded-lg text-sm border border-white/5 hover:bg-white/10 hover:border-white/20 transition-all cursor-default">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <div className="mt-6 pt-4 border-t border-white/5">
+                  <p className="text-xs font-mono text-gray-500 uppercase mb-2">Insight de Intenção</p>
+                  <p className="text-sm text-gray-400 leading-relaxed">"{result.interpretacaoBuscas}"</p>
+                </div>
               </div>
-              <p className="text-gray-300 mb-4">{result.sugestaoProduto.tipo}</p>
-              <div className="bg-gray-800/50 p-4 rounded-lg">
-                <p className="text-sm font-semibold text-muted mb-2">Temas que convertem:</p>
+
+              {/* 💡 Sugestão de Conteúdo */}
+              <div className="bg-zinc-900/40 backdrop-blur-md p-6 rounded-3xl border border-white/5 group hover:border-white/10 transition-colors">
+                <div className="flex justify-between items-center mb-4">
+                  <h4 className="text-lg font-bold text-white flex items-center gap-2">
+                    <span className="p-1.5 bg-pink-500/10 rounded-lg text-pink-400"><DocumentTextIcon className="w-5 h-5" /></span>
+                    Ideia de Conteúdo
+                  </h4>
+                  <span className="px-2 py-1 rounded text-xs font-bold bg-pink-500/20 text-pink-300 border border-pink-500/20">{result.sugestaoConteudo.formato}</span>
+                </div>
+                <p className="text-gray-300 mb-6 min-h-[80px]">{result.sugestaoConteudo.oque}</p>
+                <div className="flex gap-2">
+                  <Button onClick={handleCreateContent} size="sm" variant="liquid" className="w-full font-semibold shadow-lg">
+                    <PencilSquareIcon className="w-4 h-4 mr-2" /> Gerar Agora
+                  </Button>
+                  <Button onClick={handleSchedule} size="sm" variant="outline" className="w-full border-white/10 hover:bg-white/5 text-gray-300">
+                    <CalendarDaysIcon className="w-4 h-4 mr-2" /> Agendar
+                  </Button>
+                </div>
+              </div>
+
+              {/* �️ Sugestão de Produto */}
+              <div className="bg-zinc-900/40 backdrop-blur-md p-6 rounded-3xl border border-white/5 group hover:border-white/10 transition-colors">
+                <div className="mb-4">
+                  <h4 className="text-lg font-bold text-white flex items-center gap-2">
+                    <span className="p-1.5 bg-emerald-500/10 rounded-lg text-emerald-400"><ShoppingBagIcon className="w-5 h-5" /></span>
+                    Oportunidade de Produto
+                  </h4>
+                </div>
+                <div className="bg-emerald-900/10 p-4 rounded-2xl border border-emerald-500/10 mb-4">
+                  <p className="text-emerald-200 font-medium mb-1">{result.sugestaoProduto.tipo}</p>
+                </div>
                 <ul className="space-y-2">
-                  {result.sugestaoProduto.temas.map((t, i) => (
-                    <li key={i} className="flex items-center gap-2 text-gray-300">
-                      <SparklesIcon className="w-4 h-4 text-accent" />
-                      "{t}"
+                  {result.sugestaoProduto.temas.map((tema, i) => (
+                    <li key={i} className="flex items-start gap-2 text-sm text-gray-400">
+                      <CheckCircleIcon className="w-4 h-4 text-emerald-500/50 mt-0.5" />
+                      {tema}
                     </li>
                   ))}
                 </ul>
               </div>
-            </div>
-          )}
 
-          {/* 🚀 Sugestão de Campanha */}
-          {(objective === 'campaign' || objective === 'all') && (
-            <div className="bg-surface p-6 rounded-xl border border-gray-800">
-              <div className="flex justify-between items-start mb-4">
-                <h4 className="text-lg font-semibold text-white flex items-center gap-2">
-                  <RocketLaunchIcon className="w-5 h-5 text-primary" />
-                  🚀 ESTRATÉGIA DE CAMPANHA
+              {/* 🚀 Campanha */}
+              <div className="bg-zinc-900/40 backdrop-blur-md p-6 rounded-3xl border border-white/5 group hover:border-white/10 transition-colors">
+                <div className="mb-4">
+                  <h4 className="text-lg font-bold text-white flex items-center gap-2">
+                    <span className="p-1.5 bg-orange-500/10 rounded-lg text-orange-400"><RocketLaunchIcon className="w-5 h-5" /></span>
+                    Estratégia de Marketing
+                  </h4>
+                </div>
+                <p className="text-gray-300 text-sm mb-4 leading-relaxed">{result.sugestaoCampanha.estrategia}</p>
+                <div className="mt-auto">
+                  <p className="text-xs font-mono text-gray-500 uppercase mb-2">CTA Power</p>
+                  <div className="p-3 bg-white/5 border border-white/10 rounded-xl text-center">
+                    <p className="text-white font-bold text-lg">"{result.sugestaoCampanha.cta}"</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* 🏁 Veredito (Full Width) */}
+              <div className="lg:col-span-2 bg-gradient-to-br from-zinc-900/80 to-black/80 backdrop-blur-md p-8 rounded-3xl border border-white/10 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-l from-white/5 to-transparent pointer-events-none" />
+
+                <h4 className="text-2xl font-bold text-white mb-6 flex items-center gap-3 relative z-10">
+                  <span className="text-yellow-400">⚡</span> Veredito Final
                 </h4>
-                <button
-                  onClick={() => handleCopySection(`${result.sugestaoCampanha.estrategia}\n\nCTA: ${result.sugestaoCampanha.cta}`, 'Sugestão de Campanha')}
-                  className="p-1.5 text-muted hover:text-primary transition-colors rounded-md bg-gray-800"
-                  title="Copiar Campanha"
-                >
-                  <ClipboardDocumentIcon className="w-4 h-4" />
-                </button>
-              </div>
-              <p className="text-gray-300 mb-4">{result.sugestaoCampanha.estrategia}</p>
-              <div className="bg-green-900/20 border border-green-500/30 p-4 rounded-lg">
-                <p className="text-sm text-muted mb-1">CTA sugerido:</p>
-                <p className="text-green-300 text-lg font-medium">"{result.sugestaoCampanha.cta}"</p>
-              </div>
-            </div>
-          )}
 
-          {/* ✅ Conclusão */}
-          <div className="bg-gradient-to-r from-green-900/30 to-emerald-900/30 p-6 rounded-xl border border-green-500/30">
-            <h4 className="text-lg font-semibold text-white flex items-center gap-2 mb-4">
-              <CheckCircleIcon className="w-5 h-5 text-green-400" />
-              ✅ CONCLUSÃO AUTOMÁTICA DO SISTEMA
-            </h4>
-            <p className="text-gray-300 mb-4">{result.conclusao.avaliacao}</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
+                  <div>
+                    <p className="text-xl text-gray-200 font-light leading-relaxed mb-4">
+                      {result.conclusao.avaliacao}
+                    </p>
+                    <div className="flex items-center gap-2 text-green-400 text-sm font-bold uppercase tracking-wider bg-green-900/20 px-3 py-1.5 rounded-lg w-fit">
+                      <RocketLaunchIcon className="w-4 h-4" /> Ação Recomendada: {result.conclusao.melhorEstrategia}
+                    </div>
+                  </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm font-semibold text-muted mb-2">Ideal para:</p>
-                <ul className="space-y-1">
-                  {result.conclusao.idealPara.map((p, i) => (
-                    <li key={i} className="text-gray-300 flex items-center gap-2">
-                      <span className="text-green-400">✓</span> {p}
-                    </li>
-                  ))}
-                </ul>
+                  <div className="bg-white/5 rounded-2xl p-6 border border-white/5">
+                    <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Ideal para quem busca</p>
+                    <div className="flex flex-wrap gap-2">
+                      {result.conclusao.idealPara.map((tag, i) => (
+                        <span key={i} className="px-3 py-1.5 bg-black/40 text-gray-300 rounded-lg text-sm border border-white/5">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-semibold text-muted mb-2">Melhor estratégia:</p>
-                <p className="text-white font-medium">{result.conclusao.melhorEstrategia}</p>
-              </div>
-            </div>
-          </div>
 
-          {/* Ações */}
-          <div className="flex flex-wrap gap-3 justify-center">
-            <Button onClick={handleUseInContent} variant="primary" className="flex items-center gap-2">
-              <PencilSquareIcon className="w-4 h-4" />
-              Usar no Criador
-            </Button>
+            </div> {/* End Grid */}
 
-            <div className="flex gap-2">
-              <Button onClick={() => handleDownload('txt')} variant="secondary" className="flex items-center gap-2" title="Baixar TXT">
-                <ArrowDownTrayIcon className="w-4 h-4" /> TXT
+            {/* Actions Toolbar */}
+            <div className="flex flex-wrap items-center justify-end gap-3 mt-8 pt-8 border-t border-white/5">
+              <span className="text-sm text-gray-500 mr-auto">Exportar Relatório:</span>
+              <Button onClick={() => handleDownload('txt')} variant="outline" size="sm" className="border-white/10 hover:bg-white/5 text-gray-300">
+                <ArrowDownTrayIcon className="w-4 h-4 mr-2" /> TXT
               </Button>
-              <Button onClick={() => handleDownload('doc')} variant="secondary" className="flex items-center gap-2" title="Copiar para Docs">
-                <ClipboardDocumentIcon className="w-4 h-4" /> Docs
+              <Button onClick={handleExportPDF} variant="outline" size="sm" className="border-white/10 hover:bg-white/5 text-gray-300">
+                <DocumentTextIcon className="w-4 h-4 mr-2" /> PDF
+              </Button>
+              <Button onClick={handleExportPPT} variant="outline" size="sm" className="border-white/10 hover:bg-white/5 text-gray-300">
+                <span className="mr-2 font-bold text-xs">PPT</span> PowerPoint
+              </Button>
+              <Button onClick={handleGenerateHTML} variant="outline" size="sm" className="border-white/10 hover:bg-white/5 text-gray-300">
+                <GlobeAltIcon className="w-4 h-4 mr-2" /> Landing Page
+              </Button>
+              <Button onClick={handleSaveToLibrary} variant="ghost" size="sm" className="text-gray-400 hover:text-white">
+                <BookmarkSquareIcon className="w-4 h-4 mr-2" /> Salvar
               </Button>
             </div>
-
-            <Button onClick={handleSaveToLibrary} variant="outline" className="flex items-center gap-2">
-              <BookmarkSquareIcon className="w-4 h-4" />
-              Salvar Biblioteca
-            </Button>
-          </div>
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

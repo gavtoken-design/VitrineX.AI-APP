@@ -294,7 +294,7 @@ const ContentLibrary: React.FC = () => {
 
   return (
     <div className="container mx-auto py-8 lg:py-10">
-      <h2 className="text-3xl font-bold text-textdark mb-8">Biblioteca de Conteúdo</h2>
+      <h2 className="text-3xl font-bold text-white mb-8">Biblioteca de Conteúdo</h2>
 
       <div className="bg-gradient-to-r from-gray-900 to-gray-800 p-6 rounded-lg shadow-md border border-gray-700 mb-8 flex flex-col md:flex-row items-center justify-between gap-4">
         <div>
@@ -321,8 +321,8 @@ const ContentLibrary: React.FC = () => {
         </div>
       </div>
 
-      <div className="bg-lightbg p-6 rounded-lg shadow-sm border border-gray-800 mb-8">
-        <h3 className="text-xl font-semibold text-textlight mb-5">Gerenciar Conteúdo</h3>
+      <div className="bg-surface p-6 rounded-lg shadow-sm border border-gray-800 mb-8">
+        <h3 className="text-xl font-semibold text-gray-100 mb-5">Gerenciar Conteúdo</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <Input
             id="searchContent"
@@ -375,7 +375,7 @@ const ContentLibrary: React.FC = () => {
       {loading ? (
         <div className="flex justify-center items-center h-48">
           <LoadingSpinner />
-          <p className="ml-2 text-textlight">Carregando biblioteca...</p>
+          <p className="ml-2 text-gray-100">Carregando biblioteca...</p>
         </div>
       ) : (
         <div className="flex gap-6 overflow-x-auto pb-6 custom-scrollbar">

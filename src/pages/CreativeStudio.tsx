@@ -43,7 +43,9 @@ import {
   DEFAULT_ASPECT_RATIO,
   DEFAULT_IMAGE_SIZE,
   DEFAULT_VIDEO_RESOLUTION,
-  SEASONAL_TEMPLATES // Importado
+  SEASONAL_TEMPLATES,
+  IMAGE_STYLES,
+  DEFAULT_NEGATIVE_PROMPT // Importado
 } from '../constants';
 import { useToast } from '../contexts/ToastContext';
 import HowToUse from '../components/ui/HowToUse';
@@ -64,6 +66,7 @@ const CreativeStudio: React.FC = () => {
 
   const [imageAspectRatio, setImageAspectRatio] = useState<string>(DEFAULT_ASPECT_RATIO);
   const [imageSize, setImageSize] = useState<string>(DEFAULT_IMAGE_SIZE);
+  const [selectedStyle, setSelectedStyle] = useState<string>('photorealistic'); // Default to photorealistic
 
   const [savedItemName, setSavedItemName] = useState<string>('');
   const [savedItemTags, setSavedItemTags] = useState<string>('');
@@ -163,14 +166,28 @@ const CreativeStudio: React.FC = () => {
       let negativePrompt = "";
 
       try {
+        // Find selected style prompt extension
+        const styleData = IMAGE_STYLES.find(s => s.id === selectedStyle);
+        const stylePrompt = styleData?.prompt || '';
+
         const refinementPrompt = `Role: Expert Prompt Engineer for Imagen 3.
-Task: Convert the user's description into a high-quality, detailed English prompt optimized for photorealism and artistic quality. Also generate a strong negative prompt.
+Task: Your goal is to rewrite the User Input into a highly detailed, masterful prompt for text-to-image generation.
+The user might give a simple description. You must expand it with details about lighting, camera angles, textures, and atmosphere.
+
+User Selected Style: ${styleData?.label || 'None'}
+Style Instructions: ${stylePrompt}
+
 User Input: "${prompt}"
+
+Instructions:
+1.  Incorporate the "Style Instructions" into the refined prompt seamlessly, unless the user's prompt explicitly contradicts it.
+2.  Focus on keywords like "8k", "detailed", "masterpiece", "trending on artstation" (if digital), or "cinematic lighting" to ensure high quality.
+3.  Create a "negative_prompt" that covers common bad artifacts (blur, deformities, bad anatomy) AND anything specific to avoid based on the user's request.
 
 Output JSON ONLY:
 {
   "prompt": "...",
-  "negative_prompt": "..."
+  "negative_prompt": "..." 
 }`;
 
         const refinedJson = await generateText(refinementPrompt, {
@@ -181,11 +198,19 @@ Output JSON ONLY:
         const parsed = JSON.parse(refinedJson.replace(/```json/g, '').replace(/```/g, '').trim());
         if (parsed.prompt) {
           finalPrompt = parsed.prompt;
-          negativePrompt = parsed.negative_prompt || "";
+          setPrompt(finalPrompt); // Update UI for user learning
+          // Combine generated negative prompt with our HARDCODED safety net
+          negativePrompt = `${DEFAULT_NEGATIVE_PROMPT}, ${parsed.negative_prompt || ""}`;
           addToast({ type: 'success', message: 'Prompt enriquecido com sucesso!' });
         }
       } catch (refineError) {
         console.warn("Auto-refinement failed, using original prompt.", refineError);
+        // Fallback: still append style keywords if refinement fails
+        const styleData = IMAGE_STYLES.find(s => s.id === selectedStyle);
+        if (styleData?.prompt) {
+          finalPrompt = `${prompt}, ${styleData.prompt}`;
+        }
+        negativePrompt = DEFAULT_NEGATIVE_PROMPT;
       }
 
       const response = await generateImage(finalPrompt, {
@@ -574,6 +599,12 @@ Crie uma nova imagem que atenda à instrução do usuário, mantendo coerência 
             </h3>
             <div className="grid grid-cols-2 gap-4">
               <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs text-muted font-medium mb-1 block">Estilo</label>
+                  <select value={selectedStyle} onChange={e => setSelectedStyle(e.target.value)} className="w-full text-sm bg-background border border-border rounded-lg px-2 py-2 text-body focus:ring-1 focus:ring-primary outline-none">
+                    {IMAGE_STYLES.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
+                  </select>
+                </div>
                 <div>
                   <label className="text-xs text-muted font-medium mb-1 block">Proporção</label>
                   <select value={imageAspectRatio} onChange={e => setImageAspectRatio(e.target.value)} className="w-full text-sm bg-background border border-border rounded-lg px-2 py-2 text-body focus:ring-1 focus:ring-primary outline-none">

@@ -263,7 +263,7 @@ Retorne no formato JSON: { "headline": "...", "copy": "..." }`;
           />
 
           <div className="mb-6">
-            <label htmlFor="platform" className="block text-sm font-medium text-textlight mb-1">
+            <label htmlFor="platform" className="block text-sm font-medium text-gray-100 mb-1">
               Plataforma:
             </label>
             <select
@@ -314,7 +314,7 @@ Retorne no formato JSON: { "headline": "...", "copy": "..." }`;
           </Button>
 
           {analysisResult && (
-            <div className="mt-6 p-4 bg-darkbg rounded-lg border border-primary/20 animate-fade-in">
+            <div className="mt-6 p-4 bg-black/20 rounded-lg border border-primary/20 animate-fade-in">
               <h4 className="font-bold text-accent mb-2 flex items-center gap-2">
                 <CheckBadgeIcon className="w-4 h-4" /> Resultado da Análise
               </h4>
@@ -329,15 +329,15 @@ Retorne no formato JSON: { "headline": "...", "copy": "..." }`;
       </div>
 
       {generatedAd && (
-        <div className="bg-lightbg p-6 rounded-lg shadow-sm border border-gray-800 animate-slide-in-from-bottom duration-500">
-          <h3 className="text-xl font-semibold text-textlight mb-5">Anúncio Gerado para {generatedAd.platform}</h3>
+        <div className="bg-surface p-6 rounded-lg shadow-sm border border-gray-800 animate-slide-in-from-bottom duration-500">
+          <h3 className="text-xl font-semibold text-gray-100 mb-5">Anúncio Gerado para {generatedAd.platform}</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <h4 className="text-lg font-semibold text-textlight mb-3">Título:</h4>
-              <p className="text-textdark text-xl font-medium mb-4">{generatedAd.headline}</p>
+              <h4 className="text-lg font-semibold text-gray-100 mb-3">Título:</h4>
+              <p className="text-white text-xl font-medium mb-4">{generatedAd.headline}</p>
 
-              <h4 className="text-lg font-semibold text-textlight mb-3">Texto:</h4>
-              <div className="prose max-w-none text-textlight leading-relaxed bg-darkbg p-4 rounded-md h-auto min-h-[150px]" style={{ whiteSpace: 'pre-wrap' }}>
+              <h4 className="text-lg font-semibold text-gray-100 mb-3">Texto:</h4>
+              <div className="prose max-w-none text-gray-100 leading-relaxed bg-black/20 p-4 rounded-md h-auto min-h-[150px]" style={{ whiteSpace: 'pre-wrap' }}>
                 {generatedAd.copy}
               </div>
 
@@ -365,7 +365,7 @@ Retorne no formato JSON: { "headline": "...", "copy": "..." }`;
               </div>
             </div>
             <div>
-              <h4 className="text-lg font-semibold text-textlight mb-3">Criativo Visual:</h4>
+              <h4 className="text-lg font-semibold text-gray-100 mb-3">Criativo Visual:</h4>
               <div className="w-full aspect-square bg-gray-900 rounded-md flex items-center justify-center overflow-hidden border border-gray-700">
                 {loading && !generatedImageUrl ? ( // Only show spinner if image is actively loading
                   <LoadingSpinner />
@@ -393,7 +393,7 @@ Retorne no formato JSON: { "headline": "...", "copy": "..." }`;
           </div>
 
           <div className="mt-8 pt-6 border-t border-gray-800">
-            <h4 className="text-lg font-semibold text-textlight mb-4">Salvar Criativo na Biblioteca</h4>
+            <h4 className="text-lg font-semibold text-gray-100 mb-4">Salvar Criativo na Biblioteca</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <Input
                 id="adSaveName"

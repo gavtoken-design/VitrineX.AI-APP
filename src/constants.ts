@@ -98,7 +98,20 @@ export const SEASONAL_TEMPLATES = [
     }
 ];
 
-// Standard Code Templates (Boilerplates)
+// Image Styles for Creative Studio
+export const IMAGE_STYLES = [
+    { id: 'none', label: 'Nenhum (Livre)', prompt: '' },
+    { id: 'photorealistic', label: 'Fotorealista', prompt: 'hyper-realistic photo, 8k resolution, detailed texture, cinematic lighting, shallow depth of field, sharp focus, photography style' },
+    { id: 'cinematic', label: 'Cinematográfico', prompt: 'movie still, color graded, dramatic lighting, anamorphic lens, intense atmosphere, detailed production design' },
+    { id: 'digital-art', label: 'Arte Digital 3D', prompt: '3D render, octane render, unreal engine 5, ray tracing, volumetrics, clean lines, high fidelity, digital art masterpiece' },
+    { id: 'anime', label: 'Anime / Mangá', prompt: 'anime style, studio ghibli inspired, vibrant colors, detailed background, cell shading, expressive characters' },
+    { id: 'cyberpunk', label: 'Cyberpunk Neon', prompt: 'cyberpunk city, neon lights, rainy streets, futuristic technology, dark atmosphere with vibrant highlights, blade runner aesthetic' },
+    { id: 'minimalist', label: 'Minimalista', prompt: 'minimalist design, clean background, simple shapes, pastel colors, soft lighting, lots of negative space, elegant' },
+    { id: 'painting', label: 'Pintura a Óleo', prompt: 'oil painting style, textured brushstrokes, classical art, impressionist vibes, detailed canvas texture' },
+];
+
+export const DEFAULT_NEGATIVE_PROMPT = "blurry, grain, low resolution, deformed, distorted, disfigured, bad anatomy, bad hands, missing limbs, extra limbs, watermark, text, signature, low quality, jpeg artifacts, ugly, duplicate, morbid, mutilated, poorly drawn face, mutation, bad proportions, gross proportions, malformed limbs, missing arms, missing legs, extra arms, extra legs, fused fingers";
+
 export const CODE_TEMPLATES = [
     {
         id: 'hero-gradient',
