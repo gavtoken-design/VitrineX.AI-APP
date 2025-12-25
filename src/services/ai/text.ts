@@ -28,6 +28,33 @@ export interface GenerateTextOptions {
     userId?: string;
 }
 
+export interface ToolCallResponse {
+    functionResponse: {
+        name: string;
+        response: {
+            result?: unknown;
+            error?: string;
+        };
+    };
+}
+
+export interface ModelPart {
+    text?: string;
+    functionCall?: {
+        name: string;
+        args: Record<string, unknown>;
+    };
+    functionResponse?: {
+        name: string;
+        response: Record<string, unknown>;
+    };
+}
+
+export interface ModelContent {
+    role: 'user' | 'model' | 'system';
+    parts: ModelPart[];
+}
+
 const getSystemInstruction = (base?: string, hasTools?: boolean): string | undefined => {
     const agentInstruction = hasTools ? `\n\nWhen thinking silently: ALWAYS start the thought with a brief (one sentence) recap of the current progress on the task. In particular, consider whether the task is already done.` : '';
     const full = base ? `${base}${agentInstruction}` : (agentInstruction ? agentInstruction.trim() : undefined);
@@ -49,10 +76,10 @@ export const generateText = async (prompt: string, options?: GenerateTextOptions
     };
 
     try {
-        const ai = await getGeminiClient(undefined, options?.userId);
+        const client = await getGeminiClient(undefined, options?.userId);
 
         // Direct SDK usage
-        const result = await ai.models.generateContent({
+        const result = await client.models.generateContent({
             model: modelToUse,
             contents: [{ role: 'user', parts: [{ text: prompt }] }],
             config: {
@@ -64,23 +91,32 @@ export const generateText = async (prompt: string, options?: GenerateTextOptions
 
         // Basic autonomous agent loop for Gemini SDK
         if (result.functionCalls && result.functionCalls.length > 0) {
-            let history: { role: string; parts: any[] }[] = [{ role: 'user', parts: [{ text: prompt }] }];
+            let history: ModelContent[] = [{ role: 'user', parts: [{ text: prompt }] }];
             let currentResponse = result;
             let iterations = 0;
             const MAX_ITERATIONS = 5;
 
             while (currentResponse.functionCalls && currentResponse.functionCalls.length > 0 && iterations < MAX_ITERATIONS) {
                 iterations++;
-                const calls = currentResponse.functionCalls;
-                const toolResponses: any[] = [];
+                const activeCalls = currentResponse.functionCalls;
+                const toolResponses: ToolCallResponse[] = [];
 
                 // Add model's turn to history
-                // The new SDK patterns often expect candidate content to be sent back
-                const modelContent = currentResponse.candidates?.[0]?.content;
-                history.push(modelContent ? (modelContent as { role: string; parts: any[] }) : { role: 'model', parts: [{ functionCall: calls[0] }] });
+                // NEW: Collect all function calls from the result
+                const modelParts: ModelPart[] = activeCalls.map(call => ({
+                    functionCall: {
+                        name: call.name,
+                        args: call.args as Record<string, unknown>
+                    }
+                }));
 
-                if (calls) {
-                    for (const call of calls) {
+                history.push({
+                    role: 'model',
+                    parts: modelParts
+                });
+
+                if (activeCalls) {
+                    for (const call of activeCalls) {
                         try {
                             const { executeTool } = await import('./tools');
                             const toolResult = await executeTool(call.name, call.args, { userId: options?.userId });
@@ -103,12 +139,17 @@ export const generateText = async (prompt: string, options?: GenerateTextOptions
                 }
 
                 // Add tool outputs as user role in the next turn
-                history.push({ role: 'user', parts: toolResponses });
+                history.push({
+                    role: 'user',
+                    parts: toolResponses.map(tr => ({
+                        functionResponse: tr.functionResponse
+                    }))
+                });
 
                 // Call model again with history
-                currentResponse = await ai.models.generateContent({
+                currentResponse = await client.models.generateContent({
                     model: modelToUse,
-                    contents: history,
+                    contents: history as any[], // Cast to avoid deep type mismatch with SDK
                     config: {
                         ...generationConfig,
                         systemInstruction: getSystemInstruction(options?.systemInstruction, !!options?.tools),
@@ -116,10 +157,10 @@ export const generateText = async (prompt: string, options?: GenerateTextOptions
                     }
                 });
             }
-            return currentResponse.text || '';
+            return currentResponse.text || (currentResponse as any).candidates?.[0]?.content?.parts?.[0]?.text || '';
         }
 
-        return result.text || '';
+        return result.text || (result as any).candidates?.[0]?.content?.parts?.[0]?.text || '';
 
     } catch (error) {
         const err = error as Error & { message?: string };
@@ -149,7 +190,14 @@ export const sendMessageToChat = async (
     history: ChatMessage[],
     message: string | { text: string }[],
     onChunk: (text: string) => void,
-    options: { model?: string; systemInstruction?: string; useKnowledgeBase?: boolean; useThinking?: boolean; userId?: string; tools?: Record<string, unknown>[] },
+    options: {
+        model?: string;
+        systemInstruction?: string;
+        useKnowledgeBase?: boolean;
+        useThinking?: boolean;
+        userId?: string;
+        tools?: Record<string, unknown>[]
+    },
     signal?: AbortSignal
 ): Promise<string> => {
     const modelToUse = options.useThinking ? GEMINI_THINKING_MODEL : (options.model || GEMINI_PRO_MODEL);
@@ -158,26 +206,39 @@ export const sendMessageToChat = async (
         const client = await getGeminiClient(undefined, options.userId);
 
         // Convert history to @google/genai format
-        const chatHistory = history.map(m => ({
-            role: m.role,
-            parts: [{ text: m.text }]
-        }));
+        const chatHistory: ModelContent[] = history.map(m => {
+            const parts: ModelPart[] = [];
+
+            if (m.text) {
+                parts.push({ text: m.text });
+            }
+
+            if (m.toolCall) {
+                parts.push({
+                    functionCall: {
+                        name: m.toolCall.name,
+                        args: m.toolCall.args
+                    }
+                });
+            }
+
+            return {
+                role: m.role as 'user' | 'model',
+                parts
+            };
+        });
 
         const promptText = typeof message === 'string' ? message : message.map(p => typeof p === 'string' ? p : p.text).join(' ');
 
-        // Using generateContent with history as 'contents' to simulate chat, as startChat might have different semantics in new SDK or we want unified control
-        // But for stream, checking if we need streamGenerateContent
-        // For now, mirroring the non-streaming logic first, or using standard generateContent.
-
         // Construct full contents: history + new user message
-        const fullContents = [
+        const fullContents: ModelContent[] = [
             ...chatHistory,
             { role: 'user', parts: [{ text: promptText }] }
         ];
 
-        const result = await client.models.generateContent({
+        const result = await client.models.generateContentStream({
             model: modelToUse,
-            contents: fullContents,
+            contents: fullContents as any[],
             config: {
                 temperature: 1.0,
                 systemInstruction: getSystemInstruction(options.systemInstruction, !!(options.tools || options.useKnowledgeBase)),
@@ -185,13 +246,20 @@ export const sendMessageToChat = async (
             }
         });
 
-        // Simple loop handling for tools similar to generateText if needed. 
-        // For chat, we often want single turn or specific handling. 
-        // Assuming single turn response for basic chat unless complex agent.
+        let fullText = '';
+        // In @google/genai, generateContentStream returns an AsyncGenerator directly or an object with a stream property
+        // Let's handle both common patterns
+        const chunks = (result as any).stream || result;
 
-        const text = result.text;
-        onChunk(text || ''); // Send full text as one chunk for now since we aren't using streamGenerateContent yet
-        return text || '';
+        for await (const chunk of chunks) {
+            const chunkText = chunk.text || (chunk as any).candidates?.[0]?.content?.parts?.[0]?.text;
+            if (chunkText) {
+                fullText += chunkText;
+                onChunk(chunkText);
+            }
+        }
+
+        return fullText;
 
     } catch (error) {
         console.error("Chat request failed", error);
@@ -201,12 +269,23 @@ export const sendMessageToChat = async (
 
 export const aiManagerStrategy = async (prompt: string, userId: string): Promise<{ strategyText: string; suggestions: string[] }> => {
     const { vitrinexTools } = await import('./tools');
-    const response = await generateText(prompt, {
+    const response = await generateText(`${prompt}\n\nApós o detalhamento, adicione uma seção "SUGESTÕES_AÇÃO" no final, em formato JSON: {"suggestions": ["...", "..."]}`, {
         useThinking: true,
         systemInstruction: `You are a marketing expert for VitrineX AI. Your goal is to maximize the ROI.`,
         tools: vitrinexTools,
         userId: userId
     });
+
+    try {
+        const jsonMatch = response.match(/\{"suggestions":\s*\[.*\]\}/s);
+        if (jsonMatch) {
+            const { suggestions } = JSON.parse(jsonMatch[0]);
+            return { strategyText: response.replace(jsonMatch[0], '').trim(), suggestions };
+        }
+    } catch (e) {
+        console.warn("Falha ao extrair sugestões da estratégia", e);
+    }
+
     return { strategyText: response, suggestions: ["Otimizar SEO", "Campanha de Retargeting"] };
 };
 
@@ -222,7 +301,7 @@ export const searchTrends = async (query: string, language: string = 'en-US', us
             model: GEMINI_FLASH_MODEL,
             contents: [{ role: 'user', parts: [{ text: prompt }] }],
             config: {
-                tools: [{ googleSearch: {} }]
+                tools: [{ googleSearch: {} }] as any
             }
         });
 
@@ -264,7 +343,8 @@ export const campaignBuilder = async (campaignPrompt: string, userId: string = '
 
     let plan;
     try {
-        plan = JSON.parse(planJsonStr.replace(/```json\n?|\n?```/g, '').trim());
+        const cleanedJson = planJsonStr.replace(/```json\n?|\n?```/g, '').trim();
+        plan = JSON.parse(cleanedJson);
     } catch (e) {
         plan = {
             name: "Campanha " + Date.now(),

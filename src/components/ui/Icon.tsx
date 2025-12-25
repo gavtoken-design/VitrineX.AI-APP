@@ -43,7 +43,8 @@ import {
   VideoCameraIcon,
   MapPinIcon,
   SpeakerWaveIcon,
-  CalendarIcon
+  CalendarIcon,
+  ViewColumnsIcon
 } from '@heroicons/react/24/outline';
 
 // Registro central de ícones. 
@@ -95,7 +96,8 @@ export const iconRegistry = {
   video: VideoCameraIcon,
   map: MapPinIcon,
   audio: SpeakerWaveIcon,
-  calendarAlt: CalendarIcon
+  calendarAlt: CalendarIcon,
+  carousel: ViewColumnsIcon
 };
 
 export type IconName = keyof typeof iconRegistry;

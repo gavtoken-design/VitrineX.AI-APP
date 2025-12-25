@@ -208,7 +208,7 @@ O código deve ser copy-paste ready.`;
   };
 
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div className="space-y-6 md:space-y-8 animate-fade-in pb-20">
       <div className="flex items-center justify-between pb-6 border-b border-border">
         <div className="flex items-center gap-4">
           <div className="p-3 bg-blue-500/10 rounded-xl">
@@ -338,7 +338,7 @@ O código deve ser copy-paste ready.`;
               <div className="bg-gray-900 p-4 rounded-lg overflow-x-auto max-h-96">
                 <pre className="text-xs text-green-400 font-mono">{generatedCode}</pre>
               </div>
-              <div className="flex gap-3 mt-4">
+              <div className="flex flex-wrap gap-2 md:gap-3 mt-4">
                 <Button onClick={handleCopyCode} variant="secondary" size="sm" className="flex-1">
                   Copiar Código
                 </Button>

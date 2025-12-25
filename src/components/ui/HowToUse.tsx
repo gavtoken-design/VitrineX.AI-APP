@@ -6,24 +6,26 @@ interface HowToUseProps {
     title?: string;
     steps: string[];
     tips?: string[];
+    compact?: boolean;
 }
 
 const HowToUse: React.FC<HowToUseProps> = ({
     title = "Como Usar",
     steps,
-    tips
+    tips,
+    compact = false
 }) => {
     const [isOpen, setIsOpen] = useState(false);
 
     return (
-        <div className="bg-blue-900/20 border border-blue-500/30 rounded-xl overflow-hidden mb-6">
+        <div className={`bg-blue-900/20 border border-blue-500/30 rounded-xl overflow-hidden mb-6 ${compact ? 'border-primary/20 bg-primary/5' : ''}`}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="w-full px-4 py-3 flex items-center justify-between hover:bg-blue-900/30 transition-colors"
             >
                 <div className="flex items-center gap-2">
-                    <QuestionMarkCircleIcon className="w-5 h-5 text-blue-400" />
-                    <span className="font-semibold text-blue-300">{title}</span>
+                    <QuestionMarkCircleIcon className={`w-5 h-5 ${compact ? 'text-primary' : 'text-blue-400'}`} />
+                    <span className={`font-semibold ${compact ? 'text-primary' : 'text-blue-300'}`}>{title}</span>
                 </div>
                 {isOpen ? (
                     <ChevronUpIcon className="w-5 h-5 text-blue-400" />

@@ -374,7 +374,7 @@ const SmartScheduler: React.FC = () => {
 
                 {/* Sidebar Form */}
                 <div id="scheduler-form" className="lg:col-span-1">
-                    <div className="bg-surface rounded-xl border border-border p-6 shadow-lg sticky top-6">
+                    <div className="bg-surface rounded-xl border border-border p-6 shadow-lg lg:sticky lg:top-6">
                         <div className="flex justify-between items-center mb-6">
                             <h2 className="text-xl font-bold text-title flex items-center gap-2">
                                 {editingId ? <PencilIcon className="w-5 h-5" /> : <PlusIcon className="w-5 h-5" />}
@@ -391,7 +391,7 @@ const SmartScheduler: React.FC = () => {
 
                             <div>
                                 <label className="block text-sm font-medium text-muted mb-1">Plataforma</label>
-                                <div className="grid grid-cols-5 gap-1">
+                                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
                                     {Object.keys(platformIcons).map((p: any) => (
                                         <button key={p} onClick={() => setNewPlatform(p)} className={`p-2 rounded border ${newPlatform === p ? 'border-primary bg-primary/10' : 'border-transparent'}`}>{platformIcons[p as keyof typeof platformIcons]}</button>
                                     ))}

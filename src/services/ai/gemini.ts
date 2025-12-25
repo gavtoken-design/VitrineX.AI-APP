@@ -90,7 +90,7 @@ export const verifySystemCapabilities = async (explicitKey?: string, userId?: st
       text: true,
       vision: true,
       audio: true,
-      message: 'Sistema Totalmente Operacional (v2.5)'
+      message: 'Sistema Totalmente Operacional (v3.0)'
     };
   } catch (error) {
     const err = error as Error;

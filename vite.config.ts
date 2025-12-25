@@ -1,6 +1,7 @@
 import path from 'path';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { VitePWA } from 'vite-plugin-pwa';
 
 // Detecta o modo de build via variável de ambiente
 const buildMode = process.env.BUILD_MODE || 'standalone';
@@ -12,7 +13,20 @@ export default defineConfig({
     host: process.env.NODE_ENV === 'production' ? 'localhost' : '0.0.0.0',
     strictPort: true,
   },
-  plugins: [react()],
+  plugins: [
+    react(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,json}'],
+        cleanupOutdatedCaches: true
+      },
+      manifest: false // Use existing manifest.json in public or generated one? If public has it, use false or configure to copy? Vite copies public.
+      // Actually, if I set manifest: false, it won't generate one, but it will generate sw.js.
+      // But typically we want the plugin to manage the manifest if we want injection.
+      // Let's set injectRegister: 'auto' (default).
+    })
+  ],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

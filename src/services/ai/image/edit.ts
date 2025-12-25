@@ -76,21 +76,37 @@ export const editImageInternal = async (
             ]
         });
 
-        const imagePart = result.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
-        if (imagePart?.inlineData) {
-            return {
-                type: 'image',
-                imageUrl: `data:${imagePart.inlineData.mimeType};base64,${imagePart.inlineData.data}`,
-                mimeType: imagePart.inlineData.mimeType,
-                base64: imagePart.inlineData.data
-            };
+        // The image is usually returned in the parts array if the model can output images (multimodal)
+        // Note: For background removal specifically, we might need a model that supports it explicitly 
+        // or provides the image in the response.
+        const candidates = (result as any).candidates;
+        if (candidates && candidates.length > 0) {
+            const parts = candidates[0].content?.parts;
+            const imagePart = parts?.find((p: any) => p.inlineData);
+
+            if (imagePart?.inlineData) {
+                return {
+                    type: 'image',
+                    imageUrl: `data:${imagePart.inlineData.mimeType};base64,${imagePart.inlineData.data}`,
+                    mimeType: imagePart.inlineData.mimeType,
+                    base64: imagePart.inlineData.data
+                };
+            }
         }
 
-        if (result.text) {
-            return { type: 'text', text: result.text };
+        // --- FALLBACK STRATEGY: Analyze + Generate ---
+        // If the model returned text instead of an image (common for Flash models), 
+        // or if it failed to return anything, we analyze and then generate.
+        const responseText = result.text || (result as any).candidates?.[0]?.content?.parts?.[0]?.text;
+
+        if (responseText) {
+            console.log("Edit returned text, attempting to generate image from analysis/instruction.");
+            const { generateImageInternal } = await import('./generate');
+            const enrichedPrompt = `Instruction: ${prompt}\n\nExisting Image Context: ${responseText}\n\nTask: Create a NEW image that follows the instruction precisely based on the existing context. Use high quality, professional studio lighting.`;
+            return await generateImageInternal(enrichedPrompt, options);
         }
 
-        return { type: 'error', code: 'GENERATION_FAILED', message: 'Nenhuma edição retornada pelo SDK.' };
+        return { type: 'error', code: 'GENERATION_FAILED', message: 'Nenhuma edição retornada pelo SDK. Verifique se o modelo suporta saída de imagem.' };
     } catch (innerError: any) {
         console.error("Edit image SDK fallback failed:", innerError);
         return {

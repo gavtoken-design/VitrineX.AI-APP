@@ -57,8 +57,8 @@ const SummaryCard: React.FC<SummaryCardProps> = ({ title, value, description, ic
         </>
       ) : (
         <>
-          <p className="text-sm text-gray-300 mb-1 font-medium tracking-wide opacity-80">{title}</p>
-          <p className="text-4xl font-bold text-white tracking-tight drop-shadow-sm">{value}</p>
+          <p className="text-sm text-[var(--text-secondary)] mb-1 font-medium tracking-wide opacity-80">{title}</p>
+          <p className="text-4xl font-bold text-[var(--text-primary)] tracking-tight drop-shadow-sm">{value}</p>
         </>
       )}
     </div>
@@ -88,11 +88,11 @@ const ActivityCard: React.FC<ActivityCardProps> = ({
         <Icon className="w-5 h-5 text-white" />
       </div>
       <div>
-        <p className="font-semibold text-white">{title}</p>
-        <p className="text-sm text-gray-400">{description}</p>
+        <p className="font-semibold text-[var(--text-primary)]">{title}</p>
+        <p className="text-sm text-[var(--text-secondary)]">{description}</p>
       </div>
     </div>
-    <span className="text-xs text-gray-400">{timestamp}</span>
+    <span className="text-xs text-[var(--text-secondary)]">{timestamp}</span>
   </div>
 );
 
@@ -235,10 +235,10 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="animate-fade-in duration-500 pb-20 md:pb-0"> {/* Mobile Fix: Pb-20 for bottom nav space */}
-      <div id="dashboard-header" className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 border-b border-gray-200 dark:border-gray-800 pb-4 gap-4 md:gap-0">
+      <div id="dashboard-header" className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 border-b border-[var(--border-default)] pb-4 gap-4 md:gap-0">
         <div>
-          <h2 className="text-2xl font-bold text-title">Visão Executiva</h2>
-          <p className="text-muted mt-1">Bem-vindo de volta. Aqui está o resumo da atividade.</p>
+          <h2 className="text-2xl font-bold text-[var(--text-primary)]">Visão Executiva</h2>
+          <p className="text-[var(--text-secondary)] mt-1">Bem-vindo de volta. Aqui está o resumo da atividade.</p>
         </div>
 
         {/* Mobile Fix: Flex wrap for small screens */}
@@ -258,7 +258,7 @@ const Dashboard: React.FC = () => {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-10"> {/* Mobile Fix: Reduced gap */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
           <SummaryCard
             title="Conteúdo Total"
             value={totalPosts}
@@ -301,7 +301,7 @@ const Dashboard: React.FC = () => {
         glowIntensity="md"
         shadowIntensity="lg"
       >
-        <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+        <h3 className="text-lg font-bold text-[var(--text-primary)] mb-6 flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
           {t('dashboard.quick_actions')}
         </h3>
@@ -335,7 +335,7 @@ const Dashboard: React.FC = () => {
 
       <section className="mt-8">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-bold text-white">Atividades Recentes</h3>
+          <h3 className="text-xl font-bold text-[var(--text-primary)]">Atividades Recentes</h3>
           <a className="text-blue-400 text-sm font-semibold hover:underline cursor-pointer">
             Ver Todas
           </a>

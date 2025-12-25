@@ -143,8 +143,8 @@ const Settings: React.FC = () => {
     return (
         <div className="animate-fade-in pb-20">
             <header className="mb-8">
-                <h1 className="text-3xl font-bold text-title">Configurações</h1>
-                <p className="text-muted mt-2">Gerencie sua conta, assinatura e preferências do sistema.</p>
+                <h1 className="text-3xl font-bold text-[var(--text-primary)]">Configurações</h1>
+                <p className="text-[var(--text-secondary)] mt-2">Gerencie sua conta, assinatura e preferências do sistema.</p>
             </header>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -156,10 +156,10 @@ const Settings: React.FC = () => {
                                 {user?.user_metadata?.full_name?.charAt(0) || user?.email?.charAt(0).toUpperCase()}
                             </div>
                             <div>
-                                <h2 className="font-bold text-title text-lg truncate max-w-[180px]">
+                                <h2 className="font-bold text-[var(--text-primary)] text-lg truncate max-w-[180px]">
                                     {user?.user_metadata?.full_name || 'Usuário VitrineX'}
                                 </h2>
-                                <p className="text-sm text-muted truncate max-w-[180px]">{user?.email}</p>
+                                <p className="text-sm text-[var(--text-secondary)] truncate max-w-[180px]">{user?.email}</p>
                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary mt-1 border border-primary/20">
                                     Plano {profile?.plan || 'Free'}
                                 </span>
@@ -176,28 +176,28 @@ const Settings: React.FC = () => {
                             </button>
                             <button
                                 onClick={() => document.getElementById('security-section')?.scrollIntoView({ behavior: 'smooth' })}
-                                className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-muted hover:bg-surface-hover hover:text-title transition-colors"
+                                className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-[var(--text-secondary)] hover:bg-[var(--background-input)] hover:text-[var(--text-primary)] transition-colors"
                             >
                                 <ShieldCheckIcon className="w-5 h-5" />
                                 Segurança
                             </button>
                             <button
                                 onClick={() => document.getElementById('notifications-section')?.scrollIntoView({ behavior: 'smooth' })}
-                                className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-muted hover:bg-surface-hover hover:text-title transition-colors"
+                                className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-[var(--text-secondary)] hover:bg-[var(--background-input)] hover:text-[var(--text-primary)] transition-colors"
                             >
                                 <BellIcon className="w-5 h-5" />
                                 Notificações
                             </button>
                             <button
                                 onClick={() => document.getElementById('language-section')?.scrollIntoView({ behavior: 'smooth' })}
-                                className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-muted hover:bg-surface-hover hover:text-title transition-colors"
+                                className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-[var(--text-secondary)] hover:bg-[var(--background-input)] hover:text-[var(--text-primary)] transition-colors"
                             >
                                 <LanguageIcon className="w-5 h-5" />
                                 Idioma e Região
                             </button>
                             <button
                                 onClick={() => document.getElementById('appearance-section')?.scrollIntoView({ behavior: 'smooth' })}
-                                className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-muted hover:bg-surface-hover hover:text-title transition-colors"
+                                className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-[var(--text-secondary)] hover:bg-[var(--background-input)] hover:text-[var(--text-primary)] transition-colors"
                             >
                                 <SunIcon className="w-5 h-5" />
                                 Aparência
@@ -232,13 +232,13 @@ const Settings: React.FC = () => {
                                 <h2 className="text-xl font-bold text-title">Assinatura e Plano</h2>
                             </div>
 
-                            <div className="flex flex-col md:flex-row gap-8 items-center bg-white/5 rounded-2xl p-6 border border-white/10">
+                            <div className="flex flex-col md:flex-row gap-8 items-center bg-[var(--background-input)] rounded-2xl p-6 border border-[var(--border-default)]">
                                 <div className="flex-1">
                                     <div className="flex items-center gap-2 mb-2">
-                                        <h3 className="text-2xl font-bold text-white">VitrineX PRO</h3>
+                                        <h3 className="text-2xl font-bold text-[var(--text-primary)]">VitrineX PRO</h3>
                                         <span className="bg-gradient-to-r from-amber-400 to-orange-500 text-black text-[10px] font-black px-2 py-0.5 rounded-full">RECOMENDADO</span>
                                     </div>
-                                    <p className="text-gray-400 text-sm mb-6 leading-relaxed">
+                                    <p className="text-[var(--text-secondary)] text-sm mb-6 leading-relaxed">
                                         Libere todo o potencial da inteligência artificial para o seu marketing. Criações ilimitadas, acesso ao Gemini Ultra e suporte prioritário.
                                     </p>
 
@@ -249,7 +249,7 @@ const Settings: React.FC = () => {
                                             'Análise de Tendências em Tempo Real',
                                             'Remoção de marca d\'água'
                                         ].map((feature, i) => (
-                                            <li key={i} className="flex items-center gap-2 text-sm text-gray-300">
+                                            <li key={i} className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
                                                 <CheckBadgeIcon className="w-4 h-4 text-primary" />
                                                 {feature}
                                             </li>
@@ -257,10 +257,10 @@ const Settings: React.FC = () => {
                                     </ul>
                                 </div>
 
-                                <div className="text-center md:border-l border-white/10 md:pl-8 min-w-[200px]">
+                                <div className="text-center md:border-l border-[var(--border-default)] md:pl-8 min-w-[200px]">
                                     <div className="mb-4">
-                                        <span className="text-4xl font-black text-white">R$ 148,90</span>
-                                        <span className="text-muted text-sm ml-1">/mês</span>
+                                        <span className="text-4xl font-black text-[var(--text-primary)]">R$ 148,90</span>
+                                        <span className="text-[var(--text-secondary)] text-sm ml-1">/mês</span>
                                     </div>
                                     <a
                                         href={planLink}
@@ -288,56 +288,56 @@ const Settings: React.FC = () => {
 
                     {/* Account Settings */}
                     <section id="profile-section" className="glass-card p-8">
-                        <h2 className="text-xl font-bold text-title mb-6">Informações da Conta</h2>
+                        <h2 className="text-xl font-bold text-[var(--text-primary)] mb-6">Informações da Conta</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
-                                <label className="text-xs font-bold text-muted uppercase tracking-wider">Nome Completo</label>
+                                <label className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Nome Completo</label>
                                 <input
                                     type="text"
                                     value={fullName}
                                     onChange={(e) => setFullName(e.target.value)}
                                     placeholder="Seu nome"
-                                    className="w-full bg-surface-hover border border-border rounded-xl px-4 py-3 text-title focus:outline-none focus:border-primary transition-colors"
+                                    className="w-full bg-[var(--background-input)] border border-[var(--border-default)] rounded-xl px-4 py-3 text-[var(--text-primary)] focus:outline-none focus:border-primary transition-colors"
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-xs font-bold text-muted uppercase tracking-wider">E-mail</label>
+                                <label className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">E-mail</label>
                                 <input
                                     type="email"
                                     value={user?.email || ''}
                                     disabled
-                                    className="w-full bg-surface-hover/50 border border-border rounded-xl px-4 py-3 text-muted cursor-not-allowed"
+                                    className="w-full bg-[var(--background-input)]/50 border border-[var(--border-default)] rounded-xl px-4 py-3 text-[var(--text-secondary)] cursor-not-allowed"
                                 />
                             </div>
                             {/* New Fields */}
                             <div className="space-y-2">
-                                <label className="text-xs font-bold text-muted uppercase tracking-wider">Telefone / WhatsApp</label>
+                                <label className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Telefone / WhatsApp</label>
                                 <input
                                     type="tel"
                                     value={phone}
                                     onChange={(e) => setPhone(e.target.value)}
                                     placeholder="(11) 99999-9999"
-                                    className="w-full bg-surface-hover border border-border rounded-xl px-4 py-3 text-title focus:outline-none focus:border-primary transition-colors"
+                                    className="w-full bg-[var(--background-input)] border border-[var(--border-default)] rounded-xl px-4 py-3 text-[var(--text-primary)] focus:outline-none focus:border-primary transition-colors"
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-xs font-bold text-muted uppercase tracking-wider">CNPJ</label>
+                                <label className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">CNPJ</label>
                                 <input
                                     type="text"
                                     value={cnpj}
                                     onChange={(e) => setCnpj(e.target.value)}
                                     placeholder="00.000.000/0001-00"
-                                    className="w-full bg-surface-hover border border-border rounded-xl px-4 py-3 text-title focus:outline-none focus:border-primary transition-colors"
+                                    className="w-full bg-[var(--background-input)] border border-[var(--border-default)] rounded-xl px-4 py-3 text-[var(--text-primary)] focus:outline-none focus:border-primary transition-colors"
                                 />
                             </div>
                             <div className="md:col-span-2 space-y-2">
-                                <label className="text-xs font-bold text-muted uppercase tracking-wider">Endereço Comercial</label>
+                                <label className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Endereço Comercial</label>
                                 <input
                                     type="text"
                                     value={address}
                                     onChange={(e) => setAddress(e.target.value)}
                                     placeholder="Rua Exemplo, 123 - Cidade/UF"
-                                    className="w-full bg-surface-hover border border-border rounded-xl px-4 py-3 text-title focus:outline-none focus:border-primary transition-colors"
+                                    className="w-full bg-[var(--background-input)] border border-[var(--border-default)] rounded-xl px-4 py-3 text-[var(--text-primary)] focus:outline-none focus:border-primary transition-colors"
                                 />
                             </div>
                         </div>
@@ -352,13 +352,13 @@ const Settings: React.FC = () => {
                     <section id="security-section" className="glass-card p-8">
                         <div className="flex items-center gap-3 mb-6">
                             <ShieldCheckIcon className="w-6 h-6 text-primary" />
-                            <h2 className="text-xl font-bold text-title">Segurança</h2>
+                            <h2 className="text-xl font-bold text-[var(--text-primary)]">Segurança</h2>
                         </div>
                         <div className="space-y-6">
-                            <div className="flex items-center justify-between p-4 bg-surface-hover rounded-xl border border-border">
+                            <div className="flex items-center justify-between p-4 bg-[var(--background-input)] rounded-xl border border-[var(--border-default)]">
                                 <div>
-                                    <h3 className="font-semibold text-title">Senha de Acesso</h3>
-                                    <p className="text-sm text-muted">Última alteração: {user?.updated_at ? new Date(user.updated_at).toLocaleDateString() : 'Desconhecido'}</p>
+                                    <h3 className="font-semibold text-[var(--text-primary)]">Senha de Acesso</h3>
+                                    <p className="text-sm text-[var(--text-secondary)]">Última alteração: {user?.updated_at ? new Date(user.updated_at).toLocaleDateString() : 'Desconhecido'}</p>
                                 </div>
                                 <Button
                                     variant="outline"
@@ -379,7 +379,7 @@ const Settings: React.FC = () => {
                     <section id="notifications-section" className="glass-card p-8">
                         <div className="flex items-center gap-3 mb-6">
                             <BellIcon className="w-6 h-6 text-primary" />
-                            <h2 className="text-xl font-bold text-title">Notificações</h2>
+                            <h2 className="text-xl font-bold text-[var(--text-primary)]">Notificações</h2>
                         </div>
                         <div className="space-y-4">
                             {[
@@ -387,14 +387,14 @@ const Settings: React.FC = () => {
                                 { id: 'mkt-notif', label: 'Novidades e Marketing', desc: 'Fique por dentro das atualizações da VitrineX.' },
                                 { id: 'browser-notif', label: 'Alertas no Navegador', desc: 'Receba notificações push enquanto usa o app.' }
                             ].map((item) => (
-                                <div key={item.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-surface-hover transition-colors">
+                                <div key={item.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-[var(--background-input)] transition-colors">
                                     <div>
-                                        <h3 className="font-medium text-title">{item.label}</h3>
-                                        <p className="text-xs text-muted">{item.desc}</p>
+                                        <h3 className="font-medium text-[var(--text-primary)]">{item.label}</h3>
+                                        <p className="text-xs text-[var(--text-secondary)]">{item.desc}</p>
                                     </div>
                                     <label className="relative inline-flex items-center cursor-pointer">
                                         <input type="checkbox" defaultChecked className="sr-only peer" />
-                                        <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                                        <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                                     </label>
                                 </div>
                             ))}
@@ -410,13 +410,13 @@ const Settings: React.FC = () => {
                     <section id="language-section" className="glass-card p-8">
                         <div className="flex items-center gap-3 mb-6">
                             <LanguageIcon className="w-6 h-6 text-primary" />
-                            <h2 className="text-xl font-bold text-title">Idioma e Região</h2>
+                            <h2 className="text-xl font-bold text-[var(--text-primary)]">Idioma e Região</h2>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
-                                <label className="text-xs font-bold text-muted uppercase tracking-wider">Idioma do Sistema</label>
+                                <label className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Idioma do Sistema</label>
                                 <select
-                                    className="w-full bg-surface-hover border border-border rounded-xl px-4 py-3 text-title focus:outline-none focus:border-primary transition-colors [&>option]:bg-gray-900 [&>option]:text-white"
+                                    className="w-full bg-[var(--background-input)] border border-[var(--border-default)] rounded-xl px-4 py-3 text-[var(--text-primary)] focus:outline-none focus:border-primary transition-colors"
                                     // Note: In a real implementation this would sync with LanguageContext
                                     defaultValue="pt-BR"
                                     onChange={(e) => {
@@ -424,14 +424,14 @@ const Settings: React.FC = () => {
                                         addToast({ type: 'info', message: `Idioma alterado para ${e.target.value}` });
                                     }}
                                 >
-                                    <option value="pt-BR" className="bg-gray-900 text-white">Português (Brasil)</option>
-                                    <option value="en-US" className="bg-gray-900 text-white">English (US)</option>
-                                    <option value="es" className="bg-gray-900 text-white">Español</option>
+                                    <option value="pt-BR">Português (Brasil)</option>
+                                    <option value="en-US">English (US)</option>
+                                    <option value="es">Español</option>
                                 </select>
                             </div>
                             <div className="space-y-2">
-                                <label className="text-xs font-bold text-muted uppercase tracking-wider">Fuso Horário</label>
-                                <div className="p-3 bg-surface-hover/50 border border-border rounded-xl text-muted text-sm flex items-center gap-2">
+                                <label className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Fuso Horário</label>
+                                <div className="p-3 bg-[var(--background-input)] border border-[var(--border-default)] rounded-xl text-[var(--text-secondary)] text-sm flex items-center gap-2">
                                     <GlobeAltIcon className="w-4 h-4" />
                                     {Intl.DateTimeFormat().resolvedOptions().timeZone}
                                 </div>
@@ -447,12 +447,12 @@ const Settings: React.FC = () => {
                             ) : (
                                 <MoonIcon className="w-6 h-6 text-primary" />
                             )}
-                            <h2 className="text-xl font-bold text-title">Aparência</h2>
+                            <h2 className="text-xl font-bold text-[var(--text-primary)]">Aparência</h2>
                         </div>
-                        <div className="flex items-center justify-between p-4 bg-surface-hover rounded-xl border border-border">
+                        <div className="flex items-center justify-between p-4 bg-[var(--background-input)] rounded-xl border border-[var(--border-default)]">
                             <div>
-                                <h3 className="font-semibold text-title">Modo Escuro / Claro</h3>
-                                <p className="text-sm text-muted">
+                                <h3 className="font-semibold text-[var(--text-primary)]">Modo Escuro / Claro</h3>
+                                <p className="text-sm text-[var(--text-secondary)]">
                                     Alternar entre o tema claro e escuro.
                                     <span className="block text-xs mt-1 text-primary">Atual: {theme === 'light' ? 'Modo Claro ☀️' : 'Modo Escuro 🌙'}</span>
                                 </p>

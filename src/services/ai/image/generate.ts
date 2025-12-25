@@ -42,27 +42,51 @@ export const generateImageInternal = async (prompt: string, options?: ImageOptio
     if (isClientSideFallbackAllowed()) {
         try {
             const client = await getGeminiClient(undefined, options?.userId);
-            const result = await client.models.generateImages({
-                model: modelId,
-                prompt,
-                config: {
-                    aspectRatio: options?.aspectRatio,
-                    numberOfImages: options?.numberOfImages || 1,
-                    negativePrompt: options?.negativePrompt,
-                }
-            });
+            let base64: string | undefined;
+            let mimeType: string | undefined;
 
-            if (result.generatedImages && result.generatedImages.length > 0) {
-                const img = result.generatedImages[0];
-                const base64 = (img.image as any)?.base64;
-                if (base64) {
-                    return {
-                        type: 'image',
-                        imageUrl: `data:${img.image?.mimeType || 'image/png'};base64,${base64}`,
-                        mimeType: img.image?.mimeType,
-                        base64: base64
-                    };
+            // TRACK 1: Imagen Models (using generateImages as per Imagen 4 docs)
+            if (modelId.includes('imagen')) {
+                const result = await client.models.generateImages({
+                    model: modelId,
+                    prompt,
+                    config: {
+                        aspectRatio: options?.aspectRatio,
+                        numberOfImages: options?.numberOfImages || 1,
+                        negativePrompt: options?.negativePrompt,
+                    }
+                });
+
+                if (result.generatedImages && result.generatedImages.length > 0) {
+                    const firstImg = result.generatedImages[0].image;
+                    base64 = firstImg.imageBytes; // docs show imageBytes for binary
+                    mimeType = firstImg.mimeType || 'image/png';
                 }
+            }
+            // TRACK 2: Gemini Built-in Image (using generateContent as per Gemini 2.5 docs)
+            else {
+                const result = await client.models.generateContent({
+                    model: modelId,
+                    contents: [{ role: 'user', parts: [{ text: prompt }] }],
+                });
+
+                const candidates = (result as any).candidates;
+                if (candidates && candidates.length > 0) {
+                    const imagePart = candidates[0].content?.parts?.find((p: any) => p.inlineData);
+                    if (imagePart?.inlineData) {
+                        base64 = imagePart.inlineData.data;
+                        mimeType = imagePart.inlineData.mimeType;
+                    }
+                }
+            }
+
+            if (base64) {
+                return {
+                    type: 'image',
+                    imageUrl: `data:${mimeType || 'image/png'};base64,${base64}`,
+                    mimeType: mimeType,
+                    base64: base64
+                };
             }
             console.warn("SDK returned no images, proceeding to fallback.");
         } catch (innerError: any) {

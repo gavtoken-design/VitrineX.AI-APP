@@ -32,6 +32,7 @@ import CodePlayground from './pages/CodePlayground';
 import AuthPage from './pages/AuthPage';
 import Settings from './pages/Settings';
 import LandingPage from './pages/LandingPage';
+import CarouselStudio from './pages/CarouselStudio';
 
 // Components
 import { ToastContainer } from './components/ui/Toast';
@@ -52,6 +53,7 @@ export type ModuleName =
     | 'CalendarManager'
     | 'CodePlayground'
     | 'Settings'
+    | 'CarouselStudio'
     | 'LandingPage';
 
 const AppContent: React.FC = () => {
@@ -127,6 +129,7 @@ const AppContent: React.FC = () => {
             CalendarManager: <CalendarManager />,
             CodePlayground: <CodePlayground />,
             Settings: <Settings />,
+            CarouselStudio: <CarouselStudio />,
             LandingPage: <LandingPage />
         };
 
@@ -158,7 +161,7 @@ const AppContent: React.FC = () => {
                         </div>
 
                         {/* Header / Navbar */}
-                        <div className="relative z-10">
+                        <div className="relative z-50">
                             <Navbar
                                 onMenuClick={() => setMobileMenuOpen(true)}
                             />

@@ -58,6 +58,7 @@ export const useNavItems = () => {
       section: 'sidebar.creation_suite', items: [
         { id: "nav-content-gen", name: "ContentGenerator" as ModuleName, label: 'sidebar.content_gen', icon: 'contentGen' as IconName },
         { name: "CreativeStudio" as ModuleName, label: 'sidebar.media_studio', icon: 'creativeStudio' as IconName },
+        { name: "CarouselStudio" as ModuleName, label: 'sidebar.carousel_studio', icon: 'carousel' as IconName },
         { id: "nav-ad-studio", name: "AdStudio" as ModuleName, label: 'sidebar.ad_creator', icon: 'adStudio' as IconName },
         { name: "CampaignBuilder" as ModuleName, label: 'sidebar.campaigns', icon: 'campaign' as IconName },
       ]

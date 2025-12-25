@@ -41,11 +41,14 @@ export interface UserProfile {
 export interface Post {
   id: string;
   userId: string;
+  title?: string; // New: Title for the post
   content_text: string;
   image_url?: string;
+  image_prompt?: string; // New: editable image prompt
   date?: string;
   createdAt: string; // ISO date string
   tags?: string[];
+  hashtags?: string[]; // New: specific hashtags for the post
 }
 
 export interface TargetAudience {
@@ -108,7 +111,7 @@ export interface Trend {
 export interface LibraryItem {
   id: string;
   userId: string;
-  type: 'image' | 'video' | 'text' | 'post' | 'ad' | 'audio' | 'html' | 'code'; // Added 'code' type
+  type: 'image' | 'video' | 'text' | 'post' | 'ad' | 'audio' | 'html' | 'code' | 'prompt'; // Added 'prompt' type
   file_url: string;
   thumbnail_url?: string; // For images/videos
   tags: string[];

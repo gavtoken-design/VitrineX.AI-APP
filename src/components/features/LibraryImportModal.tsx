@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { XMarkIcon, MagnifyingGlassIcon, ClipboardDocumentIcon, PhotoIcon, DocumentTextIcon, CheckIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, MagnifyingGlassIcon, ClipboardDocumentIcon, PhotoIcon, DocumentTextIcon, CheckIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import { getLibraryItems } from '../../services/core/db';
 import { LibraryItem } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
@@ -14,35 +14,42 @@ import LoadingSpinner from '../ui/LoadingSpinner';
 interface LibraryImportModalProps {
     isOpen: boolean;
     onClose: () => void;
+    onSelect?: (content: string) => void; // Optional: if provided, returns content instead of copying
+    initialFilter?: 'all' | 'text' | 'image' | 'video' | 'trends' | 'prompt';
 }
 
-const LibraryImportModal: React.FC<LibraryImportModalProps> = ({ isOpen, onClose }) => {
+const LibraryImportModal: React.FC<LibraryImportModalProps> = ({ isOpen, onClose, onSelect, initialFilter = 'all' }) => {
     const [items, setItems] = useState<LibraryItem[]>([]);
     const [filteredItems, setFilteredItems] = useState<LibraryItem[]>([]);
     const [loading, setLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
-    const [filterType, setFilterType] = useState<'all' | 'text' | 'image' | 'video'>('all');
+    const [filterType, setFilterType] = useState<'all' | 'text' | 'image' | 'video' | 'trends' | 'prompt'>(initialFilter);
     const { user } = useAuth();
     const { addToast } = useToast();
 
     useEffect(() => {
-        if (isOpen && user) {
-            fetchItems();
+        if (isOpen) {
+            if (user) fetchItems();
+            setFilterType(initialFilter); // Reset filter when opened
         }
-    }, [isOpen, user]);
+    }, [isOpen, user, initialFilter]);
 
     useEffect(() => {
         let result = items;
 
         if (filterType !== 'all') {
-            result = result.filter(item => item.type === filterType);
+            if (filterType === 'trends') {
+                result = result.filter(item => item.tags?.includes('trend') || item.tags?.includes('tendencia'));
+            } else {
+                result = result.filter(item => item.type === filterType);
+            }
         }
 
         if (searchTerm) {
             const lowerTerm = searchTerm.toLowerCase();
             result = result.filter(item =>
                 item.name.toLowerCase().includes(lowerTerm) ||
-                item.tags.some(tag => tag.toLowerCase().includes(lowerTerm))
+                item.tags?.some(tag => tag.toLowerCase().includes(lowerTerm))
             );
         }
 
@@ -63,15 +70,32 @@ const LibraryImportModal: React.FC<LibraryImportModalProps> = ({ isOpen, onClose
         }
     };
 
-    const handleCopy = async (item: LibraryItem) => {
-        try {
-            if (item.type === 'text' || item.type === 'code') {
-                await navigator.clipboard.writeText(item.file_url); // file_url stores text content for text items
-                addToast({ type: 'success', message: 'Texto copiado para a área de transferência!' });
-            } else {
-                await navigator.clipboard.writeText(item.file_url); // Copy URL for media
-                addToast({ type: 'success', message: 'URL da mídia copiada!' });
+    const handleItemClick = async (item: LibraryItem) => {
+        let content = item.file_url;
+
+        // Fetch content for text-based items if it's a URL
+        if ((item.type === 'text' || item.type === 'prompt' || item.type === 'code') && (content.startsWith('http') || content.startsWith('data:'))) {
+            try {
+                const res = await fetch(content);
+                content = await res.text();
+            } catch (e) {
+                console.warn("Failed to fetch text content", e);
+                // Fallback to URL
             }
+        }
+
+        if (onSelect) {
+            onSelect(content);
+            // Don't toast if selecting, parent might handle it, or we toast "Imported"
+            addToast({ type: 'success', message: 'Conteúdo importado com sucesso!' });
+            onClose();
+            return;
+        }
+
+        // Default behavior: Copy to clipboard
+        try {
+            await navigator.clipboard.writeText(content);
+            addToast({ type: 'success', message: 'Copiado para a área de transferência!' });
             onClose();
         } catch (err) {
             addToast({ type: 'error', message: 'Falha ao copiar' });
@@ -113,7 +137,7 @@ const LibraryImportModal: React.FC<LibraryImportModalProps> = ({ isOpen, onClose
                             {/* Filters */}
                             <div className="p-4 border-b border-white/10 bg-black/10 space-y-4">
                                 <div className="flex gap-2 overflow-x-auto pb-2">
-                                    {(['all', 'text', 'image', 'video'] as const).map(type => (
+                                    {(['all', 'text', 'image', 'video', 'trends', 'prompt'] as const).map(type => (
                                         <button
                                             key={type}
                                             onClick={() => setFilterType(type)}
@@ -122,7 +146,10 @@ const LibraryImportModal: React.FC<LibraryImportModalProps> = ({ isOpen, onClose
                                                 : 'bg-white/5 text-gray-400 hover:bg-white/10'
                                                 }`}
                                         >
-                                            {type === 'all' ? 'Todos' : type.charAt(0).toUpperCase() + type.slice(1)}
+                                            {type === 'all' ? 'Todos' :
+                                                type === 'trends' ? 'Tendências' :
+                                                    type === 'prompt' ? 'Prompts' :
+                                                        type.charAt(0).toUpperCase() + type.slice(1)}
                                         </button>
                                     ))}
                                 </div>
@@ -153,7 +180,7 @@ const LibraryImportModal: React.FC<LibraryImportModalProps> = ({ isOpen, onClose
                                         {filteredItems.map(item => (
                                             <div
                                                 key={item.id}
-                                                onClick={() => handleCopy(item)}
+                                                onClick={() => handleItemClick(item)}
                                                 className="group relative bg-surface border border-white/5 rounded-xl p-3 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 transition-all cursor-pointer flex gap-3 items-start"
                                             >
                                                 <div className="w-16 h-16 rounded-lg bg-black/40 flex-shrink-0 overflow-hidden flex items-center justify-center border border-white/5">
@@ -161,6 +188,8 @@ const LibraryImportModal: React.FC<LibraryImportModalProps> = ({ isOpen, onClose
                                                         <img src={item.file_url} alt={item.name} className="w-full h-full object-cover" />
                                                     ) : item.type === 'text' ? (
                                                         <DocumentTextIcon className="w-8 h-8 text-gray-500" />
+                                                    ) : item.type === 'prompt' ? (
+                                                        <SparklesIcon className="w-8 h-8 text-yellow-500" />
                                                     ) : (
                                                         <PhotoIcon className="w-8 h-8 text-gray-500" />
                                                     )}

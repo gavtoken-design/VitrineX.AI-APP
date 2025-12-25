@@ -49,7 +49,7 @@ export const analyzeImage = async (
  * convertendo os novos retornos estruturados para o formato antigo.
  */
 
-export const legacyGenerateImage = async (prompt: string, options?: any): Promise<{ imageUrl?: string; text?: string }> => {
+export const legacyGenerateImage = async (prompt: string, options?: ImageOptions): Promise<{ imageUrl?: string; text?: string }> => {
     const result = await generateImage(prompt, options);
     if (result.type === 'image') return { imageUrl: result.imageUrl };
     if (result.type === 'text') return { text: result.text };

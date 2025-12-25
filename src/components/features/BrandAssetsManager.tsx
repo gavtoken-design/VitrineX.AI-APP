@@ -63,7 +63,7 @@ const BrandAssetsManager: React.FC<BrandAssetsManagerProps> = ({ settings, onSet
                     className="space-y-4"
                 >
                     {/* Preview & Remove */}
-                    <div className="relative bg-grid-pattern p-4 rounded-lg border border-border flex justify-center h-32 items-center">
+                    <div className="relative bg-grid-pattern p-4 rounded-lg border border-border flex justify-center h-32 items-center overflow-hidden">
                         <img
                             src={settings.previewUrl}
                             alt="Logo Preview"

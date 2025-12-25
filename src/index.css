@@ -30,6 +30,12 @@
     --color-text-muted: 100 116 139;
     /* Slate-500 */
 
+    /* GLOBAL CONTRAST TOKENS (ORDEM GLOBAL) */
+    --background-input: #ffffff;
+    --text-primary: #0f172a;
+    --text-secondary: #334155;
+    --border-default: #e2e8f0;
+
     /* Legacy HSL Mappings for compatibility if needed */
     --primary: 221.2 83.2% 53.3%;
     --primary-foreground: 210 40% 98%;
@@ -53,6 +59,24 @@
     /* Slate-200 (Clear text) */
     --color-text-muted: 148 163 184;
     /* Slate-400 (Secondary text) */
+
+    /* Premium Scaling */
+    --text-premium-primary: rgba(255, 255, 255, 0.92);
+    --text-premium-secondary: rgba(255, 255, 255, 0.65);
+    --text-premium-muted: rgba(255, 255, 255, 0.35);
+
+    /* GLOBAL CONTRAST TOKENS (ORDEM GLOBAL) - DARK MODE */
+    --background-input: #020617;
+    --text-primary: #f8fafc;
+    --text-secondary: #cbd5f5;
+    --border-default: rgba(255, 255, 255, 0.12);
+  }
+
+  /* Dropdown Premium Fix */
+  .dark select,
+  .dark option {
+    background-color: #0A0F19;
+    color: rgba(255, 255, 255, 0.85);
   }
 
   html,
@@ -86,6 +110,39 @@
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     transition-duration: 200ms;
   }
+
+  input,
+  textarea,
+  select {
+    background-color: var(--background-input) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-default) !important;
+    outline: none;
+  }
+
+  /* Placeholder color for inputs */
+  ::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.5;
+  }
+
+  .card,
+  .panel,
+  .glass-panel,
+  .glass-card {
+    background-color: var(--background-input);
+    color: var(--text-primary);
+    border: 1px solid var(--border-default);
+    border-radius: 1rem;
+  }
+
+  /* Specific overrides for glass effect if needed */
+  .glass-card,
+  .glass-panel {
+    background-color: rgba(var(--background-input), 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
 }
 
 /* === UTILITIES & COMPONENTS === */
@@ -112,16 +169,20 @@
 }
 
 @layer utilities {
+
   /* Safe Area Utilities for iOS */
   .pb-safe {
     padding-bottom: env(safe-area-inset-bottom);
   }
+
   .pt-safe {
     padding-top: env(safe-area-inset-top);
   }
+
   .h-safe {
     height: calc(100% - env(safe-area-inset-top) - env(safe-area-inset-bottom));
   }
+
   .min-h-safe {
     min-height: calc(100% - env(safe-area-inset-top) - env(safe-area-inset-bottom));
   }
@@ -129,6 +190,7 @@
 
 /* === BOOK FLOW UTILITIES === */
 @layer components {
+
   /* Glassmorphism Classes */
   .glass-light {
     background: rgba(var(--color-surface), 0.7);

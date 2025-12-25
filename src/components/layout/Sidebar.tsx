@@ -10,6 +10,7 @@ import { cn } from '../../lib/utils';
 import Icon from '../ui/Icon';
 
 import Logo3D from '../ui/Logo3D';
+import { APP_VERSION_FULL, APP_VERSION } from '../../config/version';
 
 interface SidebarProps {
   activeModule: ModuleName;
@@ -113,6 +114,27 @@ const Sidebar: React.FC<SidebarProps> = memo(({ activeModule, setActiveModule })
             ))}
           </ul>
         </nav>
+
+        {/* Version Footer */}
+        <div className="mt-auto border-t border-border/50 bg-surface">
+          <motion.div
+            className={cn(
+              "flex items-center text-[10px] text-muted-foreground/60 transition-all duration-300 select-none",
+              open ? "px-6 py-3 justify-between" : "px-0 py-3 justify-center"
+            )}
+            animate={{ opacity: 1 }}
+          >
+            {open ? (
+              <span className="truncate" title={APP_VERSION_FULL}>
+                {APP_VERSION_FULL}
+              </span>
+            ) : (
+              <span className="text-[9px] font-medium tracking-tighter">
+                v{APP_VERSION}
+              </span>
+            )}
+          </motion.div>
+        </div>
       </motion.aside>
     </>
   );

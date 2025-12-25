@@ -405,6 +405,45 @@ export const deleteLibraryItem = async (itemId: string): Promise<void> => {
     }
 };
 
+export const deleteAllLibraryItems = async (userId: string, type?: string, tag?: string): Promise<void> => {
+    // 1. Delete from Supabase
+    try {
+        let query = supabase.from('library_items').delete().eq('userId', userId);
+
+        if (type && type !== 'all') {
+            query = query.eq('type', type);
+        }
+        if (tag) {
+            query = query.contains('tags', [tag]);
+        }
+
+        const { error } = await query;
+        if (error) throw error;
+    } catch (e) {
+        console.warn('Supabase bulk delete failed', e);
+    }
+
+    // 2. Delete from LocalStorage
+    try {
+        const current = getLocalData<LibraryItem>('library_items');
+        const filtered = current.filter(item => {
+            if (item.userId !== userId) return true; // Keep other users' items
+
+            // Check type match
+            if (type && type !== 'all' && item.type !== type) return true;
+
+            // Check tag match
+            if (tag && !item.tags?.includes(tag)) return true;
+
+            // If we are here, it means it Matches criteria => Delete (return false)
+            return false;
+        });
+        localStorage.setItem('vitrinex_library_items', JSON.stringify(filtered));
+    } catch (e) {
+        console.error('Local bulk delete failed', e);
+    }
+};
+
 // --- Schedule Operations ---
 
 export const saveScheduleEntry = async (entry: ScheduleEntry): Promise<ScheduleEntry> => {

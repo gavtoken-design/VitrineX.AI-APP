@@ -18,10 +18,10 @@ const Input = forwardRef<HTMLInputElement, InputProps>(({ label, id, error, clas
       <input
         id={id}
         ref={ref}
-        className={`block w-full px-3 py-2.5 bg-surface border rounded-lg shadow-sm text-body placeholder-muted transition-colors
+        className={`block w-full px-3 py-2.5 bg-[var(--background-input)] border-[var(--border-default)] rounded-lg shadow-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] transition-colors
           ${error
             ? 'border-error focus:ring-error focus:border-error'
-            : 'border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary'
+            : 'focus:border-primary focus:ring-1 focus:ring-primary'
           } 
           focus:outline-none sm:text-sm ${className}`}
         {...props}

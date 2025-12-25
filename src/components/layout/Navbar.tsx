@@ -10,8 +10,6 @@ import NotificationDropdown from '../features/NotificationDropdown';
 
 import { useAuth } from '../../contexts/AuthContext';
 import ClientGreeting from '../ui/ClientGreeting';
-import SocialConnectButton from '../SocialConnectButton';
-import SocialPublish from '../SocialPublish';
 import LibraryImportModal from '../features/LibraryImportModal';
 
 interface NavbarProps {
@@ -67,8 +65,6 @@ const Navbar: React.FC<NavbarProps> = memo(({ onMenuClick }) => {
             </Button>
 
             <NotificationDropdown />
-            <SocialConnectButton />
-            <SocialPublish />
 
             <div className="relative group hidden sm:block">
               <button className="flex items-center gap-1.5 px-2 py-1.5 rounded-md hover:bg-background text-sm font-medium text-muted transition-colors pop-on-hover">

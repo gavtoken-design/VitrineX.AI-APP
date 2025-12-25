@@ -72,7 +72,7 @@ interface TrendResultStructured {
 const TrendHunterSkeleton = () => (
   <div className="space-y-6 animate-pulse">
     {/* Header Skeleton */}
-    <div className="bg-gray-800/50 p-6 rounded-xl border border-gray-800 h-32 w-full">
+    <div className="bg-[var(--background-input)]/50 p-6 rounded-xl border border-[var(--border-default)] h-32 w-full">
       <div className="flex justify-between items-center h-full">
         <div className="space-y-3 w-1/2">
           <Skeleton className="h-4 w-32" />
@@ -90,7 +90,7 @@ const TrendHunterSkeleton = () => (
     </div>
 
     {/* Result Skeleton */}
-    <div className="bg-surface p-6 rounded-xl border border-gray-800">
+    <div className="bg-[var(--background-input)] p-6 rounded-xl border border-[var(--border-default)]">
       <Skeleton className="h-6 w-48 mb-4" />
       <div className="space-y-2 mb-4">
         <Skeleton className="h-4 w-full" />
@@ -104,7 +104,7 @@ const TrendHunterSkeleton = () => (
     </div>
 
     {/* Suggestion Skeleton */}
-    <div className="bg-surface p-6 rounded-xl border border-gray-800">
+    <div className="bg-[var(--background-input)] p-6 rounded-xl border border-[var(--border-default)]">
       <Skeleton className="h-6 w-40 mb-4" />
       <Skeleton className="h-24 w-full rounded-lg" />
     </div>
@@ -544,23 +544,51 @@ Melhor Estratégia: ${result.conclusao.melhorEstrategia}
 
     setLoading(true);
     try {
+      const textContent = `
+RELATÓRIO DE TENDÊNCIA VITRINEX AI
+Data: ${new Date().toLocaleDateString()}
+Palavra-chave: ${query}
+Localização: ${city || 'Brasil'}
+Score: ${result.score}/100
+
+== RESUMO ==
+${result.resumo}
+
+== MOTIVADORES ==
+${result.motivadores.map(m => `- ${m}`).join('\n')}
+
+== LEITURA DE CENÁRIO ==
+${result.leituraCenario}
+
+== SUGESTÃO DE CONTEÚDO ==
+O que: ${result.sugestaoConteudo.oque}
+Formato: ${result.sugestaoConteudo.formato}
+
+== SUGESTÃO DE PRODUTO ==
+Tipo: ${result.sugestaoProduto.tipo}
+Temas: ${result.sugestaoProduto.temas.join(', ')}
+
+== SUGESTÃO DE CAMPANHA ==
+Estratégia: ${result.sugestaoCampanha.estrategia}
+CTA: "${result.sugestaoCampanha.cta}"
+
+== CONCLUSÃO ==
+Avaliação: ${result.conclusao.avaliacao}
+Melhor Estratégia: ${result.conclusao.melhorEstrategia}
+      `.trim();
+
       const item: LibraryItem = {
-        id: `lib-${Date.now()}`,
+        id: `trend-${Date.now()}`,
         userId,
         type: 'text',
-        name: `Tendência: ${query}`,
-        file_url: '', // No file for text-only trend
-        tags: ['tendencia', 'trendhunter', ...result.motivadores],
+        name: `Relatório de Tendência: ${query}`,
+        file_url: textContent,
+        tags: ['trend', 'tendencia', 'trendhunter', ...result.motivadores],
         createdAt: new Date().toISOString()
       };
-      // We save the full text content as "file_url" or strictly text content based on implementation. 
-      // Assuming 'file_url' stores the content for type 'text' if not a link.
-      // Re-using the text generation logic for content
-      const textContent = `Tendência: ${query}\n\n${result.resumo}`;
-      item.file_url = textContent; // Storing text directly for simplicity in text type
 
       await saveLibraryItem(item);
-      addToast({ type: 'success', message: 'Salvo na Biblioteca com sucesso!' });
+      addToast({ type: 'success', message: 'Relatório salvo na categoria TENDÊNCIAS da biblioteca!' });
     } catch (e) {
       console.error(e);
       addToast({ type: 'error', message: 'Erro ao salvar na biblioteca.' });
@@ -611,7 +639,7 @@ Melhor Estratégia: ${result.conclusao.melhorEstrategia}
         </div>
         <div>
           <p className="text-sm text-muted">Score de Relevância</p>
-          <p className="text-lg font-semibold text-white">{score}/100</p>
+          <p className="text-lg font-semibold text-title">{score}/100</p>
         </div>
       </div>
     );
@@ -628,7 +656,7 @@ Melhor Estratégia: ${result.conclusao.melhorEstrategia}
           <SparklesIcon className="w-4 h-4 text-yellow-400 mr-2" />
           <span className="text-xs font-medium text-gray-300">Powered by Gemini Pro & Google Trends</span>
         </div>
-        <h2 className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-400 tracking-tight mb-4">
+        <h2 className="text-3xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-gray-900 to-gray-500 dark:from-white dark:to-gray-400 tracking-tight mb-4">
           Trend Hunter
         </h2>
         <p className="text-lg text-gray-400 max-w-2xl mx-auto leading-relaxed">
@@ -665,7 +693,7 @@ Melhor Estratégia: ${result.conclusao.melhorEstrategia}
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5, delay: 0.2 }}
-        className="relative bg-zinc-900/60 backdrop-blur-xl p-8 rounded-3xl border border-white/10 shadow-2xl mb-12 overflow-hidden mx-auto max-w-4xl group hover:border-white/20 transition-all duration-500"
+        className="relative bg-surface/80 dark:bg-zinc-900/60 backdrop-blur-xl p-6 md:p-8 rounded-3xl border border-white/10 shadow-2xl mb-12 overflow-hidden mx-auto max-w-4xl group hover:border-white/20 transition-all duration-500"
       >
 
         {/* Subtle internal gradient */}
@@ -677,7 +705,7 @@ Melhor Estratégia: ${result.conclusao.melhorEstrategia}
             <div className="relative group/input">
               <input
                 id="trendQuery"
-                className="w-full text-xl bg-black/40 border border-white/10 rounded-xl px-4 py-4 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all"
+                className="w-full text-xl bg-black/5 dark:bg-black/40 border black/5 dark:border-white/10 rounded-xl px-4 py-4 text-title placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Ex: 'micro-saas', 'moda sustentável'..."
@@ -697,7 +725,7 @@ Melhor Estratégia: ${result.conclusao.melhorEstrategia}
             <div className="relative">
               <input
                 type="text"
-                className="w-full text-base bg-black/40 border border-white/10 rounded-xl px-4 py-4 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all"
+                className="w-full text-base bg-black/5 dark:bg-black/40 border black/5 dark:border-white/10 rounded-xl px-4 py-4 text-title placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
                 placeholder="Mundo todo..."
@@ -720,8 +748,8 @@ Melhor Estratégia: ${result.conclusao.melhorEstrategia}
                 key={obj.id}
                 onClick={() => setObjective(obj.id)}
                 className={`group relative px-5 py-3 rounded-xl text-sm font-medium transition-all duration-300 border ${objective === obj.id
-                  ? 'bg-white text-black border-white shadow-lg shadow-white/10 scale-[1.02]'
-                  : 'bg-white/5 text-gray-400 border-white/5 hover:bg-white/10 hover:border-white/10 hover:text-white'
+                  ? 'bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/20 scale-[1.02]'
+                  : 'bg-[var(--background-input)]/50 text-[var(--text-secondary)] border-[var(--border-default)] hover:bg-[var(--background-input)] hover:border-primary/30 hover:text-[var(--text-primary)]'
                   }`}
               >
                 <div className="flex items-center gap-2">
@@ -742,6 +770,7 @@ Melhor Estratégia: ${result.conclusao.melhorEstrategia}
             isLoading={loading}
             variant="liquid"
             className="px-8 py-4 h-auto text-base font-bold shadow-xl shadow-indigo-500/20"
+            title="Analisa tendências globais e locais em tempo real usando IA e dados do Google"
           >
             {loading ? 'Processando dados...' : 'Analizar Tendência →'}
           </Button>
@@ -763,7 +792,7 @@ Melhor Estratégia: ${result.conclusao.melhorEstrategia}
             className="space-y-6"
           >
             {/* Header do Resultado - Ultra Moderno */}
-            <div className="bg-zinc-900/40 backdrop-blur-xl p-8 rounded-3xl border border-white/10 relative overflow-hidden group">
+            <div className="bg-surface/60 dark:bg-zinc-900/40 backdrop-blur-xl p-6 md:p-8 rounded-3xl border border-white/10 relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 blur-[80px] rounded-full pointer-events-none group-hover:bg-primary/20 transition-all duration-700" />
               <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-6">
                 <div>
@@ -771,8 +800,8 @@ Melhor Estratégia: ${result.conclusao.melhorEstrategia}
                     <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                     ANALYSIS_COMPLETE
                   </div>
-                  <h3 className="text-4xl font-bold text-white tracking-tight mb-2">"{rawQuery}"</h3>
-                  <div className="flex items-center gap-4 text-sm text-gray-400">
+                  <h3 className="text-4xl font-bold text-title tracking-tight mb-2">"{rawQuery}"</h3>
+                  <div className="flex items-center gap-4 text-sm text-body">
                     <span className="flex items-center gap-1"><MapPinIcon className="w-4 h-4" /> {city || 'Global'}</span>
                     <span className="w-1 h-1 rounded-full bg-gray-700" />
                     <span className="flex items-center gap-1"><RocketLaunchIcon className="w-4 h-4" /> {OBJECTIVES.find(o => o.id === objective)?.label}</span>
@@ -789,15 +818,15 @@ Melhor Estratégia: ${result.conclusao.melhorEstrategia}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
               {/* Main Insight Card */}
-              <div className="lg:col-span-2 bg-zinc-900/40 backdrop-blur-md p-8 rounded-3xl border border-white/5 hover:border-white/10 transition-colors">
+              <div className="lg:col-span-2 bg-surface/60 dark:bg-zinc-900/40 backdrop-blur-md p-6 md:p-8 rounded-3xl border border-white/5 hover:border-white/10 transition-colors">
                 <div className="flex justify-between items-start mb-6">
-                  <h4 className="text-xl font-bold text-white flex items-center gap-3">
+                  <h4 className="text-xl font-bold text-title flex items-center gap-3">
                     <span className="p-2 bg-blue-500/10 rounded-lg text-blue-400"><ChartBarIcon className="w-6 h-6" /></span>
                     Resumo Executivo
                   </h4>
-                  <button onClick={() => handleCopySection(result.resumo, 'Resumo')} className="p-2 hover:bg-white/10 rounded-lg text-gray-400 transition-colors"> <ClipboardDocumentIcon className="w-5 h-5" /> </button>
+                  <button onClick={() => handleCopySection(result.resumo, 'Resumo')} className="p-2 hover:bg-white/10 rounded-lg text-[var(--text-premium-muted)] transition-colors"> <ClipboardDocumentIcon className="w-5 h-5" /> </button>
                 </div>
-                <p className="text-gray-300 text-lg leading-relaxed mb-8 font-light">{result.resumo}</p>
+                <p className="text-[var(--text-premium-secondary)] text-lg leading-relaxed mb-8 font-light">{result.resumo}</p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="bg-black/20 p-6 rounded-2xl border border-white/5">
@@ -819,14 +848,14 @@ Melhor Estratégia: ${result.conclusao.melhorEstrategia}
               </div>
 
               {/* 🔎 Buscas Semelhantes */}
-              <div className="bg-zinc-900/40 backdrop-blur-md p-6 rounded-3xl border border-white/5 flex flex-col justify-between group hover:border-white/10 transition-colors">
+              <div className="bg-surface/60 dark:bg-zinc-900/40 backdrop-blur-md p-6 rounded-3xl border border-white/5 flex flex-col justify-between group hover:border-white/10 transition-colors">
                 <div>
                   <div className="flex justify-between items-center mb-4">
-                    <h4 className="text-lg font-bold text-white flex items-center gap-2">
+                    <h4 className="text-lg font-bold text-title flex items-center gap-2">
                       <span className="p-1.5 bg-purple-500/10 rounded-lg text-purple-400"><TagIcon className="w-5 h-5" /></span>
                       Termos em Alta
                     </h4>
-                    <button onClick={() => handleCopySection(result.buscasSemelhantes.join(', '), 'Termos')} className="text-xs text-gray-500 hover:text-white transition-colors">Copiar</button>
+                    <button onClick={() => handleCopySection(result.buscasSemelhantes.join(', '), 'Termos')} className="text-xs text-gray-500 hover:text-white transition-colors" title="Copia estes termos para sua área de transferência">Copiar</button>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {result.buscasSemelhantes.map((tag, i) => (
@@ -843,9 +872,9 @@ Melhor Estratégia: ${result.conclusao.melhorEstrategia}
               </div>
 
               {/* 💡 Sugestão de Conteúdo */}
-              <div className="bg-zinc-900/40 backdrop-blur-md p-6 rounded-3xl border border-white/5 group hover:border-white/10 transition-colors">
+              <div className="bg-surface/60 dark:bg-zinc-900/40 backdrop-blur-md p-6 rounded-3xl border border-white/5 group hover:border-white/10 transition-colors">
                 <div className="flex justify-between items-center mb-4">
-                  <h4 className="text-lg font-bold text-white flex items-center gap-2">
+                  <h4 className="text-lg font-bold text-title flex items-center gap-2">
                     <span className="p-1.5 bg-pink-500/10 rounded-lg text-pink-400"><DocumentTextIcon className="w-5 h-5" /></span>
                     Ideia de Conteúdo
                   </h4>
@@ -853,10 +882,10 @@ Melhor Estratégia: ${result.conclusao.melhorEstrategia}
                 </div>
                 <p className="text-gray-300 mb-6 min-h-[80px]">{result.sugestaoConteudo.oque}</p>
                 <div className="flex gap-2">
-                  <Button onClick={handleCreateContent} size="sm" variant="liquid" className="w-full font-semibold shadow-lg">
+                  <Button onClick={handleCreateContent} size="sm" variant="liquid" className="w-full font-semibold shadow-lg" title="Envia este insight para o gerador de posts agora">
                     <PencilSquareIcon className="w-4 h-4 mr-2" /> Gerar Agora
                   </Button>
-                  <Button onClick={handleSchedule} size="sm" variant="outline" className="w-full border-white/10 hover:bg-white/5 text-gray-300">
+                  <Button onClick={handleSchedule} size="sm" variant="outline" className="w-full border-white/10 hover:bg-white/5 text-gray-300" title="Reserva um horário para criar e postar este conteúdo">
                     <CalendarDaysIcon className="w-4 h-4 mr-2" /> Agendar
                   </Button>
                 </div>
@@ -865,7 +894,7 @@ Melhor Estratégia: ${result.conclusao.melhorEstrategia}
               {/* �️ Sugestão de Produto */}
               <div className="bg-zinc-900/40 backdrop-blur-md p-6 rounded-3xl border border-white/5 group hover:border-white/10 transition-colors">
                 <div className="mb-4">
-                  <h4 className="text-lg font-bold text-white flex items-center gap-2">
+                  <h4 className="text-lg font-bold text-title flex items-center gap-2">
                     <span className="p-1.5 bg-emerald-500/10 rounded-lg text-emerald-400"><ShoppingBagIcon className="w-5 h-5" /></span>
                     Oportunidade de Produto
                   </h4>
@@ -884,9 +913,9 @@ Melhor Estratégia: ${result.conclusao.melhorEstrategia}
               </div>
 
               {/* 🚀 Campanha */}
-              <div className="bg-zinc-900/40 backdrop-blur-md p-6 rounded-3xl border border-white/5 group hover:border-white/10 transition-colors">
+              <div className="bg-surface/60 dark:bg-zinc-900/40 backdrop-blur-md p-6 rounded-3xl border border-white/5 group hover:border-white/10 transition-colors">
                 <div className="mb-4">
-                  <h4 className="text-lg font-bold text-white flex items-center gap-2">
+                  <h4 className="text-lg font-bold text-title flex items-center gap-2">
                     <span className="p-1.5 bg-orange-500/10 rounded-lg text-orange-400"><RocketLaunchIcon className="w-5 h-5" /></span>
                     Estratégia de Marketing
                   </h4>
@@ -901,7 +930,7 @@ Melhor Estratégia: ${result.conclusao.melhorEstrategia}
               </div>
 
               {/* 🏁 Veredito (Full Width) */}
-              <div className="lg:col-span-2 bg-gradient-to-br from-zinc-900/80 to-black/80 backdrop-blur-md p-8 rounded-3xl border border-white/10 relative overflow-hidden">
+              <div className="lg:col-span-2 bg-gradient-to-br from-zinc-900/80 to-black/80 backdrop-blur-md p-6 md:p-8 rounded-3xl border border-white/10 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-l from-white/5 to-transparent pointer-events-none" />
 
                 <h4 className="text-2xl font-bold text-white mb-6 flex items-center gap-3 relative z-10">
@@ -918,7 +947,7 @@ Melhor Estratégia: ${result.conclusao.melhorEstrategia}
                     </div>
                   </div>
 
-                  <div className="bg-white/5 rounded-2xl p-6 border border-white/5">
+                  <div className="bg-[var(--background-input)]/30 rounded-2xl p-6 border border-[var(--border-default)]">
                     <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Ideal para quem busca</p>
                     <div className="flex flex-wrap gap-2">
                       {result.conclusao.idealPara.map((tag, i) => (
@@ -936,19 +965,19 @@ Melhor Estratégia: ${result.conclusao.melhorEstrategia}
             {/* Actions Toolbar */}
             <div className="flex flex-wrap items-center justify-end gap-3 mt-8 pt-8 border-t border-white/5">
               <span className="text-sm text-gray-500 mr-auto">Exportar Relatório:</span>
-              <Button onClick={() => handleDownload('txt')} variant="outline" size="sm" className="border-white/10 hover:bg-white/5 text-gray-300">
+              <Button onClick={() => handleDownload('txt')} variant="outline" size="sm" className="border-white/10 hover:bg-white/5 text-gray-300" title="Baixa o relatório completo em formato de texto simples">
                 <ArrowDownTrayIcon className="w-4 h-4 mr-2" /> TXT
               </Button>
-              <Button onClick={handleExportPDF} variant="outline" size="sm" className="border-white/10 hover:bg-white/5 text-gray-300">
+              <Button onClick={handleExportPDF} variant="outline" size="sm" className="border-white/10 hover:bg-white/5 text-gray-300" title="Gera um documento PDF profissional com este relatório">
                 <DocumentTextIcon className="w-4 h-4 mr-2" /> PDF
               </Button>
-              <Button onClick={handleExportPPT} variant="outline" size="sm" className="border-white/10 hover:bg-white/5 text-gray-300">
+              <Button onClick={handleExportPPT} variant="outline" size="sm" className="border-white/10 hover:bg-white/5 text-gray-300" title="Cria slides editáveis do PowerPoint baseados nesta pesquisa">
                 <span className="mr-2 font-bold text-xs">PPT</span> PowerPoint
               </Button>
-              <Button onClick={handleGenerateHTML} variant="outline" size="sm" className="border-white/10 hover:bg-white/5 text-gray-300">
+              <Button onClick={handleGenerateHTML} variant="outline" size="sm" className="border-white/10 hover:bg-white/5 text-gray-300" title="Cria um código de site de vendas inspirado nesta tendência">
                 <GlobeAltIcon className="w-4 h-4 mr-2" /> Landing Page
               </Button>
-              <Button onClick={handleSaveToLibrary} variant="ghost" size="sm" className="text-gray-400 hover:text-white">
+              <Button onClick={handleSaveToLibrary} variant="ghost" size="sm" className="text-gray-400 hover:text-white" title="Arquiva este relatório na sua biblioteca pessoal de tendências">
                 <BookmarkSquareIcon className="w-4 h-4 mr-2" /> Salvar
               </Button>
             </div>

@@ -65,8 +65,11 @@ export const analyzeImageInternal = async (
             ]
         });
 
-        if (result.text) {
-            return { type: 'text', text: result.text };
+        // Use standard response text getter if available, or navigate the structure
+        const responseText = result.text || (result as any).candidates?.[0]?.content?.parts?.[0]?.text;
+
+        if (responseText) {
+            return { type: 'text', text: responseText };
         }
 
         return { type: 'error', code: 'GENERATION_FAILED', message: 'Nenhum texto de análise retornado pelo SDK.' };

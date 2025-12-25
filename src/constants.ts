@@ -1,20 +1,21 @@
 
 // Gemini Model Names - Official Google Gemini API models
-export const GEMINI_FLASH_MODEL = 'gemini-2.5-flash';  // Updated to 2.5
-export const GEMINI_PRO_MODEL = 'gemini-pro-latest';      // Auto-updates to latest stable
+export const GEMINI_FLASH_MODEL = 'gemini-2.5-flash';
+export const GEMINI_PRO_MODEL = 'gemini-2.5-pro';
 
-// Image Generation Models - Imagen 3.0
-export const IMAGEN_STANDARD_MODEL = 'imagen-3.0-generate-001';      // Standard quality
-export const IMAGEN_ULTRA_MODEL = 'imagen-3.0-generate-001';  // Ultra quality (falling back to standard 3.0 for stability)
-export const GEMINI_IMAGE_MODEL = IMAGEN_ULTRA_MODEL;  // Default to 3.0
+// Image Generation Models - Imagen 4.0 (Latest June 2025)
+export const IMAGEN_STANDARD_MODEL = 'imagen-4.0-generate-001';
+export const IMAGEN_ULTRA_MODEL = 'imagen-4.0-ultra-generate-001';
+export const IMAGEN_FAST_MODEL = 'imagen-4.0-fast-generate-001';
+export const GEMINI_IMAGE_MODEL = IMAGEN_ULTRA_MODEL;
 
 // Video Generation Models - Veo 2.0
 export const VEO_GENERATE_MODEL = 'veo-2.0-generate-001';  // Veo 2.0 (Dec 2024, 4K support)
 
-// Audio Models - Gemini 2.5
-export const GEMINI_LIVE_AUDIO_MODEL = 'gemini-2.5-flash-native-audio-preview-12-2025';
-export const GEMINI_TTS_FLASH_MODEL = 'gemini-2.5-flash-preview-tts';  // Flash TTS (faster)
-export const GEMINI_TTS_PRO_MODEL = 'gemini-2.5-pro-preview-tts';      // Pro TTS (higher quality)
+// Audio Models - Gemini 3.0
+export const GEMINI_LIVE_AUDIO_MODEL = 'gemini-3-flash-preview';
+export const GEMINI_TTS_FLASH_MODEL = 'gemini-3-flash-preview';
+export const GEMINI_TTS_PRO_MODEL = 'gemini-3-pro-preview';
 export const GEMINI_TTS_MODEL = GEMINI_TTS_FLASH_MODEL;  // Default to Flash for consistency
 
 // Thinking Model

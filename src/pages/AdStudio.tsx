@@ -329,7 +329,7 @@ Retorne no formato JSON: { "headline": "...", "copy": "..." }`;
       </div>
 
       {generatedAd && (
-        <div className="bg-surface p-6 rounded-lg shadow-sm border border-gray-800 animate-slide-in-from-bottom duration-500">
+        <div className="bg-surface p-4 md:p-6 rounded-lg shadow-sm border border-gray-800 animate-slide-in-from-bottom duration-500">
           <h3 className="text-xl font-semibold text-gray-100 mb-5">Anúncio Gerado para {generatedAd.platform}</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -348,7 +348,7 @@ Retorne no formato JSON: { "headline": "...", "copy": "..." }`;
                 <h5 className="text-sm font-bold text-muted uppercase tracking-widest mb-3 flex items-center gap-2">
                   <BoltIcon className="w-4 h-4 text-accent" /> Modos de Reescrita IA
                 </h5>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <Button variant="ghost" size="sm" onClick={() => handleRewriteAd('minimalist')} className="text-xs border border-gray-700">
                     Minimalista
                   </Button>

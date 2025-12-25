@@ -9,7 +9,7 @@ import LoadingSpinner from '../components/ui/LoadingSpinner';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import { useMediaActions } from '../hooks/useMediaActions';
-import { TrashIcon, ArrowDownTrayIcon, MagnifyingGlassIcon, DocumentTextIcon, MusicalNoteIcon, CloudArrowUpIcon, CodeBracketIcon, EyeIcon, PhotoIcon, VideoCameraIcon, Square2StackIcon } from '@heroicons/react/24/outline';
+import { TrashIcon, ArrowDownTrayIcon, MagnifyingGlassIcon, DocumentTextIcon, MusicalNoteIcon, CloudArrowUpIcon, CodeBracketIcon, EyeIcon, PhotoIcon, VideoCameraIcon, Square2StackIcon, RocketLaunchIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import { useNavigate } from '../hooks/useNavigate';
 import { useToast } from '../contexts/ToastContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -22,9 +22,10 @@ const ContentLibrary: React.FC = () => {
   const [libraryItems, setLibraryItems] = useState<LibraryItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchTerm, setSearchTerm] = useState<string>('');
-  const [activeTab, setActiveTab] = useState<'all' | 'image' | 'video' | 'text' | 'audio' | 'templates'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'image' | 'video' | 'text' | 'audio' | 'templates' | 'trends' | 'prompt'>('all');
   const [uploading, setUploading] = useState<boolean>(false);
   const [viewItem, setViewItem] = useState<LibraryItem | null>(null);
+  const [previewContent, setPreviewContent] = useState<string>('');
 
   const [kbLoading, setKbLoading] = useState<boolean>(false);
   const [kbStoreName, setKbStoreName] = useState<string | null>(localStorage.getItem('vitrinex_kb_name'));
@@ -53,6 +54,25 @@ const ContentLibrary: React.FC = () => {
     fetchLibrary();
   }, [fetchLibrary]);
 
+  useEffect(() => {
+    if (viewItem && (viewItem.type === 'text' || viewItem.type === 'code' || viewItem.type === 'prompt' || viewItem.type === 'html')) {
+      // Text based content
+      const url = viewItem.file_url;
+      if (url.startsWith('http')) {
+        fetch(url)
+          .then(res => res.text())
+          .then(text => setPreviewContent(text))
+          .catch(err => setPreviewContent('Erro ao carregar conteúdo: ' + err.message));
+      } else if (url.startsWith('data:')) {
+        fetch(url).then(res => res.text()).then(t => setPreviewContent(t));
+      } else {
+        setPreviewContent(url);
+      }
+    } else {
+      setPreviewContent('');
+    }
+  }, [viewItem]);
+
   const handleCreateKnowledgeBase = async () => {
     setKbLoading(true);
     try {
@@ -79,6 +99,7 @@ const ContentLibrary: React.FC = () => {
         if (file.type.startsWith('image')) type = 'image';
         else if (file.type.startsWith('video')) type = 'video';
         else if (file.type.startsWith('audio')) type = 'audio';
+        else if (file.name.endsWith('.prompt')) type = 'prompt'; // Simple detection
         else type = 'text';
 
         const newItem = await uploadFile(file, userId, type);
@@ -167,12 +188,12 @@ const ContentLibrary: React.FC = () => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesTab = activeTab === 'all'
       ? true
-      : activeTab === 'templates'
-        ? item.tags?.includes('template')
-        : item.type === activeTab;
+      : activeTab === 'trends'
+        ? item.tags?.includes('trend') || item.tags?.includes('tendencia')
+        : activeTab === 'templates'
+          ? item.tags?.includes('template')
+          : item.type === activeTab;
 
-    // Exclude templates from 'all' mixed view to keep it clean, or include? Let's include.
-    // Actually templates are usually separate constants. Let's merge them for display if 'templates' tab.
     return matchesSearch && matchesTab;
   });
 
@@ -196,8 +217,8 @@ const ContentLibrary: React.FC = () => {
     <button
       onClick={() => setActiveTab(id)}
       className={`relative px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 transition-all ${activeTab === id
-          ? 'text-white bg-white/10 ring-1 ring-white/20 shadow-lg'
-          : 'text-gray-400 hover:text-white hover:bg-white/5'
+        ? 'text-[var(--text-primary)] bg-[var(--background-input)]/20 ring-1 ring-[var(--border-default)] shadow-lg'
+        : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--background-input)]/50'
         }`}
     >
       <Icon className="w-4 h-4" />
@@ -217,20 +238,66 @@ const ContentLibrary: React.FC = () => {
       {/* Header & Stats */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
-          <h2 className="text-3xl font-bold text-white tracking-tight">Biblioteca</h2>
-          <p className="text-gray-400 text-sm mt-1">Gerencie seus ativos, mídias e templates.</p>
+          <h2 className="text-2xl md:text-3xl font-bold text-[var(--text-primary)] tracking-tight">Biblioteca</h2>
+          <p className="text-[var(--text-secondary)] text-sm mt-1">Gerencie seus ativos, mídias e templates.</p>
         </div>
 
         <div className="flex gap-3">
-          <label className="cursor-pointer bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-all shadow-lg shadow-primary/20">
+          <label className="cursor-pointer bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-all shadow-lg shadow-primary/20" title="Envie novos arquivos (imagens, vídeos, PDFs) para sua biblioteca VitrineX">
             {uploading ? <LoadingSpinner className="w-4 h-4 text-white" /> : <CloudArrowUpIcon className="w-4 h-4" />}
             Upload
             <input type="file" onChange={handleFileUpload} className="hidden" />
           </label>
           {libraryItems.length > 0 && (
-            <Button variant="outline" size="sm" onClick={handleDownloadAll} className="border-border">
-              <ArrowDownTrayIcon className="w-4 h-4" />
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => {
+                const labelMap: Record<string, string> = {
+                  all: 'Todos os itens',
+                  image: 'Todas as imagens',
+                  video: 'Todos os vídeos',
+                  audio: 'Todos os áudios',
+                  text: 'Todos os textos',
+                  prompt: 'Todos os prompts',
+                  trends: 'Todas as tendências',
+                  templates: 'Todos os templates'
+                };
+
+                const label = labelMap[activeTab] || 'itens';
+
+                if (window.confirm(`TEM CERTEZA? Isso apagará ${label} da sua biblioteca permanentemente.`)) {
+                  const handleDelete = async () => {
+                    try {
+                      setLoading(true);
+                      const { deleteAllLibraryItems } = await import('../services/core/db');
+
+                      // Map activeTab to appropriate filter args
+                      let typeArg: string | undefined = activeTab;
+                      let tagArg: string | undefined = undefined;
+
+                      if (activeTab === 'all') typeArg = undefined;
+                      if (activeTab === 'trends') { typeArg = undefined; tagArg = 'trend'; }
+                      if (activeTab === 'templates') { typeArg = undefined; tagArg = 'template'; }
+
+                      await deleteAllLibraryItems(userId, typeArg, tagArg);
+
+                      addToast({ type: 'success', message: `${label} removidos.` });
+                      fetchLibrary(); // Refresh
+                    } catch (e) {
+                      addToast({ type: 'error', message: 'Erro ao limpar categoria.' });
+                    } finally {
+                      setLoading(false);
+                    }
+                  };
+                  handleDelete();
+                }
+              }} className="border-red-500/30 text-red-400 hover:bg-red-500/10 hover:border-red-500" title={`Apagar ${activeTab === 'all' ? 'TUDO' : activeTab}`}>
+                <TrashIcon className="w-4 h-4" />
+              </Button>
+
+              <Button variant="outline" size="sm" onClick={handleDownloadAll} className="border-border" title="Baixa todos os arquivos da biblioteca em um arquivo ZIP comprimido">
+                <ArrowDownTrayIcon className="w-4 h-4" />
+              </Button>
+            </div>
           )}
         </div>
       </div>
@@ -240,13 +307,13 @@ const ContentLibrary: React.FC = () => {
         <div className="flex flex-col md:flex-row gap-4 justify-between">
           {/* Search */}
           <div className="relative w-full md:max-w-xs">
-            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
             <input
               type="text"
               placeholder="Buscar arquivos..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="w-full bg-surface border border-white/10 rounded-full pl-9 pr-4 py-2 text-sm text-white focus:ring-2 focus:ring-primary/50 focus:border-transparent outline-none transition-all placeholder:text-gray-600"
+              className="w-full bg-[var(--background-input)] border border-[var(--border-default)] rounded-full pl-9 pr-4 py-2 text-sm text-[var(--text-primary)] focus:ring-2 focus:ring-primary/50 focus:border-transparent outline-none transition-all placeholder:text-[var(--text-secondary)]/60"
             />
           </div>
 
@@ -257,6 +324,8 @@ const ContentLibrary: React.FC = () => {
             <FilterTab id="video" label="Vídeos" icon={VideoCameraIcon} />
             <FilterTab id="audio" label="Áudios" icon={MusicalNoteIcon} />
             <FilterTab id="text" label="Textos" icon={DocumentTextIcon} />
+            <FilterTab id="prompt" label="Prompts Imagem" icon={SparklesIcon} />
+            <FilterTab id="trends" label="Tendências" icon={RocketLaunchIcon} />
             <FilterTab id="templates" label="Templates" icon={CodeBracketIcon} />
           </div>
         </div>
@@ -291,7 +360,7 @@ const ContentLibrary: React.FC = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
                 key={item.id}
-                className="group relative bg-surface rounded-xl overflow-hidden border border-white/5 hover:border-white/10 transition-all hover:shadow-2xl hover:shadow-black/50"
+                className="group relative bg-[var(--background-input)] rounded-xl overflow-hidden border border-[var(--border-default)] hover:border-primary/30 transition-all hover:shadow-2xl hover:shadow-black/50"
               >
                 {/* Thumbnail Area */}
                 <div className="aspect-square bg-gray-900 overflow-hidden relative">
@@ -305,16 +374,17 @@ const ContentLibrary: React.FC = () => {
                     <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900">
                       {item.type === 'audio' && <MusicalNoteIcon className="w-12 h-12 text-gray-600 group-hover:text-purple-400 transition-colors" />}
                       {item.type === 'text' && <DocumentTextIcon className="w-12 h-12 text-gray-600 group-hover:text-blue-400 transition-colors" />}
+                      {item.type === 'prompt' && <SparklesIcon className="w-12 h-12 text-gray-600 group-hover:text-yellow-400 transition-colors" />}
                       {item.type === 'code' && <CodeBracketIcon className="w-12 h-12 text-gray-600 group-hover:text-green-400 transition-colors" />}
                     </div>
                   )}
 
-                  {/* Hover Overlay Actions */}
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-4 gap-2 backdrop-blur-[2px]">
+                  {/* Actions Overlay: Always visible on mobile, hover on desktop */}
+                  <div className="absolute inset-0 bg-black/40 md:bg-black/60 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity flex items-center justify-center p-4 gap-2 backdrop-blur-[1px] md:backdrop-blur-[2px]">
                     <button
                       onClick={() => setViewItem(item)}
                       className="p-2 rounded-full bg-white text-black hover:scale-110 transition-transform shadow-xl"
-                      title="Visualizar"
+                      title="Visualizar em tela cheia"
                     >
                       <EyeIcon className="w-5 h-5" />
                     </button>
@@ -322,7 +392,7 @@ const ContentLibrary: React.FC = () => {
                       <button
                         onClick={() => handleDeleteItem(item.id)}
                         className="p-2 rounded-full bg-red-500 text-white hover:scale-110 transition-transform shadow-xl"
-                        title="Excluir"
+                        title="Excluir permanentemente da biblioteca"
                       >
                         <TrashIcon className="w-5 h-5" />
                       </button>
@@ -358,8 +428,8 @@ const ContentLibrary: React.FC = () => {
               ) : viewItem.type === 'audio' ? (
                 <audio src={viewItem.file_url} controls className="w-full px-10" />
               ) : (
-                <pre className="p-4 text-xs font-mono text-gray-300 whitespace-pre-wrap overflow-auto max-h-[60vh] w-full">
-                  {viewItem.file_url}
+                <pre className="p-4 text-xs font-mono text-gray-300 whitespace-pre-wrap overflow-auto max-h-[60vh] w-full bg-black/30 rounded-lg">
+                  {previewContent || 'Carregando...'}
                 </pre>
               )}
             </div>
@@ -367,9 +437,14 @@ const ContentLibrary: React.FC = () => {
             <div className="flex justify-end gap-3">
               {activeTab === 'templates' ? (
                 <Button onClick={() => {
-                  navigator.clipboard.writeText(viewItem.file_url);
+                  navigator.clipboard.writeText(previewContent);
                   addToast({ type: 'success', message: 'Código copiado!' });
                 }}>Copiar Código</Button>
+              ) : activeTab === 'prompt' ? (
+                <Button onClick={() => {
+                  navigator.clipboard.writeText(previewContent);
+                  addToast({ type: 'success', message: 'Prompt copiado!' });
+                }}>Copiar Prompt</Button>
               ) : (
                 <Button onClick={() => handleDownload(viewItem.file_url, viewItem.name)}>
                   <ArrowDownTrayIcon className="w-4 h-4 mr-2" /> Baixar

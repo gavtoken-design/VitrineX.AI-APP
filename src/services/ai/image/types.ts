@@ -1,4 +1,4 @@
-import { IMAGEN_STANDARD_MODEL, IMAGEN_ULTRA_MODEL } from '../../../constants';
+import { IMAGEN_STANDARD_MODEL, IMAGEN_ULTRA_MODEL, IMAGEN_FAST_MODEL } from '../../../constants';
 
 export type ImageResult =
     | { type: 'image'; imageUrl: string; mimeType?: string; base64?: string }
@@ -31,9 +31,45 @@ export interface ModelCapability {
 export const IMAGE_MODEL_CAPS: Record<string, ModelCapability> = {
     [IMAGEN_ULTRA_MODEL]: {
         canGenerate: true,
-        canEdit: false,
-        canAnalyze: false,
+        canEdit: true,
+        canAnalyze: true,
         supportedAspectRatios: ['1:1', '3:4', '4:3', '9:16', '16:9'],
+    },
+    [IMAGEN_STANDARD_MODEL]: {
+        canGenerate: true,
+        canEdit: true,
+        canAnalyze: true,
+        supportedAspectRatios: ['1:1', '3:4', '4:3', '9:16', '16:9'],
+    },
+    [IMAGEN_FAST_MODEL]: {
+        canGenerate: true,
+        canEdit: true,
+        canAnalyze: true,
+        supportedAspectRatios: ['1:1', '3:4', '4:3', '9:16', '16:9'],
+    },
+    'gemini-2.5-flash-image': {
+        canGenerate: true,
+        canEdit: true,
+        canAnalyze: true,
+        supportedAspectRatios: ['1:1', '3:4', '4:3', '9:16', '16:9'],
+    },
+    'gemini-2.5-flash': {
+        canGenerate: false,
+        canEdit: true,
+        canAnalyze: true,
+        supportedAspectRatios: [],
+    },
+    'gemini-2.5-pro': {
+        canGenerate: false,
+        canEdit: true,
+        canAnalyze: true,
+        supportedAspectRatios: [],
+    },
+    'gemini-3-flash-preview': {
+        canGenerate: false,
+        canEdit: true,
+        canAnalyze: true,
+        supportedAspectRatios: [],
     },
     'gemini-2.0-flash-exp': {
         canGenerate: false,
@@ -42,6 +78,12 @@ export const IMAGE_MODEL_CAPS: Record<string, ModelCapability> = {
         supportedAspectRatios: [],
     },
     'gemini-1.5-flash': {
+        canGenerate: false,
+        canEdit: true,
+        canAnalyze: true,
+        supportedAspectRatios: [],
+    },
+    'gemini-1.5-pro': {
         canGenerate: false,
         canEdit: true,
         canAnalyze: true,

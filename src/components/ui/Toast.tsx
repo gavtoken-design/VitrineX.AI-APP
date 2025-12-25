@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   CheckCircleIcon,
   XCircleIcon,
@@ -21,10 +22,17 @@ export interface ToastProps {
 }
 
 const icons = {
-  success: <CheckCircleIcon className="w-6 h-6 text-green-500" />,
-  error: <XCircleIcon className="w-6 h-6 text-red-500" />,
-  warning: <ExclamationTriangleIcon className="w-6 h-6 text-yellow-500" />,
-  info: <InformationCircleIcon className="w-6 h-6 text-blue-500" />,
+  success: <CheckCircleIcon className="w-6 h-6 text-green-400" />,
+  error: <XCircleIcon className="w-6 h-6 text-red-400" />,
+  warning: <ExclamationTriangleIcon className="w-6 h-6 text-yellow-400" />,
+  info: <InformationCircleIcon className="w-6 h-6 text-cyan-400" />,
+};
+
+const accents = {
+  success: 'bg-green-500',
+  error: 'bg-red-500',
+  warning: 'bg-yellow-500',
+  info: 'bg-cyan-500',
 };
 
 const Toast: React.FC<ToastProps> = ({ id, type, title, message, duration = 5000, onClose }) => {
@@ -37,37 +45,63 @@ const Toast: React.FC<ToastProps> = ({ id, type, title, message, duration = 5000
   }, [id, duration, onClose]);
 
   return (
-    <div className="pointer-events-auto">
+    <motion.div
+      layout
+      initial={{ opacity: 0, x: 100, scale: 0.9 }}
+      animate={{ opacity: 1, x: 0, scale: 1 }}
+      exit={{ opacity: 0, x: 20, scale: 0.9, transition: { duration: 0.2 } }}
+      className="pointer-events-auto w-full max-w-sm"
+    >
       <LiquidGlassCard
-        className="w-full max-w-sm pointer-events-auto overflow-hidden bg-white/40 dark:bg-black/40"
-        borderRadius="16px"
+        className="w-full relative overflow-hidden bg-black/40 backdrop-blur-xl border border-white/10 group"
+        borderRadius="20px"
         blurIntensity="lg"
         glowIntensity="sm"
-        shadowIntensity="sm"
-        draggable={true}
+        shadowIntensity="md"
+        draggable={false}
       >
-        <div className="p-4">
+        {/* Type Accent Line */}
+        <div className={`absolute top-0 left-0 bottom-0 w-1.5 ${accents[type]} shadow-[0_0_15px_rgba(0,0,0,0.3)] z-40 transition-all duration-300 group-hover:w-2`} />
+
+        <div className="p-4 pl-6">
           <div className="flex items-start">
             <div className="flex-shrink-0 pt-0.5">
-              {icons[type]}
+              <div className="p-2 bg-white/5 rounded-xl border border-white/5 group-hover:scale-110 transition-transform duration-300">
+                {icons[type]}
+              </div>
             </div>
-            <div className="ml-3 w-0 flex-1">
-              {title && <p className="text-sm font-semibold text-gray-900 dark:text-white">{title}</p>}
-              <p className="text-sm text-gray-700 dark:text-gray-200 mt-1 leading-relaxed">{message}</p>
+            <div className="ml-4 w-0 flex-1">
+              {title && (
+                <p className="text-sm font-black text-white uppercase tracking-tight leading-none mb-1.5 drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]">
+                  {title}
+                </p>
+              )}
+              <p className="text-sm text-white/70 font-medium leading-relaxed">
+                {message}
+              </p>
             </div>
-            <div className="ml-4 flex-shrink-0 flex">
+            <div className="ml-4 flex-shrink-0 flex pt-0.5">
               <button
-                className="bg-transparent rounded-md inline-flex text-gray-400 hover:text-gray-500 focus:outline-none"
+                className="p-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-white/30 hover:text-white transition-all duration-200"
                 onClick={() => onClose(id)}
               >
-                <span className="sr-only">Fechar</span>
-                <XMarkIcon className="w-5 h-5" />
+                <XMarkIcon className="w-4 h-4" />
               </button>
             </div>
           </div>
         </div>
+
+        {/* Progress bar background */}
+        <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-white/5">
+          <motion.div
+            initial={{ width: '100%' }}
+            animate={{ width: 0 }}
+            transition={{ duration: duration / 1000, ease: "linear" }}
+            className={`h-full ${accents[type]} opacity-50`}
+          />
+        </div>
       </LiquidGlassCard>
-    </div>
+    </motion.div>
   );
 };
 
@@ -78,10 +112,12 @@ interface ToastContainerProps {
 
 export const ToastContainer: React.FC<ToastContainerProps> = ({ toasts, removeToast }) => {
   return (
-    <div aria-live="assertive" className="fixed top-0 right-0 z-[100] flex flex-col items-end p-4 sm:p-6 pointer-events-none gap-4">
-      {toasts.map((toast) => (
-        <Toast key={toast.id} {...toast} onClose={removeToast} />
-      ))}
+    <div aria-live="assertive" className="fixed top-6 right-6 z-[9999] flex flex-col items-end pointer-events-none gap-4 overflow-hidden p-2">
+      <AnimatePresence mode="popLayout">
+        {toasts.map((toast) => (
+          <Toast key={toast.id} {...toast} onClose={removeToast} />
+        ))}
+      </AnimatePresence>
     </div>
   );
 };
