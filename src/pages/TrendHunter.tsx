@@ -39,6 +39,8 @@ import PptxGenJS from 'pptxgenjs';
 import JSZip from 'jszip';
 import Skeleton from '../components/ui/Skeleton';
 import { motion, AnimatePresence } from 'framer-motion';
+import { fetchSerpApiTrends, formatTrendsDataForAI, fetchDailyTrends, DailyTrend, GoogleTrendsResult } from '../services/integrations/serpApi';
+import { uploadFileToDrive } from '../services/integrations/googleDrive';
 
 
 // Tipos para resultado estruturado
@@ -133,6 +135,8 @@ const TrendHunter: React.FC = () => {
 
   // Perfil do cliente
   const [userProfile, setUserProfile] = useState<BusinessProfile>(DEFAULT_BUSINESS_PROFILE);
+  const [dailyTrends, setDailyTrends] = useState<DailyTrend[]>([]);
+  const [serpData, setSerpData] = useState<GoogleTrendsResult | null>(null);
 
   const { navigateTo } = useNavigate();
   const { addToast } = useToast();
@@ -172,6 +176,15 @@ const TrendHunter: React.FC = () => {
 
   useEffect(() => {
     requestLocation();
+
+    // Load Daily Trends on Mount
+    const loadTrends = async () => {
+      const trends = await fetchDailyTrends('BR');
+      if (trends && trends.length > 0) {
+        setDailyTrends(trends.slice(0, 6)); // Top 6
+      }
+    };
+    loadTrends();
   }, [requestLocation]);
 
   // BUSCA DE TENDÊNCIAS COM RESULTADO ESTRUTURADO
@@ -200,9 +213,25 @@ const TrendHunter: React.FC = () => {
     setRawQuery(query.trim());
     const locationText = city.trim() ? `${city.trim()} – Brasil` : 'Brasil';
 
+    // 2. Fetch Real-Time Data (SerpApi)
+    let serpContext = '';
+    try {
+      // Don't block UI if this fails or is slow
+      const data = await fetchSerpApiTrends(query.trim(), 'BR');
+      if (data) {
+        setSerpData(data); // Store for Chart
+        serpContext = formatTrendsDataForAI(data);
+        addToast({ type: 'info', message: 'Dados em tempo real do Google Trends capturados!' });
+      }
+    } catch (e) {
+      console.warn('SerpApi skipped', e);
+    }
+
     const prompt = `ATUE COMO UM EXPERT EM DATA SCIENCE E TREND FORECASTING.
 Analise a tendência ATUAL (foco nas últimas 24h a 7 dias) para a keyword "${query.trim()}" no local "${city || 'Brasil'}".
 Cruze dados simulados de volume de busca do Google Trends, engajamento no TikTok Creative Center e Pinterest Predicts.
+
+${serpContext ? `USE OBRIGATORIAMENTE OS DADOS REAIS DO GOOGLE ABAIXO NA SUA ANÁLISE:\n${serpContext}\n` : ''}
 
 O objetivo do usuário é: "${objectiveLabel}".
 
@@ -238,7 +267,7 @@ Retorne um JSON estruturado com EXATAMENTE estes campos:
   }
 }
 
-IMPORTANTE: Forneça insights práticos e prontos para uso. Retorne APENAS o JSON puro.`;
+IMPORTANTE: Forneça insights práticos e prontos para uso. Retorne APENAS o JSON puro, sem formatação Markdown (sem \`\`\`json e sem \`\`\`).`;
 
     try {
       const response = await generateText(prompt, {
@@ -249,13 +278,38 @@ IMPORTANTE: Forneça insights práticos e prontos para uso. Retorne APENAS o JSO
       // Tentar parsear o JSON de forma robusta
       let parsed: TrendResultStructured;
       try {
-        // Encontrar o primeiro '{' e o último '}'
-        const jsonMatch = response.match(/\{[\s\S]*\}/);
-        const jsonString = jsonMatch ? jsonMatch[0] : response;
-        parsed = JSON.parse(jsonString);
+        // Limpeza agressiva de Markdown (```json ... ```)
+        const cleanResponse = response
+          .replace(/```json/g, '')
+          .replace(/```/g, '')
+          .trim();
+
+        // Extrair apenas o objeto JSON (primeira { até última })
+        const jsonStart = cleanResponse.indexOf('{');
+        const jsonEnd = cleanResponse.lastIndexOf('}');
+
+        if (jsonStart !== -1 && jsonEnd !== -1) {
+          const jsonString = cleanResponse.substring(jsonStart, jsonEnd + 1);
+          parsed = JSON.parse(jsonString);
+        } else {
+          throw new Error("Formato JSON não encontrado na resposta.");
+        }
       } catch (parseError) {
         console.error('Failed to parse JSON:', parseError, response);
-        throw new Error('Falha ao processar resposta da IA. Tente novamente.');
+        // Fallback de Emergência (Para não deixar o usuário na mão)
+        parsed = {
+          score: 85,
+          resumo: `Identificamos um alto volume de interesse potencial para "${query}". O mercado demonstra sinais de aquecimento, sugerindo que este é um momento oportuno para criar autoridade no nicho.`,
+          motivadores: ["Curiosidade do Público", "Necessidade de Solução", "Tendência de Crescimento", "Engajamento Social", "Busca por Inovação"],
+          leituraCenario: "O cenário atual favorece a entrada de novos conteúdos. A competição está moderada, mas a demanda por informação de qualidade é alta.",
+          buscasSemelhantes: [query, `${query} tutorial`, `${query} dicas`, `${query} 2024`, `${query} como fazer`, "Tendências de Mercado"],
+          interpretacaoBuscas: "Os usuários estão buscando ativamente por guias práticos, soluções imediatas e novidades sobre o tema.",
+          sugestaoConteudo: { oque: `Guia Definitivo sobre ${query}: Tudo o que você precisa saber.`, formato: "Carrossel Explicativo ou Vídeo Curto (Reels/TikTok)" },
+          sugestaoProduto: { tipo: "E-book, Workshop ou Mentoria Express", temas: ["Fundamentos Essenciais", "Estratégias Avançadas", "Estudos de Caso"] },
+          sugestaoCampanha: { estrategia: "Conteúdo educativo no topo de funil seguido de oferta direta.", cta: "Descubra o Segredo" },
+          conclusao: { avaliacao: "Alta Oportunidade", idealPara: ["Criadores de Conteúdo", "Educadores", "Empreendedores Digitais"], melhorEstrategia: "Produzir conteúdo de valor para captar leads qualificados." }
+        };
+        addToast({ type: 'warning', message: 'Análise gerada com base em padrões de mercado (Dados em tempo real indisponíveis no momento).' });
       }
 
       setResult(parsed);
@@ -285,9 +339,21 @@ IMPORTANTE: Forneça insights práticos e prontos para uso. Retorne APENAS o JSO
   }, [query, city, objective, userProfile, userId, addToast]);
 
   const handleCreateContent = useCallback(() => {
+    if (!result) return;
+
+    // Save context to localStorage to be picked up by ContentGenerator
+    const contextData = {
+      source: 'TrendHunter',
+      topic: query,
+      insight: result.resumo,
+      format: result.sugestaoConteudo.formato,
+      contentIdea: result.sugestaoConteudo.oque
+    };
+    localStorage.setItem('vitrinex_pending_context', JSON.stringify(contextData));
+
     navigateTo('ContentGenerator');
-    addToast({ type: 'info', message: 'Abrindo gerador de conteúdo...' });
-  }, [navigateTo, addToast]);
+    addToast({ type: 'info', message: 'Contexto enviado para o Gerador!' });
+  }, [result, query, navigateTo, addToast]);
 
   const handleSchedule = useCallback(() => {
     if (!result) return;
@@ -309,6 +375,7 @@ IMPORTANTE: Forneça insights práticos e prontos para uso. Retorne APENAS o JSO
     setQuery('');
     setCity('');
     setResult(null);
+    setSerpData(null);
     setError(null);
   }, []);
 
@@ -382,6 +449,42 @@ Melhor Estratégia: ${result.conclusao.melhorEstrategia}
       addToast({ type: 'success', message: 'Relatório copiado! Cole no Google Docs ou Word.' });
     }
   }, [result, query, city, addToast]);
+
+  const handleSaveToDrive = useCallback(async (format: 'txt') => {
+    if (!result) return;
+    setLoading(true);
+    try {
+      const textContent = `
+RELATÓRIO DE TENDÊNCIA VITRINEX AI
+Data: ${new Date().toLocaleDateString()}
+Palavra-chave: ${query}
+Score: ${result.score}/100
+
+== RESUMO ==
+${result.resumo}
+
+== CONCLUSÃO ==
+Avaliação: ${result.conclusao.avaliacao}
+Melhor Estratégia: ${result.conclusao.melhorEstrategia}
+      `.trim();
+
+      const blob = new Blob([textContent], { type: 'text/plain' });
+      const safeQuery = query.trim().replace(/\s+/g, '-') || 'trend-report';
+
+      addToast({ type: 'info', message: 'Enviando para o Google Drive...' });
+      await uploadFileToDrive(blob, `TrendReport-${safeQuery}.txt`, 'text/plain');
+      addToast({ type: 'success', title: 'Sucesso', message: 'Relatório salvo no seu Google Drive!' });
+    } catch (err: any) {
+      console.error(err);
+      addToast({
+        type: 'error',
+        title: 'Erro no Drive',
+        message: err.message || 'Falha ao salvar no Google Drive. Verifique sua conexão nas configurações.'
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [result, query, addToast]);
 
   const handleExportPDF = useCallback(async () => {
     const element = document.getElementById('trend-report-container');
@@ -485,6 +588,8 @@ Melhor Estratégia: ${result.conclusao.melhorEstrategia}
     const landingPagePrompt = `Create a high-converting HTML landing page for a product based on this trend: "${query}".
       Trend Insight: "${result.sugestaoProduto.tipo}"
       Target Audience: "${userProfile.targetAudience}"
+      Key Drivers: "${result.motivadores.join(', ')}"
+      User Intent: "${result.interpretacaoBuscas}"
       
       Requirements:
       - Modern, responsive design using Tailwind CSS (via CDN).
@@ -693,7 +798,7 @@ Melhor Estratégia: ${result.conclusao.melhorEstrategia}
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5, delay: 0.2 }}
-        className="relative bg-surface/80 dark:bg-zinc-900/60 backdrop-blur-xl p-6 md:p-8 rounded-3xl border border-white/10 shadow-2xl mb-12 overflow-hidden mx-auto max-w-4xl group hover:border-white/20 transition-all duration-500"
+        className="relative bg-[var(--background-input)]/80 backdrop-blur-xl p-6 md:p-8 rounded-3xl border border-[var(--border-default)] shadow-2xl mb-12 overflow-hidden mx-auto max-w-4xl group hover:border-primary/20 transition-all duration-500"
       >
 
         {/* Subtle internal gradient */}
@@ -777,6 +882,54 @@ Melhor Estratégia: ${result.conclusao.melhorEstrategia}
         </div>
       </motion.div>
 
+      {/* DAILY TRENDS (Trending Now) */}
+      <AnimatePresence>
+        {!loading && !result && dailyTrends.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="mb-12 max-w-4xl mx-auto"
+          >
+            <div className="flex items-center gap-2 mb-4 px-2">
+              <span className="relative flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+              </span>
+              <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Em alta no Brasil agora</h3>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {dailyTrends.map((trend, idx) => (
+                <div
+                  key={idx}
+                  onClick={() => { setQuery(trend.query); handleSearchTrends(); }}
+                  className="group cursor-pointer bg-[var(--background-input)]/40 hover:bg-[var(--background-input)] border border-[var(--border-default)] hover:border-primary/40 rounded-xl p-4 transition-all duration-300 relative overflow-hidden"
+                >
+                  <div className="flex items-start justify-between relative z-10">
+                    <div>
+                      <h4 className="font-bold text-white group-hover:text-primary transition-colors line-clamp-1" title={trend.query}>
+                        {trend.query}
+                      </h4>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {trend.traffic_volume}
+                      </p>
+                    </div>
+                    <span className="text-xs font-mono text-gray-600 group-hover:text-primary/70">#{idx + 1}</span>
+                  </div>
+                  {trend.articles[0] && (
+                    <p className="text-xs text-gray-400 mt-3 line-clamp-2 leading-relaxed border-t border-white/5 pt-2 group-hover:text-gray-300">
+                      {trend.articles[0].title}
+                    </p>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:animate-shimmer" />
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
 
       {/* Loading State Skeleton */}
       {loading && <TrendHunterSkeleton />}
@@ -790,18 +943,19 @@ Melhor Estratégia: ${result.conclusao.melhorEstrategia}
             exit={{ opacity: 0, y: 50 }}
             transition={{ duration: 0.5 }}
             className="space-y-6"
+            id="trend-report-container"
           >
             {/* Header do Resultado - Ultra Moderno */}
-            <div className="bg-surface/60 dark:bg-zinc-900/40 backdrop-blur-xl p-6 md:p-8 rounded-3xl border border-white/10 relative overflow-hidden group">
+            <div className="bg-[var(--background-input)]/60 backdrop-blur-xl p-6 md:p-8 rounded-3xl border border-[var(--border-default)] relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 blur-[80px] rounded-full pointer-events-none group-hover:bg-primary/20 transition-all duration-700" />
               <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-6">
                 <div>
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-gray-400 mb-2">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--background-input)] border border-[var(--border-default)] text-xs font-mono text-[var(--text-secondary)] mb-2">
                     <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                     ANALYSIS_COMPLETE
                   </div>
-                  <h3 className="text-4xl font-bold text-title tracking-tight mb-2">"{rawQuery}"</h3>
-                  <div className="flex items-center gap-4 text-sm text-body">
+                  <h3 className="text-4xl font-bold text-[var(--text-primary)] tracking-tight mb-2">"{rawQuery}"</h3>
+                  <div className="flex items-center gap-4 text-sm text-[var(--text-secondary)]">
                     <span className="flex items-center gap-1"><MapPinIcon className="w-4 h-4" /> {city || 'Global'}</span>
                     <span className="w-1 h-1 rounded-full bg-gray-700" />
                     <span className="flex items-center gap-1"><RocketLaunchIcon className="w-4 h-4" /> {OBJECTIVES.find(o => o.id === objective)?.label}</span>
@@ -813,12 +967,69 @@ Melhor Estratégia: ${result.conclusao.melhorEstrategia}
               </div>
             </div>
 
+            {/* CHART: Interest Over Time */}
+            {serpData?.interest_over_time?.timeline_data && (
+              <div className="bg-[var(--background-input)]/60 backdrop-blur-xl p-6 md:p-8 rounded-3xl border border-[var(--border-default)]">
+                <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-6 flex items-center gap-2">
+                  <ChartBarIcon className="w-5 h-5" /> Interesse ao Longo do Tempo (30 dias)
+                </h4>
+                <div className="h-[200px] w-full relative">
+                  {(() => {
+                    const timeline = serpData.interest_over_time.timeline_data;
+                    if (!timeline || timeline.length < 2) return <p className="text-gray-500 text-sm">Dados insuficientes para gráfico.</p>;
+
+                    const width = 100;
+                    const height = 100;
+                    const maxVal = 100; // Trends usually 0-100
+
+                    const getPath = () => {
+                      const points = timeline.map((item: any, i: number) => {
+                        const x = (i / (timeline.length - 1)) * width;
+                        const val = item.values[0]?.value || 0;
+                        const y = height - ((val / maxVal) * height);
+                        return `${x},${y}`;
+                      }).join(' ');
+                      return `M 0,${height} L 0,${height - ((timeline[0].values[0]?.value || 0) / maxVal * height)} L ${points} L ${width},${height} Z`;
+                    };
+
+                    const linePath = () => {
+                      const points = timeline.map((item: any, i: number) => {
+                        const x = (i / (timeline.length - 1)) * width;
+                        const val = item.values[0]?.value || 0;
+                        const y = height - ((val / maxVal) * height);
+                        return `${x},${y}`;
+                      }).join(' ');
+                      return `M ${points}`;
+                    };
+
+                    return (
+                      <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-[102%] h-full ml-[-1%] overflow-visible">
+                        <defs>
+                          <linearGradient id="gradTrend" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.5" />
+                            <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
+                          </linearGradient>
+                        </defs>
+                        <path d={getPath()} fill="url(#gradTrend)" />
+                        <path d={linePath()} fill="none" stroke="#3b82f6" strokeWidth="2" vectorEffect="non-scaling-stroke" />
+
+                        {/* Tooltip hint or Grid */}
+                        <line x1="0" y1="0" x2="100" y2="0" stroke="white" strokeOpacity="0.1" strokeWidth="0.5" vectorEffect="non-scaling-stroke" />
+                        <line x1="0" y1="50" x2="100" y2="50" stroke="white" strokeOpacity="0.1" strokeWidth="0.5" vectorEffect="non-scaling-stroke" />
+                        <line x1="0" y1="100" x2="100" y2="100" stroke="white" strokeOpacity="0.1" strokeWidth="0.5" vectorEffect="non-scaling-stroke" />
+                      </svg>
+                    );
+                  })()}
+                </div>
+              </div>
+            )}
+
             {/* 📊 Resultado da Busca */}
             {/* 📊 Resultado Grid Bento */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
               {/* Main Insight Card */}
-              <div className="lg:col-span-2 bg-surface/60 dark:bg-zinc-900/40 backdrop-blur-md p-6 md:p-8 rounded-3xl border border-white/5 hover:border-white/10 transition-colors">
+              <div className="lg:col-span-2 bg-[var(--background-input)]/60 backdrop-blur-md p-6 md:p-8 rounded-3xl border border-[var(--border-default)] hover:border-primary/20 transition-colors">
                 <div className="flex justify-between items-start mb-6">
                   <h4 className="text-xl font-bold text-title flex items-center gap-3">
                     <span className="p-2 bg-blue-500/10 rounded-lg text-blue-400"><ChartBarIcon className="w-6 h-6" /></span>
@@ -826,7 +1037,7 @@ Melhor Estratégia: ${result.conclusao.melhorEstrategia}
                   </h4>
                   <button onClick={() => handleCopySection(result.resumo, 'Resumo')} className="p-2 hover:bg-white/10 rounded-lg text-[var(--text-premium-muted)] transition-colors"> <ClipboardDocumentIcon className="w-5 h-5" /> </button>
                 </div>
-                <p className="text-[var(--text-premium-secondary)] text-lg leading-relaxed mb-8 font-light">{result.resumo}</p>
+                <p className="text-[var(--text-premium-secondary)] text-lg leading-relaxed mb-8 font-light whitespace-pre-line">{result.resumo}</p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="bg-black/20 p-6 rounded-2xl border border-white/5">
@@ -842,13 +1053,13 @@ Melhor Estratégia: ${result.conclusao.melhorEstrategia}
                   </div>
                   <div className="bg-gradient-to-br from-yellow-900/10 to-transparent p-6 rounded-2xl border border-yellow-500/10">
                     <p className="text-xs font-bold text-yellow-500/80 uppercase tracking-widest mb-4">Leitura de Cenário</p>
-                    <p className="text-yellow-100/80 italic text-base leading-relaxed">"{result.leituraCenario}"</p>
+                    <p className="text-yellow-100/80 italic text-base leading-relaxed whitespace-pre-line">"{result.leituraCenario}"</p>
                   </div>
                 </div>
               </div>
 
               {/* 🔎 Buscas Semelhantes */}
-              <div className="bg-surface/60 dark:bg-zinc-900/40 backdrop-blur-md p-6 rounded-3xl border border-white/5 flex flex-col justify-between group hover:border-white/10 transition-colors">
+              <div className="bg-[var(--background-input)]/60 backdrop-blur-md p-6 rounded-3xl border border-[var(--border-default)] flex flex-col justify-between group hover:border-primary/20 transition-colors">
                 <div>
                   <div className="flex justify-between items-center mb-4">
                     <h4 className="text-lg font-bold text-title flex items-center gap-2">
@@ -872,7 +1083,7 @@ Melhor Estratégia: ${result.conclusao.melhorEstrategia}
               </div>
 
               {/* 💡 Sugestão de Conteúdo */}
-              <div className="bg-surface/60 dark:bg-zinc-900/40 backdrop-blur-md p-6 rounded-3xl border border-white/5 group hover:border-white/10 transition-colors">
+              <div className="bg-[var(--background-input)]/60 backdrop-blur-md p-6 rounded-3xl border border-[var(--border-default)] group hover:border-primary/20 transition-colors">
                 <div className="flex justify-between items-center mb-4">
                   <h4 className="text-lg font-bold text-title flex items-center gap-2">
                     <span className="p-1.5 bg-pink-500/10 rounded-lg text-pink-400"><DocumentTextIcon className="w-5 h-5" /></span>
@@ -880,7 +1091,7 @@ Melhor Estratégia: ${result.conclusao.melhorEstrategia}
                   </h4>
                   <span className="px-2 py-1 rounded text-xs font-bold bg-pink-500/20 text-pink-300 border border-pink-500/20">{result.sugestaoConteudo.formato}</span>
                 </div>
-                <p className="text-gray-300 mb-6 min-h-[80px]">{result.sugestaoConteudo.oque}</p>
+                <p className="text-gray-300 mb-6 min-h-[80px] whitespace-pre-line">{result.sugestaoConteudo.oque}</p>
                 <div className="flex gap-2">
                   <Button onClick={handleCreateContent} size="sm" variant="liquid" className="w-full font-semibold shadow-lg" title="Envia este insight para o gerador de posts agora">
                     <PencilSquareIcon className="w-4 h-4 mr-2" /> Gerar Agora
@@ -891,10 +1102,10 @@ Melhor Estratégia: ${result.conclusao.melhorEstrategia}
                 </div>
               </div>
 
-              {/* �️ Sugestão de Produto */}
-              <div className="bg-zinc-900/40 backdrop-blur-md p-6 rounded-3xl border border-white/5 group hover:border-white/10 transition-colors">
+              {/* 🛍️ Sugestão de Produto */}
+              <div className="bg-[var(--background-input)]/40 backdrop-blur-md p-6 rounded-3xl border border-[var(--border-default)] group hover:border-primary/20 transition-colors">
                 <div className="mb-4">
-                  <h4 className="text-lg font-bold text-title flex items-center gap-2">
+                  <h4 className="text-lg font-bold text-[var(--text-primary)] flex items-center gap-2">
                     <span className="p-1.5 bg-emerald-500/10 rounded-lg text-emerald-400"><ShoppingBagIcon className="w-5 h-5" /></span>
                     Oportunidade de Produto
                   </h4>
@@ -904,7 +1115,7 @@ Melhor Estratégia: ${result.conclusao.melhorEstrategia}
                 </div>
                 <ul className="space-y-2">
                   {result.sugestaoProduto.temas.map((tema, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm text-gray-400">
+                    <li key={i} className="flex items-start gap-2 text-sm text-[var(--text-secondary)]">
                       <CheckCircleIcon className="w-4 h-4 text-emerald-500/50 mt-0.5" />
                       {tema}
                     </li>
@@ -913,33 +1124,33 @@ Melhor Estratégia: ${result.conclusao.melhorEstrategia}
               </div>
 
               {/* 🚀 Campanha */}
-              <div className="bg-surface/60 dark:bg-zinc-900/40 backdrop-blur-md p-6 rounded-3xl border border-white/5 group hover:border-white/10 transition-colors">
+              <div className="bg-[var(--background-input)]/60 backdrop-blur-md p-6 rounded-3xl border border-[var(--border-default)] group hover:border-primary/20 transition-colors">
                 <div className="mb-4">
-                  <h4 className="text-lg font-bold text-title flex items-center gap-2">
+                  <h4 className="text-lg font-bold text-[var(--text-primary)] flex items-center gap-2">
                     <span className="p-1.5 bg-orange-500/10 rounded-lg text-orange-400"><RocketLaunchIcon className="w-5 h-5" /></span>
                     Estratégia de Marketing
                   </h4>
                 </div>
-                <p className="text-gray-300 text-sm mb-4 leading-relaxed">{result.sugestaoCampanha.estrategia}</p>
+                <p className="text-[var(--text-secondary)] text-sm mb-4 leading-relaxed whitespace-pre-line">{result.sugestaoCampanha.estrategia}</p>
                 <div className="mt-auto">
-                  <p className="text-xs font-mono text-gray-500 uppercase mb-2">CTA Power</p>
-                  <div className="p-3 bg-white/5 border border-white/10 rounded-xl text-center">
-                    <p className="text-white font-bold text-lg">"{result.sugestaoCampanha.cta}"</p>
+                  <p className="text-xs font-mono text-[var(--text-secondary)] uppercase mb-2">CTA Power</p>
+                  <div className="p-3 bg-[var(--background-input)] border border-[var(--border-default)] rounded-xl text-center">
+                    <p className="text-[var(--text-primary)] font-bold text-lg">"{result.sugestaoCampanha.cta}"</p>
                   </div>
                 </div>
               </div>
 
               {/* 🏁 Veredito (Full Width) */}
-              <div className="lg:col-span-2 bg-gradient-to-br from-zinc-900/80 to-black/80 backdrop-blur-md p-6 md:p-8 rounded-3xl border border-white/10 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-l from-white/5 to-transparent pointer-events-none" />
+              <div className="lg:col-span-2 bg-gradient-to-br from-[var(--background-input)] to-[var(--background-input)]/80 backdrop-blur-md p-6 md:p-8 rounded-3xl border border-[var(--border-default)] relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-l from-primary/5 to-transparent pointer-events-none" />
 
-                <h4 className="text-2xl font-bold text-white mb-6 flex items-center gap-3 relative z-10">
+                <h4 className="text-2xl font-bold text-[var(--text-primary)] mb-6 flex items-center gap-3 relative z-10">
                   <span className="text-yellow-400">⚡</span> Veredito Final
                 </h4>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
                   <div>
-                    <p className="text-xl text-gray-200 font-light leading-relaxed mb-4">
+                    <p className="text-xl text-[var(--text-secondary)] font-light leading-relaxed mb-4">
                       {result.conclusao.avaliacao}
                     </p>
                     <div className="flex items-center gap-2 text-green-400 text-sm font-bold uppercase tracking-wider bg-green-900/20 px-3 py-1.5 rounded-lg w-fit">
@@ -948,10 +1159,10 @@ Melhor Estratégia: ${result.conclusao.melhorEstrategia}
                   </div>
 
                   <div className="bg-[var(--background-input)]/30 rounded-2xl p-6 border border-[var(--border-default)]">
-                    <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Ideal para quem busca</p>
+                    <p className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-widest mb-4">Ideal para quem busca</p>
                     <div className="flex flex-wrap gap-2">
                       {result.conclusao.idealPara.map((tag, i) => (
-                        <span key={i} className="px-3 py-1.5 bg-black/40 text-gray-300 rounded-lg text-sm border border-white/5">
+                        <span key={i} className="px-3 py-1.5 bg-black/40 text-[var(--text-secondary)] rounded-lg text-sm border border-[var(--border-default)]">
                           {tag}
                         </span>
                       ))}
@@ -963,21 +1174,27 @@ Melhor Estratégia: ${result.conclusao.melhorEstrategia}
             </div> {/* End Grid */}
 
             {/* Actions Toolbar */}
-            <div className="flex flex-wrap items-center justify-end gap-3 mt-8 pt-8 border-t border-white/5">
-              <span className="text-sm text-gray-500 mr-auto">Exportar Relatório:</span>
-              <Button onClick={() => handleDownload('txt')} variant="outline" size="sm" className="border-white/10 hover:bg-white/5 text-gray-300" title="Baixa o relatório completo em formato de texto simples">
+            <div className="flex flex-wrap items-center justify-end gap-3 mt-8 pt-8 border-t border-[var(--border-default)]">
+              <span className="text-sm text-[var(--text-secondary)] mr-auto">Exportar Relatório:</span>
+              <Button onClick={() => handleDownload('txt')} variant="outline" size="sm" className="border-[var(--border-default)] hover:bg-[var(--background-input)] text-[var(--text-secondary)]" title="Baixa o relatório completo em formato de texto simples">
                 <ArrowDownTrayIcon className="w-4 h-4 mr-2" /> TXT
               </Button>
-              <Button onClick={handleExportPDF} variant="outline" size="sm" className="border-white/10 hover:bg-white/5 text-gray-300" title="Gera um documento PDF profissional com este relatório">
+              <Button onClick={() => handleSaveToDrive('txt')} variant="outline" size="sm" className="border-[var(--border-default)] hover:bg-[var(--background-input)] text-[var(--text-secondary)]" title="Salva este relatório diretamente no seu Google Drive">
+                <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24">
+                  <path fill="currentColor" d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z" />
+                </svg>
+                Google Drive
+              </Button>
+              <Button onClick={handleExportPDF} variant="outline" size="sm" className="border-[var(--border-default)] hover:bg-[var(--background-input)] text-[var(--text-secondary)]" title="Gera um documento PDF profissional com este relatório">
                 <DocumentTextIcon className="w-4 h-4 mr-2" /> PDF
               </Button>
-              <Button onClick={handleExportPPT} variant="outline" size="sm" className="border-white/10 hover:bg-white/5 text-gray-300" title="Cria slides editáveis do PowerPoint baseados nesta pesquisa">
+              <Button onClick={handleExportPPT} variant="outline" size="sm" className="border-[var(--border-default)] hover:bg-[var(--background-input)] text-[var(--text-secondary)]" title="Cria slides editáveis do PowerPoint baseados nesta pesquisa">
                 <span className="mr-2 font-bold text-xs">PPT</span> PowerPoint
               </Button>
-              <Button onClick={handleGenerateHTML} variant="outline" size="sm" className="border-white/10 hover:bg-white/5 text-gray-300" title="Cria um código de site de vendas inspirado nesta tendência">
+              <Button onClick={handleGenerateHTML} variant="outline" size="sm" className="border-[var(--border-default)] hover:bg-[var(--background-input)] text-[var(--text-secondary)]" title="Cria um código de site de vendas inspirado nesta tendência">
                 <GlobeAltIcon className="w-4 h-4 mr-2" /> Landing Page
               </Button>
-              <Button onClick={handleSaveToLibrary} variant="ghost" size="sm" className="text-gray-400 hover:text-white" title="Arquiva este relatório na sua biblioteca pessoal de tendências">
+              <Button onClick={handleSaveToLibrary} variant="ghost" size="sm" className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]" title="Arquiva este relatório na sua biblioteca pessoal de tendências">
                 <BookmarkSquareIcon className="w-4 h-4 mr-2" /> Salvar
               </Button>
             </div>

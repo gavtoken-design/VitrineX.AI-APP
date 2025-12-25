@@ -46,7 +46,8 @@ const ContentGenerator: React.FC = () => {
   const [loadingText, setLoadingText] = useState<boolean>(false);
   const [loadingImages, setLoadingImages] = useState<string[]>([]); // Array of IDs currently generating images
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
-  const [useThinking, setUseThinking] = useState<boolean>(false);
+
+
   const [targetAudience, setTargetAudience] = useState<string>('general');
 
   // Avatar & Analysis State
@@ -115,7 +116,7 @@ const ContentGenerator: React.FC = () => {
       4. NÃO adicione texto antes ou depois do JSON. Apenas o JSON puro.
       `;
 
-      const textResponse = await generateText(systemPrompt, { model: GEMINI_FLASH_MODEL, useThinking: useThinking });
+      const textResponse = await generateText(systemPrompt, { model: GEMINI_FLASH_MODEL });
 
       let postsData: any[] = [];
       try {
@@ -141,7 +142,7 @@ const ContentGenerator: React.FC = () => {
         userId: userId,
         title: p.title || `Post ${index + 1}`,
         content_text: p.content_text,
-        hashtags: [...(p.hashtags || []), "#VitrineX", "#InteligenciaArtificial"], // Adiciona as fixas
+        hashtags: [...(p.hashtags || []), "#VitrineX", "#VitrineXAI"], // Adiciona as fixas
         image_url: PLACEHOLDER_IMAGE_BASE64,
         image_prompt: p.image_idea || "Uma imagem criativa sobre o tema.",
         createdAt: new Date().toISOString(),
@@ -157,7 +158,7 @@ const ContentGenerator: React.FC = () => {
       setIsGenerating(false);
       setLoadingText(false);
     }
-  }, [prompt, userId, addToast, targetAudience, useThinking]);
+  }, [prompt, userId, addToast, targetAudience]);
 
   const handleGenerateOnePost = useCallback(() => generateContent(false), [generateContent]);
   const handleGenerateSeries = useCallback(() => generateContent(true), [generateContent]);
@@ -334,10 +335,10 @@ const ContentGenerator: React.FC = () => {
                 setPrompt(template.basePrompt);
                 addToast({ type: 'success', message: `${template.label} aplicado!` });
               }}
-              className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 hover:bg-primary/20 hover:border-primary/50 hover:scale-105 transition-all whitespace-nowrap group"
+              className="flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--background-input)] border border-[var(--border-default)] hover:bg-primary/20 hover:border-primary/50 hover:scale-105 transition-all whitespace-nowrap group"
             >
               <span className="text-lg group-hover:rotate-12 transition-transform">{template.icon}</span>
-              <span className="text-xs font-bold uppercase tracking-wider text-gray-300 group-hover:text-white">
+              <span className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] group-hover:text-white">
                 {template.label}
               </span>
             </button>
@@ -356,12 +357,7 @@ const ContentGenerator: React.FC = () => {
           />
           <TargetAudienceDropdown selectedAudience={targetAudience} onAudienceChange={setTargetAudience} />
         </div>
-        <div className="flex items-center gap-2 mt-4 text-sm text-muted">
-          <input type="checkbox" id="useThinking" checked={useThinking} onChange={(e) => setUseThinking(e.target.checked)} className="w-4 h-4 rounded text-primary focus:ring-primary border-gray-600 bg-gray-700" />
-          <label htmlFor="useThinking" className="cursor-pointer select-none flex items-center gap-1">
-            Ativar <b>Thinking Mode</b> 🧠 <span className="text-xs text-gray-500">(Raciocínio Profundo)</span>
-          </label>
-        </div>
+
         <div className="flex flex-col sm:flex-row gap-3 mt-4">
           <Button onClick={handleGenerateOnePost} isLoading={isGenerating} variant="liquid" className="w-full sm:w-auto shadow-lg shadow-indigo-500/20">
             {isGenerating ? 'Criando...' : 'GERAR 1 POST'}
@@ -370,170 +366,172 @@ const ContentGenerator: React.FC = () => {
             {isGenerating ? 'Criando...' : 'GERAR SÉRIE (Carrossel)'}
           </Button>
         </div>
-      </LiquidGlassCard>
+      </LiquidGlassCard >
 
       {loadingText && <div className="flex justify-center py-12"><LoadingSpinner /></div>}
 
       {/* RESULTADOS GERADOS */}
-      {generatedPosts.length > 0 && (
-        <div className="space-y-12">
-          {generatedPosts.map((post, index) => {
-            const isImgLoading = loadingImages.includes(post.id);
+      {
+        generatedPosts.length > 0 && (
+          <div className="space-y-12">
+            {generatedPosts.map((post, index) => {
+              const isImgLoading = loadingImages.includes(post.id);
 
-            return (
-              <div key={post.id} className="relative group bg-surface border border-white/10 rounded-3xl overflow-hidden shadow-2xl animate-fade-in-up">
-                {/* Header do Card (Título) */}
-                <div className="bg-black/40 p-6 border-b border-white/5 flex flex-col md:flex-row justify-between md:items-center gap-4">
-                  <div className="flex-1 w-full">
-                    <label className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1 block">Título</label>
-                    <Input
-                      id={`post-title-${index}`}
-                      value={post.title || ''}
-                      onChange={(e) => updatePostField(index, 'title', e.target.value)}
-                      className="text-lg font-bold text-title bg-transparent border-none focus:ring-0 p-0 w-full placeholder-gray-400"
-                      placeholder="Título do Post"
-                    />
-                  </div>
-                  <div className="flex gap-2">
-                    <div className="px-3 py-1 rounded-full bg-primary/20 text-primary text-xs font-bold uppercase tracking-wider">
-                      Post #{index + 1}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2">
-
-                  {/* LADO ESQUERDO: TEXTO E HASHTAGS */}
-                  <div className="p-6 md:p-8 space-y-6 border-r border-white/5">
-                    <div className="space-y-2">
-                      <label className="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
-                        <CodeBracketIcon className="w-4 h-4" /> Conteúdo do Post
-                      </label>
-                      <Textarea
-                        id={`post-content-${index}`}
-                        value={post.content_text}
-                        onChange={(e) => updatePostField(index, 'content_text', e.target.value)}
-                        rows={10}
-                        className="bg-black/5 dark:bg-black/20 border-black/5 dark:border-white/10 focus:border-primary/50 text-base leading-relaxed text-body placeholder-gray-400"
+              return (
+                <div key={post.id} className="relative group bg-[var(--background-input)] border border-[var(--border-default)] rounded-3xl overflow-hidden shadow-2xl animate-fade-in-up">
+                  {/* Header do Card (Título) */}
+                  <div className="bg-black/20 p-6 border-b border-[var(--border-default)] flex flex-col md:flex-row justify-between md:items-center gap-4">
+                    <div className="flex-1 w-full">
+                      <label className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1 block">Título</label>
+                      <Input
+                        id={`post-title-${index}`}
+                        value={post.title || ''}
+                        onChange={(e) => updatePostField(index, 'title', e.target.value)}
+                        className="text-lg font-bold text-[var(--text-primary)] bg-transparent border-none focus:ring-0 p-0 w-full placeholder-[var(--text-secondary)]"
+                        placeholder="Título do Post"
                       />
                     </div>
-
-                    <div className="space-y-2">
-                      <label className="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-pink-500" /> Hashtags Estratégicas
-                      </label>
-                      <div className="flex flex-wrap gap-2 p-4 bg-black/20 rounded-xl border border-white/5 min-h-[60px]">
-                        {post.hashtags?.map((tag, i) => (
-                          <span key={i} className="px-2 py-1 bg-white/5 hover:bg-white/10 rounded-md text-xs text-blue-300 transition-colors cursor-pointer">
-                            {tag}
-                          </span>
-                        ))}
+                    <div className="flex gap-2">
+                      <div className="px-3 py-1 rounded-full bg-primary/20 text-primary text-xs font-bold uppercase tracking-wider">
+                        Post #{index + 1}
                       </div>
-                      <p className="text-[10px] text-gray-500 text-right">4 do assunto + 2 VitrineX</p>
                     </div>
                   </div>
 
-                  {/* LADO DIREITO: IMAGEM E ACTIONS */}
-                  <div className="p-6 md:p-8 bg-black/20 flex flex-col gap-6">
-                    <label className="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
-                      <PhotoIcon className="w-4 h-4" /> Estúdio de Imagem
-                    </label>
+                  <div className="grid grid-cols-1 lg:grid-cols-2">
 
-                    {/* Preview da Imagem */}
-                    <div className="relative aspect-video rounded-2xl overflow-hidden bg-black/50 border border-white/10 group/image">
-                      {isImgLoading ? (
-                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-                          <LoadingSpinner />
-                          <p className="text-xs text-gray-400 animate-pulse">Renderizando pixels...</p>
-                        </div>
-                      ) : (
-                        <img
-                          src={post.image_url}
-                          alt="Post Visual"
-                          className={`w-full h-full object-cover transition-all duration-700 ${post.image_url === PLACEHOLDER_IMAGE_BASE64 ? 'opacity-30 grayscale' : 'opacity-100 hover:scale-105'}`}
+                    {/* LADO ESQUERDO: TEXTO E HASHTAGS */}
+                    <div className="p-6 md:p-8 space-y-6 border-r border-[var(--border-default)]">
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                          <CodeBracketIcon className="w-4 h-4" /> Conteúdo do Post
+                        </label>
+                        <Textarea
+                          id={`post-content-${index}`}
+                          value={post.content_text}
+                          onChange={(e) => updatePostField(index, 'content_text', e.target.value)}
+                          rows={10}
+                          className="bg-black/5 dark:bg-black/20 border border-[var(--border-default)] focus:border-primary/50 text-base leading-relaxed text-[var(--text-secondary)] placeholder-[var(--text-secondary)]/50"
                         />
-                      )}
-                    </div>
-
-                    {/* Prompt Editor */}
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <label className="text-[10px] uppercase font-bold text-gray-500">Prompt de Comando</label>
-                        <p className="text-[10px] text-gray-600">Edite antes de gerar</p>
                       </div>
-                      <Textarea
-                        id={`image-prompt-${index}`}
-                        value={post.image_prompt || ''}
-                        onChange={(e) => updatePostField(index, 'image_prompt', e.target.value)}
-                        rows={3}
-                        className="text-xs font-mono bg-black/5 dark:bg-black/40 border-black/5 dark:border-white/5 text-gray-600 dark:text-gray-300"
-                      />
+
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-pink-500" /> Hashtags Estratégicas
+                        </label>
+                        <div className="flex flex-wrap gap-2 p-4 bg-black/20 rounded-xl border border-white/5 min-h-[60px]">
+                          {post.hashtags?.map((tag, i) => (
+                            <span key={i} className="px-2 py-1 bg-[var(--background-input)] border border-[var(--border-default)] rounded-md text-xs text-blue-400 transition-colors cursor-pointer">
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                        <p className="text-[10px] text-gray-500 text-right">4 do assunto + 2 VitrineX</p>
+                      </div>
                     </div>
 
-                    {/* TOOLBAR DE 3 BOTÕES (REQ DO USUÁRIO) */}
-                    <div className="grid grid-cols-3 gap-2">
-                      <Button
-                        onClick={() => handleRefineImagePrompt(index)}
-                        className="text-[10px] py-2 h-auto flex flex-col items-center gap-1 bg-white/5 hover:bg-white/10 border border-white/10"
-                        title="Melhora o prompt com técnicas profissionais"
-                      >
-                        <SparklesIcon className="w-4 h-4 text-yellow-400" />
-                        1. Refinar
-                      </Button>
+                    {/* LADO DIREITO: IMAGEM E ACTIONS */}
+                    <div className="p-6 md:p-8 bg-black/20 flex flex-col gap-6">
+                      <label className="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                        <PhotoIcon className="w-4 h-4" /> Estúdio de Imagem
+                      </label>
 
-                      <Button
-                        onClick={() => handleConvertToJSON(index)}
-                        className="text-[10px] py-2 h-auto flex flex-col items-center gap-1 bg-white/5 hover:bg-white/10 border border-white/10"
-                        title="Copia a estrutura JSON do prompt"
-                      >
-                        <CodeBracketIcon className="w-4 h-4 text-blue-400" />
-                        2. JSON
-                      </Button>
+                      {/* Preview da Imagem */}
+                      <div className="relative aspect-video rounded-2xl overflow-hidden bg-black/50 border border-white/10 group/image">
+                        {isImgLoading ? (
+                          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
+                            <LoadingSpinner />
+                            <p className="text-xs text-gray-400 animate-pulse">Renderizando pixels...</p>
+                          </div>
+                        ) : (
+                          <img
+                            src={post.image_url}
+                            alt="Post Visual"
+                            className={`w-full h-full object-cover transition-all duration-700 ${post.image_url === PLACEHOLDER_IMAGE_BASE64 ? 'opacity-30 grayscale' : 'opacity-100 hover:scale-105'}`}
+                          />
+                        )}
+                      </div>
 
-                      <Button
-                        onClick={() => handleGenerateImageFinal(index)}
-                        className="text-[10px] py-2 h-auto flex flex-col items-center gap-1 bg-primary/20 hover:bg-primary/30 text-primary border border-primary/20"
-                        title="Gera a imagem final (Gasta créditos)"
-                        disabled={isImgLoading}
-                      >
-                        <PhotoIcon className="w-4 h-4" />
-                        3. GERAR
-                      </Button>
+                      {/* Prompt Editor */}
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <label className="text-[10px] uppercase font-bold text-gray-500">Prompt de Comando</label>
+                          <p className="text-[10px] text-gray-600">Edite antes de gerar</p>
+                        </div>
+                        <Textarea
+                          id={`image-prompt-${index}`}
+                          value={post.image_prompt || ''}
+                          onChange={(e) => updatePostField(index, 'image_prompt', e.target.value)}
+                          rows={3}
+                          className="text-xs font-mono bg-black/5 dark:bg-black/40 border-[var(--border-default)] text-[var(--text-secondary)]"
+                        />
+                      </div>
+
+                      {/* TOOLBAR DE 3 BOTÕES (REQ DO USUÁRIO) */}
+                      <div className="grid grid-cols-3 gap-2">
+                        <Button
+                          onClick={() => handleRefineImagePrompt(index)}
+                          className="text-[10px] py-2 h-auto flex flex-col items-center gap-1 bg-[var(--background-input)] hover:bg-[var(--background-input)]/80 border border-[var(--border-default)] text-[var(--text-secondary)]"
+                          title="Melhora o prompt com técnicas profissionais"
+                        >
+                          <SparklesIcon className="w-4 h-4 text-yellow-400" />
+                          1. Refinar
+                        </Button>
+
+                        <Button
+                          onClick={() => handleConvertToJSON(index)}
+                          className="text-[10px] py-2 h-auto flex flex-col items-center gap-1 bg-[var(--background-input)] hover:bg-[var(--background-input)]/80 border border-[var(--border-default)] text-[var(--text-secondary)]"
+                          title="Copia a estrutura JSON do prompt"
+                        >
+                          <CodeBracketIcon className="w-4 h-4 text-blue-400" />
+                          2. JSON
+                        </Button>
+
+                        <Button
+                          onClick={() => handleGenerateImageFinal(index)}
+                          className="text-[10px] py-2 h-auto flex flex-col items-center gap-1 bg-primary/20 hover:bg-primary/30 text-primary border border-primary/20"
+                          title="Gera a imagem final (Gasta créditos)"
+                          disabled={isImgLoading}
+                        >
+                          <PhotoIcon className="w-4 h-4" />
+                          3. GERAR
+                        </Button>
+                      </div>
+
                     </div>
+                  </div>
 
+                  {/* Footer Actions */}
+                  <div className="bg-black/20 p-4 border-t border-[var(--border-default)] flex flex-wrap justify-end gap-3">
+                    <SaveToLibraryButton
+                      content={JSON.stringify(post)}
+                      type="post"
+                      userId={userId}
+                      initialName={`Post: ${post.title}`}
+                      tags={["generated", "content-generator", ...(post.hashtags || [])]}
+                      label="Salvar Post Completo"
+                      className="text-xs"
+                    />
+                    <Button onClick={() => handleSaveToDrive(post)} variant="ghost" className="text-xs flex items-center gap-2">
+                      <CloudIcon className="w-4 h-4" /> Salvar Drive
+                    </Button>
                   </div>
                 </div>
-
-                {/* Footer Actions */}
-                <div className="bg-black/40 p-4 border-t border-white/5 flex flex-wrap justify-end gap-3">
-                  <SaveToLibraryButton
-                    content={JSON.stringify(post)}
-                    type="post"
-                    userId={userId}
-                    initialName={`Post: ${post.title}`}
-                    tags={["generated", "content-generator", ...(post.hashtags || [])]}
-                    label="Salvar Post Completo"
-                    className="text-xs"
-                  />
-                  <Button onClick={() => handleSaveToDrive(post)} variant="ghost" className="text-xs flex items-center gap-2">
-                    <CloudIcon className="w-4 h-4" /> Salvar Drive
-                  </Button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+              );
+            })}
+          </div>
+        )
+      }
 
       {/* Seção legado (Avatares) mantida abaixo para utilidade extra */}
       <div className="mt-16 border-t border-white/5 pt-12">
-        <h3 className="text-xl font-bold text-gray-400 mb-6 flex items-center gap-2">
+        <h3 className="text-xl font-bold text-[var(--text-secondary)] mb-6 flex items-center gap-2">
           <span className="w-2 h-8 bg-gray-700 rounded-full" /> Ferramentas Auxiliares
         </h3>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Avatar Gen */}
-          <div className="bg-surface p-6 rounded-2xl border border-white/5">
+          <div className="bg-[var(--background-input)] p-6 rounded-2xl border border-[var(--border-default)]">
             <h4 className="font-bold text-white mb-2">Gerador de Personas</h4>
             <p className="text-xs text-muted mb-4">Crie perfis de compradores ideais baseados na tendência atual.</p>
             <Button onClick={generateAvatars} isLoading={loadingAvatars} variant="secondary" className="w-full">
@@ -544,8 +542,8 @@ const ContentGenerator: React.FC = () => {
           </div>
 
           {/* Profile Analysis */}
-          <div className="bg-surface p-6 rounded-2xl border border-white/5">
-            <h4 className="font-bold text-title mb-2">Analisador de Texto</h4>
+          <div className="bg-[var(--background-input)] p-6 rounded-2xl border border-[var(--border-default)]">
+            <h4 className="font-bold text-[var(--text-primary)] mb-2">Analisador de Texto</h4>
             <Textarea
               id="profile-analysis-text"
               value={profileAnalysisText}
@@ -561,8 +559,7 @@ const ContentGenerator: React.FC = () => {
           </div>
         </div>
       </div>
-
-    </div>
+    </div >
   );
 };
 

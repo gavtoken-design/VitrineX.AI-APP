@@ -112,7 +112,7 @@ const LiquidCalendar: React.FC<LiquidCalendarProps> = ({ posts, onDateSelect, on
     };
 
     return (
-        <div className="bg-surface/50 backdrop-blur-md rounded-2xl border border-white/10 shadow-2xl overflow-hidden p-6 max-w-full">
+        <div className="bg-surface/50 backdrop-blur-md rounded-2xl border border-white/10 shadow-2xl overflow-hidden p-3 md:p-6 max-w-full">
             {/* Header */}
             <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-4">

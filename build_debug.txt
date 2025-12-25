@@ -1,0 +1,54 @@
+
+> vitrinex-ai-app@1.0.0 build
+> tsc -p electron/tsconfig.json && vite build
+
+[36mvite v5.4.21 [32mbuilding for production...[36m[39m
+transforming...
+
+warn - The class `duration-[3000ms]` is ambiguous and matches multiple utilities.
+warn - If this is content and not a class, replace it with `duration-&lsqb;3000ms&rsqb;` to silence this warning.
+[32mÔ£ô[39m 2530 modules transformed.
+rendering chunks...
+[plugin:vite:reporter] [plugin vite:reporter] 
+(!) C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/services/core/db.ts is dynamically imported by C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/services/core/auth.ts but also statically imported by C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/components/features/LibraryImportModal.tsx, C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/components/features/LibrarySelectorModal.tsx, C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/components/features/SaveToLibraryButton.tsx, C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/components/features/creative-studio/StudioSidebar.tsx, C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/contexts/AuthContext.tsx, C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/hooks/useQueries.ts, C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/pages/AdStudio.tsx, C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/pages/CalendarManager.tsx, C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/pages/CarouselStudio.tsx, C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/pages/CodePlayground.tsx, C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/pages/ContentLibrary.tsx, C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/pages/Settings.tsx, C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/pages/SmartScheduler.tsx, C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/pages/TrendHunter.tsx, C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/services/ai/gemini.ts, C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/services/ai/tools.ts, dynamic import will not move module into another chunk.
+
+[plugin:vite:reporter] [plugin vite:reporter] 
+(!) C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/services/ai/text.ts is dynamically imported by C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/services/ai/tools.ts but also statically imported by C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/pages/SmartScheduler.tsx, C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/services/ai/index.ts, C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/services/ai/knowledge.ts, dynamic import will not move module into another chunk.
+
+[plugin:vite:reporter] [plugin vite:reporter] 
+(!) C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/services/ai/image/generate.ts is dynamically imported by C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/services/ai/image/edit.ts but also statically imported by C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/services/ai/image.ts, dynamic import will not move module into another chunk.
+
+[plugin:vite:reporter] [plugin vite:reporter] 
+(!) C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/services/ai/tools.ts is dynamically imported by C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/services/ai/text.ts, C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/services/ai/text.ts but also statically imported by C:/Users/Jeanc/OneDrive/├ürea de Trabalho/VitrineX-AI - APP/src/services/ai/index.ts, dynamic import will not move module into another chunk.
+
+computing gzip size...
+[2mdist/[22m[32mregisterSW.js                               [39m[1m[2m    0.14 kB[22m[1m[22m
+[2mdist/[22m[32mindex.html                                  [39m[1m[2m   33.15 kB[22m[1m[22m[2m Ôöé gzip:   7.28 kB[22m
+[2mdist/[22m[35massets/main-D7bp5W0E.css                    [39m[1m[2m  113.04 kB[22m[1m[22m[2m Ôöé gzip:  16.95 kB[22m
+[2mdist/[22m[36massets/__vite-browser-external-BIHI7g3E.js  [39m[1m[2m    0.03 kB[22m[1m[22m[2m Ôöé gzip:   0.05 kB[22m
+[2mdist/[22m[36massets/purify.es-B9ZVCkUG.js                [39m[1m[2m   22.64 kB[22m[1m[22m[2m Ôöé gzip:   8.75 kB[22m
+[2mdist/[22m[36massets/ui-DH1JJ2Ox.js                       [39m[1m[2m   45.00 kB[22m[1m[22m[2m Ôöé gzip:  16.02 kB[22m
+[2mdist/[22m[36massets/vendor-CGGmlnj3.js                   [39m[1m[2m  129.90 kB[22m[1m[22m[2m Ôöé gzip:  42.93 kB[22m
+[2mdist/[22m[36massets/index.es-9qw-xG5h.js                 [39m[1m[2m  150.50 kB[22m[1m[22m[2m Ôöé gzip:  51.45 kB[22m
+[2mdist/[22m[36massets/main-DS_ElUC5.js                     [39m[1m[33m2,362.58 kB[39m[22m[2m Ôöé gzip: 677.83 kB[22m
+
+(!) Some chunks are larger than 1000 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+[32mÔ£ô built in 13.80s[39m
+error during build:
+Error: 
+  Configure "workbox.maximumFileSizeToCacheInBytes" to change the limit: the default value is 2 MiB.
+  Check https://vite-pwa-org.netlify.app/guide/faq.html#missing-assets-from-sw-precache-manifest for more information.
+  Assets exceeding the limit:
+  - assets/main-DS_ElUC5.js is 2.36 MB, and won't be precached.
+
+    at logWorkboxResult (file:///C:/Users/Jeanc/OneDrive/%C3%81rea%20de%20Trabalho/VitrineX-AI%20-%20APP/node_modules/vite-plugin-pwa/dist/chunk-G4TAN34B.js:44:13)
+    at generateServiceWorker (file:///C:/Users/Jeanc/OneDrive/%C3%81rea%20de%20Trabalho/VitrineX-AI%20-%20APP/node_modules/vite-plugin-pwa/dist/index.js:209:3)
+    at async _generateSW (file:///C:/Users/Jeanc/OneDrive/%C3%81rea%20de%20Trabalho/VitrineX-AI%20-%20APP/node_modules/vite-plugin-pwa/dist/index.js:234:5)
+    at async Object.handler (file:///C:/Users/Jeanc/OneDrive/%C3%81rea%20de%20Trabalho/VitrineX-AI%20-%20APP/node_modules/vite-plugin-pwa/dist/index.js:427:13)
+    at async PluginDriver.hookParallel (file:///C:/Users/Jeanc/OneDrive/%C3%81rea%20de%20Trabalho/VitrineX-AI%20-%20APP/node_modules/rollup/dist/es/shared/node-entry.js:22398:17)
+    at async Object.close (file:///C:/Users/Jeanc/OneDrive/%C3%81rea%20de%20Trabalho/VitrineX-AI%20-%20APP/node_modules/rollup/dist/es/shared/node-entry.js:23417:13)
+    at async build (file:///C:/Users/Jeanc/OneDrive/%C3%81rea%20de%20Trabalho/VitrineX-AI%20-%20APP/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:65732:17)
+    at async CAC.<anonymous> (file:///C:/Users/Jeanc/OneDrive/%C3%81rea%20de%20Trabalho/VitrineX-AI%20-%20APP/node_modules/vite/dist/node/cli.js:829:5)

@@ -23,6 +23,7 @@ export const translations: Translations = {
     'sidebar.strategy': 'Strategy',
     'sidebar.campaigns': 'Campaigns',
     'sidebar.trends': 'Trends',
+    'sidebar.market_radar': 'Market Radar',
     'sidebar.calendar': 'Calendar',
     'sidebar.communication': 'Communication',
     'sidebar.ai_chat': 'AI Chat',
@@ -56,6 +57,10 @@ export const translations: Translations = {
     'dashboard.btn_market': 'Market Research',
     'dashboard.btn_media': 'Media Studio',
     'dashboard.btn_schedule': 'Manage Schedule',
+    'dashboard.recent_activity': 'Recent Activity',
+    'dashboard.view_all': 'View All',
+    'dashboard.no_activity': 'No recent activity recorded.',
+    'dashboard.start_creating': 'Start Creating',
 
     // Navbar
     'nav.profile': 'Profile',
@@ -81,6 +86,7 @@ export const translations: Translations = {
     'sidebar.strategy': 'Estratégia',
     'sidebar.campaigns': 'Campanhas',
     'sidebar.trends': 'Tendências',
+    'sidebar.market_radar': 'Radar de Mercado',
     'sidebar.calendar': 'Calendário',
     'sidebar.communication': 'Comunicação',
     'sidebar.ai_chat': 'Chat IA',
@@ -114,6 +120,10 @@ export const translations: Translations = {
     'dashboard.btn_market': 'Pesquisa de Mercado',
     'dashboard.btn_media': 'Estúdio de Mídia',
     'dashboard.btn_schedule': 'Gerenciar Agenda',
+    'dashboard.recent_activity': 'Atividades Recentes',
+    'dashboard.view_all': 'Ver Todas',
+    'dashboard.no_activity': 'Nenhuma atividade recente registrada.',
+    'dashboard.start_creating': 'Começar a Criar',
 
     // Navbar
     'nav.profile': 'Perfil',

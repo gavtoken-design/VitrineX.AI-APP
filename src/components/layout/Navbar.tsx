@@ -53,16 +53,6 @@ const Navbar: React.FC<NavbarProps> = memo(({ onMenuClick }) => {
               <span className="hidden xl:inline">Importar</span>
             </Button>
 
-            {/* Persona Switcher - New Action Button */}
-            <Button
-              variant="liquid"
-              size="sm"
-              className="hidden lg:flex items-center gap-2 mr-2 bg-gradient-to-r from-purple-600 to-pink-600 border-none shadow-purple-500/20"
-              onClick={() => alert("Funcionalidade em desenvolvimento: Troca de Personagem/Avatar")}
-            >
-              <UserGroupIcon className="w-4 h-4" />
-              <span className="hidden xl:inline">Mudar Personagem</span>
-            </Button>
 
             <NotificationDropdown />
 

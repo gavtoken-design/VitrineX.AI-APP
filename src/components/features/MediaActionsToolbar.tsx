@@ -16,7 +16,7 @@ const MediaActionsToolbar: React.FC<MediaActionsToolbarProps> = ({
   shareTitle = "Criativo da VitrineX AI",
   shareText = "Confira este criativo que gerei com a VitrineX AI!",
 }) => {
-  const { handleDownload, handleShare, isProcessing } = useMediaActions();
+  const { handleDownload, handleShare, handleSaveToDrive, isProcessing } = useMediaActions();
 
   return (
     <div className="flex flex-wrap gap-3">
@@ -39,6 +39,18 @@ const MediaActionsToolbar: React.FC<MediaActionsToolbarProps> = ({
       >
         <ShareIcon className="w-4 h-4 mr-2" />
         Compartilhar
+      </Button>
+      <Button
+        onClick={() => mediaUrl && handleSaveToDrive(mediaUrl, fileName)}
+        variant="outline"
+        className="w-full sm:w-auto border-white/10 text-white/70 hover:text-white"
+        disabled={!mediaUrl || isProcessing}
+        isLoading={isProcessing}
+      >
+        <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24">
+          <path fill="currentColor" d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z" />
+        </svg>
+        Salvar no Drive
       </Button>
     </div>
   );

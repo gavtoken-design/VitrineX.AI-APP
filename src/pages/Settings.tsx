@@ -19,16 +19,65 @@ import {
     SparklesIcon,
     GlobeAltIcon,
     SunIcon,
-    MoonIcon
+    MoonIcon,
+    CloudIcon
 } from '@heroicons/react/24/outline';
+import { connectGoogleDrive, isDriveConnected } from '../services/integrations/googleDrive';
 
 const Settings: React.FC = () => {
     const { user, profile, signOut } = useAuth();
-    const { t } = useLanguage();
+    const { t, language, setLanguage } = useLanguage();
     const { theme, toggleTheme } = useTheme();
     const { addToast } = useToast();
     const [verifying, setVerifying] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [driveConnected, setDriveConnected] = useState(false);
+
+    useEffect(() => {
+        const checkDrive = async () => {
+            const connected = await isDriveConnected();
+            setDriveConnected(connected);
+        };
+        checkDrive();
+    }, []);
+
+    const handleConnectDrive = async () => {
+        try {
+            await connectGoogleDrive();
+            // Polling simple para verificar se conectou (o callback do GIS é async)
+            const interval = setInterval(async () => {
+                const connected = await isDriveConnected();
+                if (connected) {
+                    setDriveConnected(true);
+                    addToast({ type: 'success', title: 'Conectado', message: 'Google Drive ativado com sucesso!' });
+                    clearInterval(interval);
+                }
+            }, 2000);
+
+            // Timeout de 1 minuto para parar o polling
+            setTimeout(() => clearInterval(interval), 60000);
+        } catch (error) {
+            addToast({ type: 'error', title: 'Erro', message: 'Falha ao iniciar conexão com Google.' });
+        }
+    };
+
+    // Notifications State
+    const [notifications, setNotifications] = useState({
+        email: true,
+        marketing: false,
+        browser: true
+    });
+
+    useEffect(() => {
+        const saved = localStorage.getItem('vitrinex_notifications');
+        if (saved) {
+            try {
+                setNotifications(JSON.parse(saved));
+            } catch (e) {
+                console.error("Failed to parse notifications settings");
+            }
+        }
+    }, []);
 
     // Form State
     const [fullName, setFullName] = useState('');
@@ -201,6 +250,13 @@ const Settings: React.FC = () => {
                             >
                                 <SunIcon className="w-5 h-5" />
                                 Aparência
+                            </button>
+                            <button
+                                onClick={() => document.getElementById('integrations-section')?.scrollIntoView({ behavior: 'smooth' })}
+                                className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-[var(--text-secondary)] hover:bg-[var(--background-input)] hover:text-[var(--text-primary)] transition-colors"
+                            >
+                                <CloudIcon className="w-5 h-5" />
+                                Canais Digitais
                             </button>
                         </div>
 
@@ -382,24 +438,58 @@ const Settings: React.FC = () => {
                             <h2 className="text-xl font-bold text-[var(--text-primary)]">Notificações</h2>
                         </div>
                         <div className="space-y-4">
-                            {[
-                                { id: 'email-notif', label: 'Notificações por E-mail', desc: 'Receba resumos semanais e alertas de conta.' },
-                                { id: 'mkt-notif', label: 'Novidades e Marketing', desc: 'Fique por dentro das atualizações da VitrineX.' },
-                                { id: 'browser-notif', label: 'Alertas no Navegador', desc: 'Receba notificações push enquanto usa o app.' }
-                            ].map((item) => (
-                                <div key={item.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-[var(--background-input)] transition-colors">
-                                    <div>
-                                        <h3 className="font-medium text-[var(--text-primary)]">{item.label}</h3>
-                                        <p className="text-xs text-[var(--text-secondary)]">{item.desc}</p>
-                                    </div>
-                                    <label className="relative inline-flex items-center cursor-pointer">
-                                        <input type="checkbox" defaultChecked className="sr-only peer" />
-                                        <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-                                    </label>
+
+                            <div className="flex items-center justify-between p-3 rounded-lg hover:bg-[var(--background-input)] transition-colors">
+                                <div>
+                                    <h3 className="font-medium text-[var(--text-primary)]">Notificações por E-mail</h3>
+                                    <p className="text-xs text-[var(--text-secondary)]">Receba resumos semanais e alertas de conta.</p>
                                 </div>
-                            ))}
+                                <label className="relative inline-flex items-center cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={notifications.email}
+                                        onChange={(e) => setNotifications(prev => ({ ...prev, email: e.target.checked }))}
+                                        className="sr-only peer"
+                                    />
+                                    <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                                </label>
+                            </div>
+                            <div className="flex items-center justify-between p-3 rounded-lg hover:bg-[var(--background-input)] transition-colors">
+                                <div>
+                                    <h3 className="font-medium text-[var(--text-primary)]">Novidades e Marketing</h3>
+                                    <p className="text-xs text-[var(--text-secondary)]">Fique por dentro das atualizações da VitrineX.</p>
+                                </div>
+                                <label className="relative inline-flex items-center cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={notifications.marketing}
+                                        onChange={(e) => setNotifications(prev => ({ ...prev, marketing: e.target.checked }))}
+                                        className="sr-only peer"
+                                    />
+                                    <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                                </label>
+                            </div>
+                            <div className="flex items-center justify-between p-3 rounded-lg hover:bg-[var(--background-input)] transition-colors">
+                                <div>
+                                    <h3 className="font-medium text-[var(--text-primary)]">Alertas no Navegador</h3>
+                                    <p className="text-xs text-[var(--text-secondary)]">Receba notificações push enquanto usa o app.</p>
+                                </div>
+                                <label className="relative inline-flex items-center cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={notifications.browser}
+                                        onChange={(e) => setNotifications(prev => ({ ...prev, browser: e.target.checked }))}
+                                        className="sr-only peer"
+                                    />
+                                    <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                                </label>
+                            </div>
+
                             <div className="pt-4">
-                                <Button variant="outline" onClick={() => addToast({ type: 'success', message: 'Preferências de notificação salvas.' })}>
+                                <Button variant="outline" onClick={() => {
+                                    localStorage.setItem('vitrinex_notifications', JSON.stringify(notifications));
+                                    addToast({ type: 'success', message: 'Preferências de notificação salvas.' });
+                                }}>
                                     Salvar Preferências
                                 </Button>
                             </div>
@@ -417,10 +507,9 @@ const Settings: React.FC = () => {
                                 <label className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Idioma do Sistema</label>
                                 <select
                                     className="w-full bg-[var(--background-input)] border border-[var(--border-default)] rounded-xl px-4 py-3 text-[var(--text-primary)] focus:outline-none focus:border-primary transition-colors"
-                                    // Note: In a real implementation this would sync with LanguageContext
-                                    defaultValue="pt-BR"
+                                    value={language}
                                     onChange={(e) => {
-                                        // Fake implementation for UI demo, reliable sync is via Navbar
+                                        setLanguage(e.target.value as any);
                                         addToast({ type: 'info', message: `Idioma alterado para ${e.target.value}` });
                                     }}
                                 >
@@ -471,6 +560,65 @@ const Settings: React.FC = () => {
                                     )}
                                 </span>
                             </button>
+                        </div>
+                    </section>
+
+                    {/* Integrations Section (New) */}
+                    <section id="integrations-section" className="glass-card p-8">
+                        <div className="flex items-center gap-3 mb-6">
+                            <CloudIcon className="w-6 h-6 text-primary" />
+                            <h2 className="text-xl font-bold text-[var(--text-primary)]">Canais Digitais</h2>
+                        </div>
+                        <div className="space-y-6">
+                            <div className="flex items-center justify-between p-6 bg-[var(--background-input)] rounded-2xl border border-[var(--border-default)]">
+                                <div className="flex items-center gap-4">
+                                    <div className="p-3 bg-white/5 rounded-xl border border-white/10">
+                                        <svg className="w-8 h-8" viewBox="0 0 24 24">
+                                            <path fill="#4285F4" d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z" />
+                                            <path fill="#34A853" d="M12 18l-6.79 3 .71-.71L12 18z" />
+                                            <path fill="#FBBC05" d="M12 2L4.5 20.29l.71.71L12 18z" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 className="font-bold text-[var(--text-primary)]">Google Drive</h3>
+                                        <p className="text-sm text-[var(--text-secondary)]">Salve seus relatórios e criativos automaticamente na nuvem.</p>
+                                    </div>
+                                </div>
+
+                                {driveConnected ? (
+                                    <div className="flex items-center gap-3">
+                                        <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-green-500/10 text-green-500 text-xs font-bold border border-green-500/20">
+                                            <CheckBadgeIcon className="w-4 h-4" />
+                                            CONECTADO
+                                        </span>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="text-red-400 hover:text-red-500"
+                                            onClick={() => {
+                                                localStorage.removeItem('vitrinex_google_drive_token');
+                                                setDriveConnected(false);
+                                                addToast({ type: 'info', message: 'Google Drive desconectado.' });
+                                            }}
+                                        >
+                                            Desconectar
+                                        </Button>
+                                    </div>
+                                ) : (
+                                    <Button
+                                        onClick={handleConnectDrive}
+                                        className="bg-white text-black hover:bg-gray-100 border-none font-bold"
+                                    >
+                                        Ativar Google Drive
+                                    </Button>
+                                )}
+                            </div>
+
+                            <div className="p-4 bg-primary/5 rounded-xl border border-primary/10">
+                                <p className="text-xs text-primary leading-relaxed">
+                                    <strong>Nota:</strong> Ao ativar o Google Drive, a VitrineX AI terá permissão apenas para gerenciar arquivos criados por este aplicativo, garantindo sua privacidade.
+                                </p>
+                            </div>
                         </div>
                     </section>
                 </div>

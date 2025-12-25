@@ -51,7 +51,8 @@ export const useNavItems = () => {
   return [
     {
       section: 'sidebar.overview', items: [
-        { id: "nav-trend-hunter", name: "TrendHunter" as ModuleName, label: 'sidebar.trends', icon: 'trends' as IconName }
+        { id: "nav-trend-hunter", name: "TrendHunter" as ModuleName, label: 'sidebar.trends', icon: 'trends' as IconName },
+        { id: "nav-market-radar", name: "MarketRadar" as ModuleName, label: 'sidebar.market_radar', icon: 'analytics' as IconName }
       ]
     },
     {
@@ -73,8 +74,9 @@ export const useNavItems = () => {
     {
       section: 'sidebar.system', items: [
         { name: "ContentLibrary" as ModuleName, label: 'sidebar.library', icon: 'library' as IconName },
-
+        { name: "SocialNetworks" as ModuleName, label: 'Redes Sociais', icon: 'share' as IconName },
         { id: "nav-settings", name: "Settings" as ModuleName, label: 'sidebar.config', icon: 'settings' as IconName }
+
       ]
     }
   ];

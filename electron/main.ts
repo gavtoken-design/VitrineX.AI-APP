@@ -19,7 +19,7 @@ function createWindow() {
 
   if (isDev) {
     // Em desenvolvimento: carrega do servidor Vite
-    const devUrl = 'http://localhost:5173'; // Verifique se esta é a porta correta do seu vite
+    const devUrl = 'http://localhost:8080'; // Verifique se esta é a porta correta do seu vite
     win.loadURL(devUrl).catch((err: any) => {
       console.log('Erro ao carregar URL de dev:', err);
     });

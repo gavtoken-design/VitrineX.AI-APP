@@ -1,12 +1,26 @@
-// src/components/SocialConnectButton.tsx
 import { useState } from "react";
+import { useToast } from "../contexts/ToastContext";
 
 export default function SocialConnectButton() {
     const [showModal, setShowModal] = useState(false);
+    const { addToast } = useToast();
 
     const startFacebookLogin = () => {
         const fbAppId = import.meta.env.VITE_FB_APP_ID;
-        const redirect = encodeURIComponent(import.meta.env.VITE_AUTH_REDIRECT_URI);
+
+        // Simulation Mode Check
+        if (!fbAppId || fbAppId.includes('SEU_APP_ID')) {
+            addToast({ type: 'info', message: '⚠️ Modo Demo: Simulando conexão com Facebook...' });
+
+            setTimeout(() => {
+                addToast({ type: 'success', message: 'Facebook conectado! (Ambiente de Teste)' });
+                setShowModal(false);
+                // Here you could ostensibly update some global auth state if it existed
+            }, 1500);
+            return;
+        }
+
+        const redirect = encodeURIComponent(import.meta.env.VITE_AUTH_REDIRECT_URI || window.location.origin);
         const scope = "pages_read_engagement,pages_show_list";
         const url = `https://www.facebook.com/v20.0/dialog/oauth?client_id=${fbAppId}&redirect_uri=${redirect}&scope=${scope}&response_type=token`;
         window.location.href = url;
@@ -14,7 +28,19 @@ export default function SocialConnectButton() {
 
     const startInstagramLogin = () => {
         const clientId = import.meta.env.VITE_IG_CLIENT_ID;
-        const redirect = encodeURIComponent(import.meta.env.VITE_AUTH_REDIRECT_URI);
+
+        // Simulation Mode Check
+        if (!clientId || clientId.includes('SEU_APP_ID')) {
+            addToast({ type: 'info', message: '⚠️ Modo Demo: Simulando conexão com Instagram...' });
+
+            setTimeout(() => {
+                addToast({ type: 'success', message: 'Instagram conectado! (Ambiente de Teste)' });
+                setShowModal(false);
+            }, 1500);
+            return;
+        }
+
+        const redirect = encodeURIComponent(import.meta.env.VITE_AUTH_REDIRECT_URI || window.location.origin);
         const scope = "user_profile,user_media";
         const url = `https://api.instagram.com/oauth/authorize?client_id=${clientId}&redirect_uri=${redirect}&scope=${scope}&response_type=code`;
         window.location.href = url;
@@ -36,16 +62,23 @@ export default function SocialConnectButton() {
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowModal(false)}>
                     <div className="bg-surface border border-border rounded-lg p-6 max-w-md w-full mx-4" onClick={(e) => e.stopPropagation()}>
                         <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-xl font-bold">Conectar Redes Sociais</h2>
-                            <button onClick={() => setShowModal(false)} className="text-muted hover:text-body">
+                            <h2 className="text-xl font-bold text-white">Conectar Redes Sociais</h2>
+                            <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-white">
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </button>
                         </div>
+
+                        {!import.meta.env.VITE_FB_APP_ID && (
+                            <div className="mb-4 text-xs text-yellow-500 bg-yellow-500/10 p-2 rounded border border-yellow-500/20">
+                                ℹ️ Chaves de API não configuradas. Usando <b>Modo de Simulação</b>.
+                            </div>
+                        )}
+
                         <div className="flex flex-col gap-3">
                             <button
-                                className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center justify-center gap-2"
+                                className="w-full px-4 py-3 bg-[#1877F2] text-white rounded-lg hover:bg-[#166fe5] transition-colors font-medium flex items-center justify-center gap-2"
                                 onClick={startFacebookLogin}
                             >
                                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -54,7 +87,7 @@ export default function SocialConnectButton() {
                                 Conectar Facebook
                             </button>
                             <button
-                                className="w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-colors font-medium flex items-center justify-center gap-2"
+                                className="w-full px-4 py-3 bg-gradient-to-r from-[#833AB4] via-[#FD1D1D] to-[#F77737] text-white rounded-lg hover:opacity-90 transition-opacity font-medium flex items-center justify-center gap-2"
                                 onClick={startInstagramLogin}
                             >
                                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">

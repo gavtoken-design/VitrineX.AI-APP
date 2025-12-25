@@ -52,8 +52,8 @@ export const LandingPage: React.FC = () => {
     };
 
     return (
-        // Adicionei 'bg-slate-900' como fallback caso o CSS personalizado falhe
-        <div className="relative min-h-screen w-full overflow-hidden bg-slate-900 flex flex-col items-center justify-center p-4">
+        // Cor de fundo padronizada com o tema escuro da aplicação
+        <div className="relative min-h-screen w-full overflow-hidden bg-[#050505] flex flex-col items-center justify-center p-4">
 
             {/* Animated AI Background */}
             <AnoAI />
@@ -64,15 +64,15 @@ export const LandingPage: React.FC = () => {
                 animate="visible"
                 className="relative z-10 max-w-4xl w-full mx-auto"
             >
-                {/* Cartão principal com efeito Glass */}
-                <motion.div className="glass-card p-10 md:p-16 text-center border border-white/10 backdrop-blur-2xl shadow-2xl rounded-3xl overflow-hidden relative bg-white/5">
+                {/* Cartão principal com efeito Glass Padronizado */}
+                <motion.div className="glass-card p-10 md:p-16 text-center border border-[var(--border-default)] backdrop-blur-2xl shadow-2xl rounded-3xl overflow-hidden relative bg-[var(--background-input)]/40">
 
                     {/* Brilho decorativo no topo */}
                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-blue-400 to-transparent opacity-50" />
 
                     {/* Logo */}
                     <motion.div variants={itemVariants} className="flex justify-center mb-8">
-                        <div className="p-4 bg-white/5 rounded-2xl border border-white/10 shadow-inner">
+                        <div className="p-4 bg-[var(--background-input)]/50 rounded-2xl border border-[var(--border-default)] shadow-inner">
                             <Logo className="h-16 w-16 md:h-20 md:w-20" showText={false} />
                         </div>
                     </motion.div>
@@ -88,7 +88,7 @@ export const LandingPage: React.FC = () => {
                     {/* Subtítulo / Descrição */}
                     <motion.p
                         variants={itemVariants}
-                        className="text-lg md:text-xl text-gray-300 mb-10 max-w-2xl mx-auto leading-relaxed font-light"
+                        className="text-lg md:text-xl text-[var(--text-secondary)] mb-10 max-w-2xl mx-auto leading-relaxed font-light"
                     >
                         A plataforma definitiva para criadores. Gere campanhas, imagens e códigos de vendas com o poder da <span className="text-blue-400 font-semibold">Inteligência Artificial</span>.
                     </motion.p>
@@ -122,22 +122,22 @@ export const LandingPage: React.FC = () => {
                             <motion.div
                                 initial={{ opacity: 0, height: 0 }}
                                 animate={{ opacity: 1, height: 'auto' }}
-                                className="w-full max-w-md flex flex-col gap-2 bg-black/40 p-4 rounded-xl border border-white/5"
+                                className="w-full max-w-md flex flex-col gap-2 bg-[var(--background-input)]/90 backdrop-blur-md p-4 rounded-xl border border-[var(--border-default)] shadow-xl"
                             >
-                                <label className="text-xs text-left text-gray-400 ml-1">Insira sua Chave de Acesso / Licença</label>
+                                <label className="text-xs text-left text-[var(--text-secondary)] ml-1 font-medium">Insira sua Chave de Acesso / Licença</label>
                                 <div className="flex gap-2">
-                                    <div className="relative flex-1">
+                                    <div className="relative flex-1 group">
                                         <input
                                             type={showPassword ? 'text' : 'password'}
                                             value={apiKey}
                                             onChange={(e) => setApiKey(e.target.value)}
-                                            placeholder="AIzaSy..."
-                                            className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500 transition-colors placeholder:text-gray-600 pr-10"
+                                            placeholder="Cole sua API Key do Google AI Studio aqui..."
+                                            className={`w-full bg-[var(--background-input)] border ${apiKey.length > 10 ? 'border-green-500/50 focus:border-green-500' : 'border-[var(--border-default)] focus:border-blue-500'} rounded-lg px-3 py-2 text-[var(--text-primary)] text-sm focus:outline-none transition-all duration-300 placeholder:text-[var(--text-secondary)]/50 pr-10`}
                                         />
                                         <button
                                             type="button"
                                             onClick={() => setShowPassword(!showPassword)}
-                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
                                         >
                                             {showPassword ? (
                                                 <EyeSlashIcon className="w-4 h-4" />
@@ -148,16 +148,16 @@ export const LandingPage: React.FC = () => {
                                     </div>
                                     <button
                                         onClick={handleSaveKey}
-                                        className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm font-semibold rounded-lg transition-colors border border-white/5"
+                                        className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-lg transition-colors border border-blue-400/30 shadow-lg shadow-blue-500/20"
                                     >
-                                        Salvar
+                                        Salvar e Ativar
                                     </button>
                                 </div>
                                 <button
                                     onClick={() => setShowApiKey(false)}
-                                    className="text-xs text-gray-500 hover:text-gray-300 self-end mt-1"
+                                    className="text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] self-end mt-1 underline decoration-transparent hover:decoration-[var(--text-secondary)] transition-all"
                                 >
-                                    Cancelar
+                                    Fechar configuração
                                 </button>
                             </motion.div>
                         )}

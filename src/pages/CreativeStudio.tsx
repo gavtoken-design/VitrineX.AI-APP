@@ -100,18 +100,20 @@ const CreativeStudio: React.FC = () => {
       addToast({ type: 'info', message: 'Otimizando seu prompt com IA...' });
 
       const styleData = IMAGE_STYLES.find(s => s.id === selectedStyle);
-      const refinementPrompt = `Role: Expert Prompt Engineer for Imagen 4 Ultra.
-Task: Your goal is to rewrite the User Input into a highly detailed, masterful prompt for text-to-image generation.
-The user might give a simple description. You must expand it with details about lighting, camera angles, textures, and atmosphere.
+      const refinementPrompt = `Role: World-Class Prompt Engineer for High-End Advertising (Imagen 4 Ultra).
+Task: Rewrite the User Input into a prompt that generates an AWARD-WINNING commercial image.
+Guidelines:
+1. FOCUS: Hyper-realism, perfect studio lighting, sharp focus, 8k resolution.
+2. COMPOSITION: Clean, professional, balanced.
+3. SUBJECT: If human, perfection in skin texture and eyes. If product, macro details.
 
 User Selected Style: ${styleData?.label || 'None'}
-Style Instructions: ${styleData?.prompt || ''}
 User Input: "${prompt}"
 
 Output JSON ONLY:
 {
-  "prompt": "...",
-  "negative_prompt": "..." 
+  "prompt": "Professional 8k photography of [subject]..., soft studio lighting, cinematic dept of field, ... [detailed attributes]",
+  "negative_prompt": "blurry, low quality, distorted, ugly, pixelated, text, watermark, bad anatomy" 
 }`;
 
       let finalPrompt = prompt;
@@ -271,7 +273,7 @@ Output JSON ONLY:
               <button
                 key={tpl.id}
                 onClick={() => { setPrompt(tpl.basePrompt); addToast({ type: 'info', message: `Modelo '${tpl.label}' carregado.` }); }}
-                className="px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest bg-[var(--background-input)] hover:bg-primary/20 hover:text-primary transition-all whitespace-nowrap"
+                className="px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest bg-[var(--background-input)] hover:bg-primary/20 hover:text-primary transition-all whitespace-nowrap text-[var(--text-secondary)]"
               >
                 {tpl.icon} {tpl.label}
               </button>

@@ -1,30 +1,27 @@
-
 import React, { useState, useEffect } from 'react';
 import {
     ClockIcon,
     CalendarDaysIcon,
     SparklesIcon,
-    ChartBarIcon,
     PlusIcon,
     TrashIcon,
-    ArrowPathIcon,
-    BellIcon,
-    CheckCircleIcon,
-    PhotoIcon,
-    XMarkIcon,
     PencilIcon,
     ListBulletIcon,
-    TableCellsIcon
+    TableCellsIcon,
+    XMarkIcon,
+    PhotoIcon
 } from '@heroicons/react/24/outline';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import { useToast } from '../contexts/ToastContext';
 import { useAuth } from '../contexts/AuthContext';
 import { generateText } from '../services/ai/text';
-import { getScheduleEntries, saveScheduleEntry, deleteScheduleEntry, getLibraryItems } from '../services/core/db';
+import { getScheduleEntries, saveScheduleEntry, deleteScheduleEntry } from '../services/core/db';
 import { useNavigate } from '../hooks/useNavigate';
-import { ScheduleEntry as DbScheduleEntry, LibraryItem } from '../types';
+import { ScheduleEntry as DbScheduleEntry } from '../types';
 import LiquidCalendar from '../components/features/LiquidCalendar';
+import LibrarySelectorModal from '../components/features/LibrarySelectorModal';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface ScheduledPost {
     id: string;
@@ -48,15 +45,7 @@ interface ScheduledPost {
     mediaUrl?: string;
 }
 
-const platformColors = {
-    instagram: 'bg-gradient-to-r from-purple-500 to-pink-500',
-    facebook: 'bg-blue-600',
-    twitter: 'bg-sky-500',
-    linkedin: 'bg-blue-700',
-    all: 'bg-gradient-to-r from-blue-500 to-purple-500'
-};
-
-const platformIcons = {
+const platformIcons: Record<string, string> = {
     instagram: '📸',
     facebook: '👥',
     twitter: '🐦',
@@ -76,8 +65,6 @@ const SmartScheduler: React.FC = () => {
     const [recurringEndDate, setRecurringEndDate] = useState('');
     const [newImage, setNewImage] = useState<string | null>(null);
     const [isGeneratingAI, setIsGeneratingAI] = useState(false);
-    const [publishingId, setPublishingId] = useState<string | null>(null);
-    const [showAnalytics, setShowAnalytics] = useState(false);
 
     // View & Edit State
     const [viewMode, setViewMode] = useState<'list' | 'calendar'>('calendar');
@@ -85,32 +72,11 @@ const SmartScheduler: React.FC = () => {
 
     // Library Modal State
     const [isLibraryModalOpen, setIsLibraryModalOpen] = useState(false);
-    const [libraryItems, setLibraryItems] = useState<LibraryItem[]>([]);
-    const [isLoadingLibrary, setIsLoadingLibrary] = useState(false);
 
     const { addToast } = useToast();
     const { user } = useAuth();
-    const { navigationParams } = useNavigate();
     const userId = user?.id || 'anonymous';
-
-    // Fetch Library Items
-    useEffect(() => {
-        if (isLibraryModalOpen) {
-            const fetchLibrary = async () => {
-                setIsLoadingLibrary(true);
-                try {
-                    const items = await getLibraryItems(userId);
-                    setLibraryItems(items);
-                } catch (error) {
-                    console.error('Failed to load library items', error);
-                    addToast({ type: 'error', message: 'Erro ao carregar biblioteca.' });
-                } finally {
-                    setIsLoadingLibrary(false);
-                }
-            };
-            fetchLibrary();
-        }
-    }, [isLibraryModalOpen, userId, addToast]);
+    const { t } = useLanguage();
 
     // Load Posts
     useEffect(() => {
@@ -120,7 +86,7 @@ const SmartScheduler: React.FC = () => {
                 const dbPosts: ScheduledPost[] = data.map(item => ({
                     id: item.id,
                     title: item.platform.toUpperCase(),
-                    content: item.content || 'Conteúdo do agendamento',
+                    content: item.content || '',
                     mediaUrl: item.mediaUrl,
                     platform: item.platform as any,
                     scheduledDate: item.datetime.split('T')[0],
@@ -134,16 +100,6 @@ const SmartScheduler: React.FC = () => {
         };
         load();
     }, [userId]);
-
-    const calculateNextOccurrence = (currentDate: string, frequency: 'daily' | 'weekly' | 'monthly'): string => {
-        const date = new Date(currentDate);
-        switch (frequency) {
-            case 'daily': date.setDate(date.getDate() + 1); break;
-            case 'weekly': date.setDate(date.getDate() + 7); break;
-            case 'monthly': date.setMonth(date.getMonth() + 1); break;
-        }
-        return date.toISOString().split('T')[0];
-    };
 
     const handleDateSelect = (date: string) => {
         setNewDate(date);
@@ -200,7 +156,6 @@ const SmartScheduler: React.FC = () => {
         }
     };
 
-    // Placeholder AI generation
     const handleGenerateAI = async () => {
         if (!newTitle) return addToast({ type: 'warning', message: 'Adicione um título primeiro' });
         setIsGeneratingAI(true);
@@ -259,13 +214,7 @@ const SmartScheduler: React.FC = () => {
                 addToast({ type: 'success', message: '📅 Post agendado!' });
             }
 
-            setNewTitle('');
-            setNewContent('');
-            setNewDate('');
-            setNewTime('');
-            setIsRecurring(false);
-            setRecurringEndDate('');
-            setNewImage(null);
+            handleCancelEdit();
         } catch (e) {
             addToast({ type: 'error', message: 'Erro ao salvar.' });
         }
@@ -281,62 +230,33 @@ const SmartScheduler: React.FC = () => {
         }
     };
 
-    const handlePublishPost = async (post: ScheduledPost) => {
-        setPublishingId(post.id);
-        addToast({ type: 'info', message: 'Publicando...' });
-        // Simulação
-        setTimeout(() => {
-            setPosts(posts.map(p => p.id === post.id ? { ...p, status: 'published' } : p));
-            setPublishingId(null);
-            addToast({ type: 'success', message: 'Publicado!' });
-        }, 2000);
-    };
-
-    const pendingPosts = posts.filter(p => p.status === 'scheduled');
-    const publishedPosts = posts.filter(p => p.status === 'published');
-    const totalEngagement = publishedPosts.reduce((acc, p) => acc + (p.engagement?.likes || 0), 0);
-
     return (
         <div className="animate-fade-in pb-20">
             {/* Header */}
-            <div className="flex flex-col md:flex-row items-center justify-between pb-6 border-b border-border gap-4">
+            <div className="flex flex-col md:flex-row items-center justify-between pb-6 border-b border-white/10 gap-4 mb-8">
                 <div className="flex items-center gap-4">
-                    <div className="p-3 bg-purple-500/10 rounded-xl">
-                        <ClockIcon className="w-8 h-8 text-purple-500" />
+                    <div className="p-3 bg-primary/10 rounded-2xl border border-primary/20 shadow-[0_0_15px_rgba(var(--color-primary),0.2)]">
+                        <ClockIcon className="w-8 h-8 text-primary" />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-bold text-title">Smart Scheduler</h1>
-                        <p className="text-muted">Agendamento inteligente com visualização avançada.</p>
+                        <h1 className="text-3xl font-black text-[var(--text-primary)] uppercase tracking-tight italic">Smart <span className="text-primary not-italic">Scheduler</span></h1>
+                        <p className="text-[var(--text-secondary)] font-medium text-sm mt-1">Agendamento inteligente com visualização avançada.</p>
                     </div>
                 </div>
 
-                <div className="bg-surface border border-white/10 rounded-lg p-1 flex gap-1">
-                    <button onClick={() => setViewMode('list')} className={`p-2 rounded-md ${viewMode === 'list' ? 'bg-primary text-white' : 'text-gray-400'}`}>
+                <div className="bg-black/30 backdrop-blur-md border border-white/10 rounded-xl p-1 flex gap-1 shadow-inner">
+                    <button onClick={() => setViewMode('list')} className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-primary text-white shadow-lg' : 'text-gray-400 hover:text-white'}`}>
                         <ListBulletIcon className="w-5 h-5" />
                     </button>
-                    <button onClick={() => setViewMode('calendar')} className={`p-2 rounded-md ${viewMode === 'calendar' ? 'bg-primary text-white' : 'text-gray-400'}`}>
+                    <button onClick={() => setViewMode('calendar')} className={`p-2 rounded-lg transition-all ${viewMode === 'calendar' ? 'bg-primary text-white shadow-lg' : 'text-gray-400 hover:text-white'}`}>
                         <TableCellsIcon className="w-5 h-5" />
                     </button>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Main Content */}
                 <div className="lg:col-span-2 space-y-6">
-                    {/* Analytics */}
-                    {showAnalytics && (
-                        <div className="grid grid-cols-3 gap-4 mb-4">
-                            <div className="bg-surface p-4 rounded-xl border border-border">
-                                <h3 className="text-sm font-medium text-muted">Pendentes</h3>
-                                <p className="text-2xl font-bold text-primary">{pendingPosts.length}</p>
-                            </div>
-                            <div className="bg-surface p-4 rounded-xl border border-border">
-                                <h3 className="text-sm font-medium text-muted">Publicados</h3>
-                                <p className="text-2xl font-bold text-green-500">{publishedPosts.length}</p>
-                            </div>
-                        </div>
-                    )}
-
                     {viewMode === 'calendar' ? (
                         <div className="animate-fade-in">
                             <LiquidCalendar
@@ -346,25 +266,36 @@ const SmartScheduler: React.FC = () => {
                             />
                         </div>
                     ) : (
-                        /* List View */
                         <div className="space-y-4">
-                            {posts.length === 0 && <p className="text-muted text-center py-10">Sem posts.</p>}
+                            {posts.length === 0 && (
+                                <div className="text-center py-12 text-gray-500 border border-dashed border-white/10 rounded-3xl bg-white/[0.02]">
+                                    <p>Nenhum post agendado.</p>
+                                </div>
+                            )}
                             {posts.map((post) => (
-                                <div key={post.id} className="bg-surface border border-border rounded-xl p-5 hover:border-primary/50 transition-colors relative">
-                                    <div className="flex justify-between items-start mb-3">
-                                        <div className="flex items-center gap-3">
-                                            <div className="text-2xl">{platformIcons[post.platform]}</div>
-                                            <h3 className="font-bold text-title">{post.title}</h3>
+                                <div key={post.id} className="bg-white/[0.02] border border-white/5 rounded-2xl p-6 hover:border-primary/50 transition-all group relative overflow-hidden backdrop-blur-sm">
+                                    <div className="flex justify-between items-start mb-3 relative z-10">
+                                        <div className="flex items-center gap-4">
+                                            <div className="text-3xl filter drop-shadow-lg">{platformIcons[post.platform]}</div>
+                                            <div>
+                                                <h3 className="font-bold text-[var(--text-primary)] text-lg">{post.title}</h3>
+                                                <div className="flex gap-2 text-xs font-mono text-gray-500 mt-1">
+                                                    <span>{post.scheduledDate}</span>
+                                                    <span>•</span>
+                                                    <span>{post.scheduledTime}</span>
+                                                </div>
+                                            </div>
                                         </div>
                                         <div className="flex gap-2">
-                                            <button onClick={() => handlePostSelect(post)} className="text-gray-400 hover:text-primary"><PencilIcon className="w-5 h-5" /></button>
-                                            <button onClick={() => handleDeletePost(post.id)} className="text-gray-400 hover:text-red-400"><TrashIcon className="w-5 h-5" /></button>
+                                            <button onClick={() => handlePostSelect(post)} className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-primary transition-colors"><PencilIcon className="w-4 h-4" /></button>
+                                            <button onClick={() => handleDeletePost(post.id)} className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-red-400 transition-colors"><TrashIcon className="w-4 h-4" /></button>
                                         </div>
                                     </div>
-                                    <p className="text-body text-sm mb-2">{post.content}</p>
-                                    <div className="text-xs text-muted flex gap-4">
-                                        <span>📅 {post.scheduledDate} {post.scheduledTime}</span>
-                                        {post.status === 'published' && <span className="text-green-500">Publicado</span>}
+                                    <p className="text-[var(--text-secondary)] text-sm mb-4 line-clamp-2 border-l-2 border-primary/20 pl-3">{post.content}</p>
+                                    <div className="flex items-center gap-2">
+                                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${post.status === 'published' ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400'}`}>
+                                            {post.status === 'published' ? 'Publicado' : 'Agendado'}
+                                        </span>
                                     </div>
                                 </div>
                             ))}
@@ -374,93 +305,108 @@ const SmartScheduler: React.FC = () => {
 
                 {/* Sidebar Form */}
                 <div id="scheduler-form" className="lg:col-span-1">
-                    <div className="bg-surface rounded-xl border border-border p-6 shadow-lg lg:sticky lg:top-6">
-                        <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-xl font-bold text-title flex items-center gap-2">
-                                {editingId ? <PencilIcon className="w-5 h-5" /> : <PlusIcon className="w-5 h-5" />}
-                                {editingId ? 'Editar' : 'Novo'}
+                    <div className="bg-[#0A0A0A]/80 backdrop-blur-xl rounded-3xl border border-white/10 p-6 shadow-2xl lg:sticky lg:top-6">
+                        <div className="flex justify-between items-center mb-6 border-b border-white/5 pb-4">
+                            <h2 className="text-lg font-black text-[var(--text-primary)] flex items-center gap-2 uppercase tracking-wide">
+                                {editingId ? <PencilIcon className="w-5 h-5 text-primary" /> : <PlusIcon className="w-5 h-5 text-primary" />}
+                                {editingId ? 'Editar Post' : 'Novo Agendamento'}
                             </h2>
-                            {editingId && <button onClick={handleCancelEdit} className="text-xs text-red-400">Cancelar</button>}
+                            {editingId && <button onClick={handleCancelEdit} className="text-xs font-bold text-red-400 hover:text-red-300 uppercase tracking-wider">Cancelar</button>}
                         </div>
 
-                        <div className="space-y-4">
+                        <div className="space-y-5">
                             <div>
-                                <label className="block text-sm font-medium text-muted mb-1">Título</label>
-                                <Input id="post-title" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} className="w-full" />
+                                <label className="block text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-2">Título do Post</label>
+                                <Input id="post-title" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} className="w-full bg-black/40 border-white/10 focus:border-primary/50" placeholder="Ex: Lançamento Verão..." />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-muted mb-1">Plataforma</label>
-                                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                                <label className="block text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-2">Plataforma</label>
+                                <div className="grid grid-cols-5 gap-1">
                                     {Object.keys(platformIcons).map((p: any) => (
-                                        <button key={p} onClick={() => setNewPlatform(p)} className={`p-2 rounded border ${newPlatform === p ? 'border-primary bg-primary/10' : 'border-transparent'}`}>{platformIcons[p as keyof typeof platformIcons]}</button>
+                                        <button
+                                            key={p}
+                                            onClick={() => setNewPlatform(p)}
+                                            className={`p-2 rounded-xl border transition-all ${newPlatform === p ? 'border-primary bg-primary/10 shadow-[0_0_10px_rgba(var(--color-primary),0.2)] scale-105' : 'border-white/5 bg-white/5 hover:bg-white/10 opacity-70 hover:opacity-100'}`}
+                                            title={p}
+                                        >
+                                            <div className="text-xl text-center">{platformIcons[p]}</div>
+                                        </button>
                                     ))}
                                 </div>
                             </div>
 
                             <div>
-                                <div className="flex justify-between mb-1">
-                                    <label className="text-sm font-medium text-muted">Conteúdo</label>
-                                    <button onClick={handleGenerateAI} disabled={isGeneratingAI} className="text-xs text-purple-400 flex gap-1"><SparklesIcon className="w-3 h-3" /> {isGeneratingAI ? '...' : 'IA'}</button>
+                                <div className="flex justify-between mb-2">
+                                    <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">Conteúdo</label>
+                                    <button onClick={handleGenerateAI} disabled={isGeneratingAI} className="text-[10px] font-bold text-purple-400 flex items-center gap-1 hover:text-purple-300 transition-colors bg-purple-500/10 px-2 rounded-full"><SparklesIcon className="w-3 h-3" /> {isGeneratingAI ? 'Criando...' : 'Gerar com IA'}</button>
                                 </div>
-                                <textarea className="w-full h-32 px-3 py-2 bg-background border border-border rounded-lg text-body" value={newContent} onChange={(e) => setNewContent(e.target.value)} />
+                                <textarea
+                                    className="w-full h-32 px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-sm text-[var(--text-primary)] placeholder:text-gray-700 focus:border-primary/50 focus:ring-1 focus:ring-primary/50 outline-none transition-all resize-none"
+                                    value={newContent}
+                                    onChange={(e) => setNewContent(e.target.value)}
+                                    placeholder="Escreva sua legenda incrível aqui..."
+                                />
                             </div>
 
-                            <div className="mt-2">
-                                <label className="text-sm font-medium text-muted">Mídia</label>
-                                <div className="flex gap-2 mt-1">
-                                    <Button onClick={() => setIsLibraryModalOpen(true)} variant="outline" size="sm" className="w-full"><PhotoIcon className="w-4 h-4 mr-2" /> Biblioteca</Button>
-                                    <label className="w-full cursor-pointer bg-background border border-border hover:bg-surface text-title px-3 py-2 rounded-lg text-sm flex items-center justify-center">
-                                        Upload <input type="file" accept="image/*" className="hidden" onChange={(e) => {
-                                            const file = e.target.files?.[0];
-                                            if (file) {
-                                                const reader = new FileReader();
-                                                reader.onloadend = () => setNewImage(reader.result as string);
-                                                reader.readAsDataURL(file);
-                                            }
-                                        }} />
-                                    </label>
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="col-span-2">
+                                    <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-2 block">Mídia Visual</label>
+                                    <div className="flex gap-2">
+                                        <Button onClick={() => setIsLibraryModalOpen(true)} variant="outline" size="sm" className="w-full border-white/10 hover:bg-white/5 text-xs"><PhotoIcon className="w-4 h-4 mr-2" /> Biblioteca</Button>
+                                        <label className="w-full cursor-pointer bg-black/40 border border-white/10 hover:border-primary/30 text-[var(--text-primary)] px-3 py-2 rounded-xl text-xs font-bold flex items-center justify-center transition-all">
+                                            Upload
+                                            <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                                                const file = e.target.files?.[0];
+                                                if (file) {
+                                                    const reader = new FileReader();
+                                                    reader.onloadend = () => setNewImage(reader.result as string);
+                                                    reader.readAsDataURL(file);
+                                                }
+                                            }} />
+                                        </label>
+                                    </div>
+                                    {newImage && (
+                                        <div className="mt-3 relative group">
+                                            <img src={newImage} className="w-full h-32 object-cover rounded-xl border border-white/10" />
+                                            <button onClick={() => setNewImage(null)} className="absolute top-2 right-2 bg-red-500 text-white rounded-lg p-1.5 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"><XMarkIcon className="w-3 h-3" /></button>
+                                        </div>
+                                    )}
                                 </div>
-                                {newImage && <div className="mt-2 relative"><img src={newImage} className="h-20 rounded border border-border" /><button onClick={() => setNewImage(null)} className="absolute -top-2 -right-2 bg-red-500 rounded-full p-1 text-white"><XMarkIcon className="w-3 h-3" /></button></div>}
+
+                                <div className="col-span-1">
+                                    <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-2 block">Data</label>
+                                    <Input id="post-date" type="date" value={newDate} onChange={(e) => setNewDate(e.target.value)} className="bg-black/40 border-white/10" />
+                                </div>
+                                <div className="col-span-1">
+                                    <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-2 block">Hora</label>
+                                    <Input id="post-time" type="time" value={newTime} onChange={(e) => setNewTime(e.target.value)} className="bg-black/40 border-white/10" />
+                                </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-2">
-                                <Input id="post-date" type="date" value={newDate} onChange={(e) => setNewDate(e.target.value)} />
-                                <Input id="post-time" type="time" value={newTime} onChange={(e) => setNewTime(e.target.value)} />
+                            <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5">
+                                <input type="checkbox" checked={isRecurring} onChange={(e) => setIsRecurring(e.target.checked)} className="rounded border-gray-600 bg-black/50 text-primary focus:ring-primary" />
+                                <span className="text-xs font-bold text-[var(--text-secondary)]">Repetir Semanalmente</span>
                             </div>
 
-                            <div className="flex items-center gap-2">
-                                <input type="checkbox" checked={isRecurring} onChange={(e) => setIsRecurring(e.target.checked)} />
-                                <span className="text-sm">Recorrente</span>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-2">
-                                <Button onClick={handleAISuggestBestTime} variant="outline" disabled={isGeneratingAI}>Melhor Hora</Button>
-                                <Button onClick={handleAddPost} variant="liquid">{editingId ? 'Salvar' : 'Agendar'}</Button>
+                            <div className="grid grid-cols-2 gap-3 pt-4 border-t border-white/5">
+                                <Button onClick={handleAISuggestBestTime} variant="outline" disabled={isGeneratingAI} className="border-purple-500/30 text-purple-400 hover:bg-purple-500/10 text-xs font-bold uppercase">Melhor Hora (IA)</Button>
+                                <Button onClick={handleAddPost} variant="liquid" className="w-full shadow-lg shadow-primary/20 text-xs font-bold uppercase">{editingId ? 'Salvar Alterações' : 'Agendar Post'}</Button>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* Library Modal */}
-            {isLibraryModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                    <div className="bg-surface border border-white/10 rounded-2xl w-full max-w-3xl max-h-[85vh] flex flex-col shadow-2xl">
-                        <div className="flex justify-between p-4 border-b border-white/10">
-                            <h3>Biblioteca</h3>
-                            <button onClick={() => setIsLibraryModalOpen(false)}><XMarkIcon className="w-6 h-6" /></button>
-                        </div>
-                        <div className="p-4 overflow-y-auto grid grid-cols-3 gap-4">
-                            {libraryItems.filter(i => i.type === 'image' || i.type === 'post').map(item => (
-                                <div key={item.id} onClick={() => { setNewImage(item.file_url); setIsLibraryModalOpen(false); }} className="cursor-pointer">
-                                    <img src={item.file_url} className="w-full aspect-square object-cover rounded hover:opacity-80" />
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            )}
+            <LibrarySelectorModal
+                isOpen={isLibraryModalOpen}
+                onClose={() => setIsLibraryModalOpen(false)}
+                onSelect={(url) => {
+                    setNewImage(url);
+                    setIsLibraryModalOpen(false);
+                }}
+                userId={userId}
+            />
         </div>
     );
 };

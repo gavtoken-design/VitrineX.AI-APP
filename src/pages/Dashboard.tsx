@@ -1,9 +1,7 @@
-
 import * as React from 'react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useDashboardData } from '../hooks/useQueries';
 import Button from '../components/ui/Button';
-import Skeleton from '../components/ui/Skeleton';
 import { useNavigate } from '../hooks/useNavigate';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useToast } from '../contexts/ToastContext';
@@ -12,6 +10,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { testGeminiConnection } from '../services/ai/gemini';
 import DateTimeDisplay from '../components/ui/DateTimeDisplay';
 import ClientGreeting from '../components/ui/ClientGreeting';
+import SummaryCard from '../components/ui/SummaryCard';
+import ActivityCard from '../components/ui/ActivityCard';
 import {
   DocumentTextIcon,
   MegaphoneIcon,
@@ -21,80 +21,6 @@ import {
   SparklesIcon
 } from '@heroicons/react/24/outline';
 import { LiquidGlassCard } from '../components/ui/LiquidGlassCard';
-
-interface SummaryCardProps {
-  title: string;
-  value: string | number;
-  description: string;
-  icon: React.ElementType;
-  isLoading?: boolean;
-  growth?: string;
-  isPositive?: boolean;
-}
-
-const SummaryCard: React.FC<SummaryCardProps> = ({ title, value, description, icon: Icon, isLoading, growth, isPositive = true }) => (
-  <LiquidGlassCard
-    // Mobile Fix: Only scale on desktop (md:hover:scale-105) to prevent overflow
-    className="p-6 transition-all duration-300 md:hover:scale-105"
-    blurIntensity="lg"
-    shadowIntensity="md"
-    glowIntensity="sm"
-    borderRadius="24px"
-  >
-    <div className="flex justify-between items-start mb-4 relative z-40">
-      <div className="glass-icon-bg p-3 bg-white/10 rounded-xl backdrop-blur-md">
-        <Icon className="w-5 h-5 text-cyan-300" />
-      </div>
-      <span className={`growth-badge px-2 py-1 rounded-full text-xs font-bold border ${growth && growth.includes('+') ? 'bg-green-500/20 text-green-300 border-green-500/30' : 'bg-white/10 text-gray-300 border-white/20'}`}>
-        {growth || '+0%'}
-      </span>
-    </div>
-    <div className="relative z-40">
-      {isLoading ? (
-        <>
-          <Skeleton className="h-4 w-24 mb-2 bg-white/10" />
-          <Skeleton className="h-9 w-16 bg-white/10" />
-        </>
-      ) : (
-        <>
-          <p className="text-sm text-[var(--text-secondary)] mb-1 font-medium tracking-wide opacity-80">{title}</p>
-          <p className="text-4xl font-bold text-[var(--text-primary)] tracking-tight drop-shadow-sm">{value}</p>
-        </>
-      )}
-    </div>
-  </LiquidGlassCard>
-);
-
-interface ActivityCardProps {
-  icon: React.ElementType;
-  title: string;
-  description: string;
-  timestamp: string;
-  gradientFrom: string;
-  gradientTo: string;
-}
-
-const ActivityCard: React.FC<ActivityCardProps> = ({
-  icon: Icon,
-  title,
-  description,
-  timestamp,
-  gradientFrom,
-  gradientTo
-}) => (
-  <div className="glass-card p-3 flex items-center justify-between hover:scale-[1.02] transition-transform duration-200">
-    <div className="flex items-center space-x-4">
-      <div className={`p-3 rounded-full bg-gradient-to-br ${gradientFrom} ${gradientTo} flex-shrink-0`}>
-        <Icon className="w-5 h-5 text-white" />
-      </div>
-      <div>
-        <p className="font-semibold text-[var(--text-primary)]">{title}</p>
-        <p className="text-sm text-[var(--text-secondary)]">{description}</p>
-      </div>
-    </div>
-    <span className="text-xs text-[var(--text-secondary)]">{timestamp}</span>
-  </div>
-);
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
@@ -112,7 +38,7 @@ const Dashboard: React.FC = () => {
   const detectedTrends = data?.trends?.length || 0;
 
   // Derive Recent Activity from Library and Schedule
-  const recentActivities = React.useMemo(() => {
+  const recentActivities = useMemo(() => {
     if (!data) return [];
 
     const libraryActivities = (data.library || []).map(item => ({
@@ -174,10 +100,10 @@ const Dashboard: React.FC = () => {
     return `${growth > 0 ? '+' : ''}${growth.toFixed(0)}%`;
   };
 
-  const contentGrowth = React.useMemo(() => calculateGrowth(data?.library, 'createdAt'), [data?.library]);
-  const adsGrowth = React.useMemo(() => calculateGrowth(data?.ads, 'createdAt'), [data?.ads]);
-  const scheduleGrowth = React.useMemo(() => calculateGrowth(data?.schedule, 'datetime'), [data?.schedule]);
-  const trendsGrowth = React.useMemo(() => calculateGrowth(data?.trends, 'createdAt'), [data?.trends]);
+  const contentGrowth = useMemo(() => calculateGrowth(data?.library, 'createdAt'), [data?.library]);
+  const adsGrowth = useMemo(() => calculateGrowth(data?.ads, 'createdAt'), [data?.ads]);
+  const scheduleGrowth = useMemo(() => calculateGrowth(data?.schedule, 'datetime'), [data?.schedule]);
+  const trendsGrowth = useMemo(() => calculateGrowth(data?.trends, 'createdAt'), [data?.trends]);
 
   const getTimeAgo = (dateString: string) => {
     const diff = new Date().getTime() - new Date(dateString).getTime();
@@ -196,21 +122,20 @@ const Dashboard: React.FC = () => {
       const tutorialSteps: TutorialStep[] = [
         {
           targetId: 'dashboard-header',
-          title: 'Bem-vindo ao VitrineX AI! 🚀',
-          content: 'Este é o seu painel de controle. Aqui você tem uma visão geral de toda a sua operação de marketing automatizada.',
+          title: t('dashboard.title'),
+          content: t('dashboard.subtitle'),
           position: 'bottom',
         },
         {
           targetId: 'quick-actions-grid',
-          title: 'Ações Rápidas ⚡',
-          content: 'Acesse as ferramentas mais importantes com um clique. Gere conteúdo, crie anúncios ou analise estratégias instantaneamente.',
+          title: t('dashboard.quick_actions'),
+          content: 'Acesse as ferramentas mais importantes com um clique.',
           position: 'top',
         },
-        // ... (other steps omitted for brevity but logic is same)
       ];
       startTutorial(tutorialSteps);
     }
-  }, [hasSeenTutorial, startTutorial]);
+  }, [hasSeenTutorial, startTutorial, t]);
 
   const handleApiTest = async () => {
     setTestingApi(true);
@@ -237,8 +162,8 @@ const Dashboard: React.FC = () => {
     <div className="animate-fade-in duration-500 pb-20 md:pb-0"> {/* Mobile Fix: Pb-20 for bottom nav space */}
       <div id="dashboard-header" className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 border-b border-[var(--border-default)] pb-4 gap-4 md:gap-0">
         <div>
-          <h2 className="text-2xl font-bold text-[var(--text-primary)]">Visão Executiva</h2>
-          <p className="text-[var(--text-secondary)] mt-1">Bem-vindo de volta. Aqui está o resumo da atividade.</p>
+          <h2 className="text-2xl font-bold text-[var(--text-primary)]">{t('dashboard.title')}</h2>
+          <p className="text-[var(--text-secondary)] mt-1">{t('dashboard.subtitle')}</p>
         </div>
 
         {/* Mobile Fix: Flex wrap for small screens */}
@@ -252,7 +177,7 @@ const Dashboard: React.FC = () => {
 
       {isError ? (
         <div className="bg-red-50 dark:bg-red-900/10 border-l-4 border-error p-4 rounded-r shadow-sm mb-6" role="alert">
-          <p className="font-bold text-error">System Alert</p>
+          <p className="font-bold text-error">{t('gen.error')}</p>
           <p className="text-sm text-red-700 dark:text-red-300">
             {error instanceof Error ? error.message : 'Failed to load dashboard data.'}
           </p>
@@ -260,33 +185,33 @@ const Dashboard: React.FC = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
           <SummaryCard
-            title="Conteúdo Total"
+            title={t('dashboard.total_content')}
             value={totalPosts}
-            description="Itens na biblioteca"
+            description={t('dashboard.total_content_desc')}
             icon={DocumentTextIcon}
             isLoading={isLoading}
             growth={contentGrowth}
           />
           <SummaryCard
-            title="Campanhas"
+            title={t('dashboard.campaigns_card')}
             value={totalAds}
-            description="Campanhas ativas"
+            description={t('dashboard.campaigns_desc')}
             icon={MegaphoneIcon}
             isLoading={isLoading}
             growth={adsGrowth}
           />
           <SummaryCard
-            title="Agendamentos"
+            title={t('dashboard.scheduled')}
             value={upcomingSchedule}
-            description="Posts futuros"
+            description={t('dashboard.scheduled_desc')}
             icon={CalendarDaysIcon}
             isLoading={isLoading}
             growth={scheduleGrowth}
           />
           <SummaryCard
-            title="Tendências"
+            title={t('dashboard.trends_card')}
             value={detectedTrends}
-            description="Detectadas hoje"
+            description={t('dashboard.trends_desc')}
             icon={ChartBarIcon}
             isLoading={isLoading}
             growth={trendsGrowth}
@@ -335,10 +260,13 @@ const Dashboard: React.FC = () => {
 
       <section className="mt-8">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-bold text-[var(--text-primary)]">Atividades Recentes</h3>
-          <a className="text-blue-400 text-sm font-semibold hover:underline cursor-pointer">
-            Ver Todas
-          </a>
+          <h3 className="text-xl font-bold text-[var(--text-primary)]">{t('dashboard.recent_activity')}</h3>
+          <button
+            onClick={() => navigateTo('CalendarManager')}
+            className="text-blue-400 text-sm font-semibold hover:underline cursor-pointer bg-transparent border-none p-0"
+          >
+            {t('dashboard.view_all')}
+          </button>
         </div>
         <div className="space-y-3">
           {recentActivities.length > 0 ? (
@@ -354,10 +282,10 @@ const Dashboard: React.FC = () => {
               />
             ))
           ) : (
-            <div className="text-center py-8 text-muted">
-              <p>Nenhuma atividade recente registrada.</p>
-              <Button onClick={() => navigateTo('ContentGenerator')} variant="ghost" size="sm" className="mt-2">
-                Começar a Criar
+            <div className="text-center py-8 text-muted bg-white/5 rounded-2xl border border-dashed border-white/10">
+              <p>{t('dashboard.no_activity')}</p>
+              <Button onClick={() => navigateTo('ContentGenerator')} variant="ghost" size="sm" className="mt-2 text-cyan-400">
+                {t('dashboard.start_creating')}
               </Button>
             </div>
           )}

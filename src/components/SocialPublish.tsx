@@ -1,12 +1,14 @@
-// src/components/SocialPublish.tsx
 import { useState } from "react";
 import { publishFacebookPost, createInstagramMedia, publishInstagramMedia } from "../services/social";
+import { useToast } from "../contexts/ToastContext";
+import Button from "./ui/Button";
 
 export default function SocialPublish() {
     const [showModal, setShowModal] = useState(false);
     const [message, setMessage] = useState("");
     const [imageUrl, setImageUrl] = useState("");
     const [status, setStatus] = useState<string>("");
+    const { addToast } = useToast();
 
     // These IDs should be stored in env vars or fetched from user profile
     const fbPageId = import.meta.env.VITE_FB_PAGE_ID;
@@ -16,55 +18,71 @@ export default function SocialPublish() {
 
     const handleFacebookPublish = async () => {
         try {
+            if (!fbPageId) {
+                addToast({ type: 'warning', message: 'ID da Página não configurado (.env)' });
+                // We proceed anyway to let the error come from the API or connection
+            }
+
             setStatus("Publicando no Facebook...");
-            await publishFacebookPost(fbPageId, fbAccessToken, message);
+            await publishFacebookPost(fbPageId || "", fbAccessToken, message);
             setStatus("Publicação no Facebook concluída!");
+            addToast({ type: 'success', message: 'Publicado no Facebook com sucesso!' });
             setTimeout(() => {
                 setMessage("");
                 setStatus("");
             }, 2000);
-        } catch (e) {
+        } catch (e: any) {
             console.error(e);
-            setStatus("Erro ao publicar no Facebook.");
+            const errorMsg = e.response?.data?.error?.message || "Erro desconhecido";
+            setStatus("Erro na publicação.");
+            addToast({ type: 'error', message: `Erro Facebook: ${errorMsg}` });
         }
     };
 
     const handleInstagramPublish = async () => {
         try {
+            if (!igUserId) {
+                addToast({ type: 'warning', message: 'ID do Instagram não configurado (.env)' });
+            }
+
             setStatus("Criando mídia no Instagram...");
-            const mediaId = await createInstagramMedia(igUserId, igAccessToken, imageUrl, message);
+            const mediaId = await createInstagramMedia(igUserId || "", igAccessToken, imageUrl, message);
             setStatus("Publicando no Instagram...");
-            await publishInstagramMedia(igUserId, igAccessToken, mediaId);
+            await publishInstagramMedia(igUserId || "", igAccessToken, mediaId);
             setStatus("Publicação no Instagram concluída!");
+            addToast({ type: 'success', message: 'Publicado no Instagram com sucesso!' });
             setTimeout(() => {
                 setMessage("");
                 setImageUrl("");
                 setStatus("");
             }, 2000);
-        } catch (e) {
+        } catch (e: any) {
             console.error(e);
-            setStatus("Erro ao publicar no Instagram.");
+            const errorMsg = e.response?.data?.error?.message || "Erro desconhecido";
+            setStatus("Erro na publicação Instagram.");
+            addToast({ type: 'error', message: `Erro Instagram: ${errorMsg}` });
         }
     };
 
     return (
         <>
-            <button
+            <Button
                 onClick={() => setShowModal(true)}
-                className="p-2 rounded-full text-muted hover:bg-background transition-colors"
-                title="Publicar em Redes Sociais"
+                className="gap-2"
+                variant="primary"
             >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                 </svg>
-            </button>
+                Nova Publicação
+            </Button>
 
             {showModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowModal(false)}>
-                    <div className="bg-surface border border-border rounded-lg p-6 max-w-md w-full mx-4" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-xl font-bold">Publicar em Redes Sociais</h2>
-                            <button onClick={() => setShowModal(false)} className="text-muted hover:text-body">
+                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50" onClick={() => setShowModal(false)}>
+                    <div className="bg-surface border border-border rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-xl font-bold text-title">Publicar em Redes Sociais</h2>
+                            <button onClick={() => setShowModal(false)} className="text-muted hover:text-body transition-colors">
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                 </svg>
@@ -72,23 +90,31 @@ export default function SocialPublish() {
                         </div>
 
                         <div className="flex flex-col gap-4">
-                            <textarea
-                                className="w-full p-3 border border-border rounded-lg bg-background text-body resize-none focus:outline-none focus:ring-2 focus:ring-primary"
-                                placeholder="Escreva sua mensagem..."
-                                rows={4}
-                                value={message}
-                                onChange={(e) => setMessage(e.target.value)}
-                            />
-                            <input
-                                type="text"
-                                className="w-full p-3 border border-border rounded-lg bg-background text-body focus:outline-none focus:ring-2 focus:ring-primary"
-                                placeholder="URL da imagem (para Instagram)"
-                                value={imageUrl}
-                                onChange={(e) => setImageUrl(e.target.value)}
-                            />
-                            <div className="flex gap-3">
+                            <div>
+                                <label className="block text-sm font-medium text-muted mb-2">Mensagem / Legenda</label>
+                                <textarea
+                                    className="w-full p-3 border border-border rounded-lg bg-background-input text-body resize-none focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all placeholder-muted/50"
+                                    placeholder="No que você está pensando?"
+                                    rows={4}
+                                    value={message}
+                                    onChange={(e) => setMessage(e.target.value)}
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-muted mb-2">Imagem (URL)</label>
+                                <input
+                                    type="text"
+                                    className="w-full p-3 border border-border rounded-lg bg-background-input text-body focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all placeholder-muted/50"
+                                    placeholder="https://..."
+                                    value={imageUrl}
+                                    onChange={(e) => setImageUrl(e.target.value)}
+                                />
+                            </div>
+
+                            <div className="flex gap-3 mt-2">
                                 <button
-                                    className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 flex items-center justify-center gap-2"
+                                    className="flex-1 px-4 py-3 bg-[#1877F2] text-white rounded-lg hover:bg-[#166fe5] transition-colors font-medium disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-[#1877F2]/20"
                                     onClick={handleFacebookPublish}
                                     disabled={!message}
                                 >
@@ -98,7 +124,7 @@ export default function SocialPublish() {
                                     Facebook
                                 </button>
                                 <button
-                                    className="flex-1 px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-colors font-medium disabled:opacity-50 flex items-center justify-center gap-2"
+                                    className="flex-1 px-4 py-3 bg-gradient-to-tr from-[#FD1D1D] to-[#833AB4] text-white rounded-lg hover:opacity-90 transition-opacity font-medium disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-[#E1306C]/20"
                                     onClick={handleInstagramPublish}
                                     disabled={!message || !imageUrl}
                                 >
@@ -109,7 +135,7 @@ export default function SocialPublish() {
                                 </button>
                             </div>
                             {status && (
-                                <p className="text-sm text-center text-muted mt-2 p-2 bg-background rounded-lg">
+                                <p className="text-sm text-center text-primary mt-2 p-3 bg-primary/10 border border-primary/20 rounded-lg animate-pulse">
                                     {status}
                                 </p>
                             )}
@@ -120,3 +146,4 @@ export default function SocialPublish() {
         </>
     );
 }
+

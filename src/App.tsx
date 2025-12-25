@@ -33,6 +33,9 @@ import AuthPage from './pages/AuthPage';
 import Settings from './pages/Settings';
 import LandingPage from './pages/LandingPage';
 import CarouselStudio from './pages/CarouselStudio';
+import MarketRadar from './pages/MarketRadar';
+import SocialNetworks from './pages/SocialNetworks';
+
 
 // Components
 import { ToastContainer } from './components/ui/Toast';
@@ -54,7 +57,10 @@ export type ModuleName =
     | 'CodePlayground'
     | 'Settings'
     | 'CarouselStudio'
+    | 'MarketRadar'
+    | 'SocialNetworks'
     | 'LandingPage';
+
 
 const AppContent: React.FC = () => {
     const { user, loading } = useAuth();
@@ -130,7 +136,10 @@ const AppContent: React.FC = () => {
             CodePlayground: <CodePlayground />,
             Settings: <Settings />,
             CarouselStudio: <CarouselStudio />,
+            MarketRadar: <MarketRadar />,
+            SocialNetworks: <SocialNetworks />,
             LandingPage: <LandingPage />
+
         };
 
         return modules[activeModule] ?? <Dashboard />;
