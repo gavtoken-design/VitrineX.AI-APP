@@ -51,5 +51,34 @@ app.get('/api/learning/:userId', async (req, res) => {
     }
 });
 
+// --- TRENDS API ---
+import { trendManager } from './services/trends/TrendManager';
+
+// GET /api/trends/daily?geo=BR
+app.get('/api/trends/daily', async (req, res) => {
+    const geo = (req.query.geo as string) || 'BR';
+    try {
+        const trends = await trendManager.getDailyTrends(geo);
+        res.json(trends);
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: 'Failed to fetch daily trends' });
+    }
+});
+
+// POST /api/trends/interest
+app.post('/api/trends/interest', async (req, res) => {
+    const { keyword, geo, timeframe } = req.body;
+    if (!keyword) return res.status(400).json({ error: 'Keyword required' });
+
+    try {
+        const result = await trendManager.getInterestOverTime(keyword, geo, timeframe);
+        res.json(result);
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: 'Failed to fetch interest data' });
+    }
+});
+
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => console.log(`Learning API listening on port ${PORT}`));
