@@ -1,16 +1,18 @@
 import * as React from 'react';
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
+    ChartBarIcon,
     ArrowTrendingUpIcon,
     ArrowsRightLeftIcon,
     MagnifyingGlassIcon,
+    SparklesIcon,
     ArrowDownTrayIcon,
     GlobeAltIcon,
     FireIcon,
     ClockIcon,
     ShareIcon,
     CloudArrowUpIcon,
-    ArrowPathIcon
+    BookmarkIcon
 } from '@heroicons/react/24/outline';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '../contexts/ToastContext';
@@ -27,6 +29,7 @@ import { useMediaActions } from '../hooks/useMediaActions';
 import html2canvas from 'html2canvas';
 
 const MarketRadar: React.FC = () => {
+    const { user } = useAuth();
     const { addToast } = useToast();
     const { handleSaveToDrive } = useMediaActions();
     const [query, setQuery] = useState('Marketing Digital');
@@ -38,38 +41,7 @@ const MarketRadar: React.FC = () => {
     const [compareData, setCompareData] = useState<GoogleTrendsResult | null>(null);
     const [isDemoMode, setIsDemoMode] = useState(false);
     const [dailyTrends, setDailyTrends] = useState<string[]>([]);
-    const [isCachedData, setIsCachedData] = useState(false);
     const reportRef = useRef<HTMLDivElement>(null);
-
-    // Cache Helpers
-    const getCacheKey = (term: string, prd: string, geo: string = 'BR') => `radar_cache_${term}_${prd}_${geo}`;
-    const CACHE_DURATION = 1000 * 60 * 60 * 24; // 24 hours
-
-    const getCachedData = (key: string): GoogleTrendsResult | null => {
-        try {
-            const cached = localStorage.getItem(key);
-            if (!cached) return null;
-            const { timestamp, data } = JSON.parse(cached);
-            if (Date.now() - timestamp > CACHE_DURATION) {
-                localStorage.removeItem(key);
-                return null;
-            }
-            return data;
-        } catch (e) {
-            return null;
-        }
-    };
-
-    const setCachedData = (key: string, data: GoogleTrendsResult) => {
-        try {
-            localStorage.setItem(key, JSON.stringify({
-                timestamp: Date.now(),
-                data
-            }));
-        } catch (e) {
-            console.warn('Cache quota exceeded or error', e);
-        }
-    };
 
     // Carregar dados iniciais
     useEffect(() => {
@@ -83,7 +55,7 @@ const MarketRadar: React.FC = () => {
         }
     }, [period]);
 
-    const handleSearch = useCallback(async (termOverride?: string, forceRefresh = false) => {
+    const handleSearch = useCallback(async (termOverride?: string) => {
         const term = termOverride || query;
         if (!term.trim()) {
             addToast({ type: 'warning', message: 'Digite um termo para pesquisar.' });
@@ -93,47 +65,23 @@ const MarketRadar: React.FC = () => {
         setLoading(true);
         setIsDemoMode(false);
         try {
-            // Verificar Cache primeiro (se não estiver forçando atualização)
-            const cacheKeyMain = getCacheKey(term, period);
-            const cachedMain = !forceRefresh ? getCachedData(cacheKeyMain) : null;
-
-
-            if (cachedMain) {
-                setIsCachedData(true);
-            } else {
-                setIsCachedData(false);
-            }
-
-            const p1 = cachedMain ? Promise.resolve(cachedMain) : fetchSerpApiTrends(term, 'BR', period);
+            // Parallel fetch if comparing
+            const p1 = fetchSerpApiTrends(term, 'BR', period);
             let p2 = Promise.resolve(null as GoogleTrendsResult | null);
 
             if (isComparing && compareQuery.trim()) {
-                const cacheKeyComp = getCacheKey(compareQuery, period);
-                const cachedComp = !forceRefresh ? getCachedData(cacheKeyComp) : null;
-                p2 = cachedComp ? Promise.resolve(cachedComp) : fetchSerpApiTrends(compareQuery, 'BR', period);
+                p2 = fetchSerpApiTrends(compareQuery, 'BR', period);
             }
 
             const [result, compResult] = await Promise.all([p1, p2]);
 
             if (result) {
                 setData(result);
-                // Salvar no cache se: Foi uma busca nova (forceRefresh) OU não estava no cache
-                if (forceRefresh || !cachedMain) {
-                    setCachedData(cacheKeyMain, result);
-                }
-
-                addToast({ type: 'success', message: cachedMain && !forceRefresh ? 'Dados carregados do cache (24h).' : 'Dados de mercado atualizados!' });
+                addToast({ type: 'success', message: 'Dados de mercado atualizados!' });
 
                 if (isComparing && compareQuery.trim()) {
                     if (compResult) {
                         setCompareData(compResult);
-
-                        const cacheKeyComp = getCacheKey(compareQuery, period);
-                        // Se forceRefresh, sempre salvar. Se não, salvar apenas se não estiver no cache.
-                        const isAlreadyCached = !forceRefresh && getCachedData(cacheKeyComp);
-                        if (forceRefresh || !isAlreadyCached) {
-                            setCachedData(cacheKeyComp, compResult);
-                        }
                     } else {
                         // Compare failed but main succeeded
                         addToast({ type: 'warning', message: 'Comparação indisponível (usando dados parciais).' });
@@ -172,9 +120,7 @@ const MarketRadar: React.FC = () => {
 
             const canvas = await html2canvas(reportRef.current, {
                 backgroundColor: '#0f172a', // Cor de fundo do app
-                scale: window.innerWidth < 768 ? 1 : 2, // Reduzir escala em mobile para evitar travamentos
-                logging: false,
-                useCORS: true
+                scale: 2 // Alta qualidade
             });
 
             const link = document.createElement('a');
@@ -192,12 +138,7 @@ const MarketRadar: React.FC = () => {
         if (!reportRef.current) return;
 
         try {
-            const canvas = await html2canvas(reportRef.current, {
-                backgroundColor: '#0f172a',
-                scale: window.innerWidth < 768 ? 1 : 2, // Escala adaptativa para performance
-                logging: false,
-                useCORS: true
-            });
+            const canvas = await html2canvas(reportRef.current, { backgroundColor: '#0f172a', scale: 2 });
             canvas.toBlob(async (blob) => {
                 if (blob) {
                     const url = URL.createObjectURL(blob);
@@ -360,15 +301,6 @@ const MarketRadar: React.FC = () => {
                                             <MagnifyingGlassIcon className="w-5 h-5 mr-2" />
                                             RADAR
                                         </Button>
-
-                                        <Button
-                                            onClick={() => handleSearch(undefined, true)}
-                                            variant="ghost"
-                                            className="h-14 px-4 text-gray-500 hover:text-white border border-transparent hover:bg-white/5"
-                                            title="Forçar Atualização (Gasta Créditos)"
-                                        >
-                                            <ArrowPathIcon className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
-                                        </Button>
                                     </div>
                                 </div>
                             </div>
@@ -455,16 +387,8 @@ const MarketRadar: React.FC = () => {
                                         </h3>
                                         <p className="text-gray-500 text-sm pl-9">Evolução temporal das buscas</p>
                                     </div>
-                                    <div className="flex gap-2">
-                                        {isCachedData && (
-                                            <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest bg-blue-500/10 px-3 py-1.5 rounded-lg border border-blue-500/20 flex items-center gap-1">
-                                                <ClockIcon className="w-3 h-3" />
-                                                Cache 24h
-                                            </span>
-                                        )}
-                                        <div className="text-[10px] font-bold text-gray-500 uppercase tracking-widest bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">
-                                            {periods.find(p => p.value === period)?.label}
-                                        </div>
+                                    <div className="text-[10px] font-bold text-gray-500 uppercase tracking-widest bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">
+                                        {periods.find(p => p.value === period)?.label}
                                     </div>
                                 </div>
 
@@ -600,55 +524,17 @@ const MarketRadar: React.FC = () => {
                                             stroke="currentColor"
                                             strokeWidth="12"
                                             fill="transparent"
-                                            strokeDasharray={`${(() => {
-                                                if (!data?.interest_over_time?.timeline_data) return 0;
-                                                const values = data.interest_over_time.timeline_data.map(d => d.values[0]?.value || 0);
-                                                if (values.length === 0) return 0;
-                                                // Mesma lógica do score numérico
-                                                const avg = values.reduce((a, b) => a + b, 0) / values.length;
-                                                const recent = values.slice(-3);
-                                                const recentAvg = recent.reduce((a, b) => a + b, 0) / recent.length;
-                                                const score = Math.min(100, Math.max(0, Math.round((avg * 0.4) + (recentAvg * 0.6))));
-                                                return (score / 100) * 440;
-                                            })()} 440`}
+                                            strokeDasharray={`${(85 / 100) * 440} 440`}
                                             strokeLinecap="round"
                                             className="text-blue-500 filter drop-shadow-[0_0_10px_rgba(59,130,246,0.5)]"
                                         />
                                     </svg>
                                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                        <span className="text-5xl font-black text-white tracking-tighter">
-                                            {(() => {
-                                                // Cálculo Dinâmico do Score
-                                                if (!data?.interest_over_time?.timeline_data) return 0;
-                                                const values = data.interest_over_time.timeline_data.map(d => d.values[0]?.value || 0);
-                                                if (values.length === 0) return 0;
-                                                // Média simples por enquanto implica "aquecimento"
-                                                const avg = values.reduce((a, b) => a + b, 0) / values.length;
-                                                // Dar mais peso aos valores recentes?
-                                                const recent = values.slice(-3);
-                                                const recentAvg = recent.reduce((a, b) => a + b, 0) / recent.length;
-                                                // Score = mistura da média com o momento recente
-                                                const rawScore = Math.round((avg * 0.4) + (recentAvg * 0.6));
-                                                return Math.min(100, Math.max(0, rawScore));
-                                            })()}
-                                        </span>
+                                        <span className="text-5xl font-black text-white tracking-tighter">85</span>
                                         <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest mt-1">Radar Score</span>
                                     </div>
                                 </div>
-                                <h4 className="text-white font-bold text-lg mb-2">
-                                    {(() => {
-                                        // Rótulo Dinâmico
-                                        if (!data?.interest_over_time?.timeline_data) return "Sem Dados";
-                                        const values = data.interest_over_time.timeline_data.map(d => d.values[0]?.value || 0);
-                                        const recent = values.slice(-3);
-                                        const recentAvg = recent.reduce((a, b) => a + b, 0) / recent.length;
-
-                                        if (recentAvg > 80) return "Mercado Explosivo";
-                                        if (recentAvg > 60) return "Alta Demanda";
-                                        if (recentAvg > 40) return "Demanda Estável";
-                                        return "Baixo Volume";
-                                    })()}
-                                </h4>
+                                <h4 className="text-white font-bold text-lg mb-2">Mercado Aquecido</h4>
                                 <p className="text-xs text-gray-400 leading-relaxed max-w-[200px]">
                                     O volume de buscas para este termo apresenta crescimento consistente.
                                 </p>

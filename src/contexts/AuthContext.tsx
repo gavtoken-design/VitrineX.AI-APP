@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '../lib/supabase';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { UserProfile } from '../types';
 import { getUserProfile } from '../services/core/db';
 
@@ -27,10 +27,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         const initAuth = async () => {
             // Check for mock session first
-            // Safe check for Supabase URL
-            const hasSupabase = import.meta.env.VITE_SUPABASE_URL;
-
-            if (!hasSupabase && localStorage.getItem('mock_session')) {
+            // Safe check using centralized config
+            if (!isSupabaseConfigured && localStorage.getItem('mock_session')) {
                 const mockUser: User = {
                     id: 'mock-user-123',
                     app_metadata: {},
@@ -110,10 +108,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const signIn = async (email: string, password: string) => {
-        // Safe check for Supabase URL
-        const hasSupabase = import.meta.env.VITE_SUPABASE_URL;
-
-        if (!hasSupabase) {
+        if (!isSupabaseConfigured) {
             // Mock Login for development/demo
             console.log('Mode: Mock Login');
             const mockUser: User = {
@@ -141,9 +136,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const signUp = async (email: string, password: string, metadata?: Record<string, unknown>) => {
-        const hasSupabase = import.meta.env.VITE_SUPABASE_URL;
-
-        if (!hasSupabase) {
+        if (!isSupabaseConfigured) {
             // Mock Signup
             console.log('Mode: Mock Signup');
             const mockUser: User = {

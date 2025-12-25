@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Button from '../components/ui/Button';
 import { useToast } from '../contexts/ToastContext';
+import SocialPublish from '../components/SocialPublish';
 
 export default function SocialNetworks() {
     const { addToast } = useToast();
@@ -81,9 +82,12 @@ export default function SocialNetworks() {
 
     return (
         <div className="container mx-auto py-8">
-            <header className="mb-10">
-                <h1 className="text-3xl font-bold text-title mb-2">Redes Sociais</h1>
-                <p className="text-body">Gerencie suas conexões e integrações com plataformas externas.</p>
+            <header className="mb-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h1 className="text-3xl font-bold text-title mb-2">Redes Sociais</h1>
+                    <p className="text-body">Gerencie suas conexões e integrações com plataformas externas.</p>
+                </div>
+                <SocialPublish />
             </header>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -147,7 +151,11 @@ export default function SocialNetworks() {
                             </Button>
                         </div>
                     ) : (
-                        <Button className="w-full bg-gradient-to-r from-[#833AB4] to-[#F77737] hover:opacity-90 text-white" disabled title="Login automático via Facebook">
+                        <Button
+                            className="w-full bg-gradient-to-r from-[#833AB4] to-[#F77737] hover:opacity-90 text-white"
+                            onClick={handleConnectFacebook}
+                            title="Login via Facebook"
+                        >
                             Conectar via Facebook
                         </Button>
                     )}
@@ -155,7 +163,15 @@ export default function SocialNetworks() {
 
             </div>
 
-
+            <div className="mt-12 p-6 bg-surface-hover rounded-lg border border-border">
+                <h4 className="text-sm font-bold text-muted uppercase tracking-wider mb-4">Debug de Conexão (Env)</h4>
+                <code className="block bg-black/30 p-4 rounded text-xs text-green-400 font-mono overflow-x-auto">
+                    VITE_FB_APP_ID: {import.meta.env.VITE_FB_APP_ID || 'Não definido'}<br />
+                    VITE_IG_CLIENT_ID: {import.meta.env.VITE_IG_CLIENT_ID || 'Não definido'}<br />
+                    VITE_FB_PAGE_ID: {import.meta.env.VITE_FB_PAGE_ID || 'Não definido'}<br />
+                    REDIRECT_URI: {import.meta.env.VITE_AUTH_REDIRECT_URI || window.location.origin}
+                </code>
+            </div>
         </div>
     );
 }

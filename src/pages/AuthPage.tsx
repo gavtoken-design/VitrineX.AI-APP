@@ -85,19 +85,15 @@ export const AuthPage: React.FC = () => {
                                 <ExclamationTriangleIcon className="w-5 h-5 text-yellow-500 flex-shrink-0 mt-0.5" />
                                 <div className="flex-1">
                                     <h4 className="text-sm font-semibold text-yellow-500 mb-1">
-                                        Supabase não configurado
+                                        Modo de Demonstração (Sem Supabase)
                                     </h4>
                                     <p className="text-xs text-yellow-200/80 mb-2">
-                                        Para ativar cadastro/login, configure o Supabase criando um arquivo <code className="px-1 py-0.5 bg-black/30 rounded">.env</code> na raiz do projeto.
+                                        O Supabase não foi configurado ou as chaves estão ausentes.
+                                        Você pode entrar com <strong>qualquer e-mail e senha</strong> para testar a interface.
                                     </p>
-                                    <a
-                                        href="https://github.com/seu-repo/docs/SUPABASE_SETUP.md"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-xs text-yellow-400 hover:text-yellow-300 underline"
-                                    >
-                                        Ver guia de configuração →
-                                    </a>
+                                    <p className="text-xs text-yellow-200/60 mt-1 italic">
+                                        Para login real, edite o arquivo .env com suas chaves.
+                                    </p>
                                 </div>
                             </div>
                         </motion.div>

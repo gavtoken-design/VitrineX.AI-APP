@@ -60,7 +60,9 @@ export const testGeminiConnection = async (explicitKey?: string, userId?: string
         }
       ],
       config: {
-        temperature: 0
+        thinkingConfig: {
+          thinkingLevel: "low"
+        }
       }
     });
 

@@ -1,5 +1,0 @@
-open ftp://u786088869.red-owl-902155.hostingersite.com:VitrineX.AI2025@red-owl-902155.hostingersite.com/ -passive=on
-cd /public_html
-lcd .\dist
-put -delete *
-exit

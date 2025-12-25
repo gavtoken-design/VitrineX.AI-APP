@@ -1375,6 +1375,43 @@
 <body class="h-full bg-background text-body">
   <div id="root" class="h-full"></div>
   <script type="module" src="/src/index.tsx"></script>
+  
+  <script>
+    // === MÓDULO DE INTEGRAÇÃO COM IA (ANTIGRAVIT) ===
+    
+    // Função que manda as conversas para o seu Banco de Dados
+    async function salvarMemoriaIA(promptUsuario, respostaIA) {
+      console.log("💾 Salvando memória...");
+      
+      const dados = {
+        session_id: 'user_' + Date.now(),
+        tipo_acao: 'chat',
+        prompt: promptUsuario,
+        resposta: respostaIA
+      };
+
+      try {
+        // Troque 'vitrinex.site' pelo seu domínio real se for diferente
+        const response = await fetch('https://vitrinex.site/api/registrar_treino.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(dados)
+        });
+        
+        const resultado = await response.json();
+        console.log("✅ Status do Servidor:", resultado);
+        
+      } catch (erro) {
+        console.error("❌ Erro ao conectar com o banco:", erro);
+      }
+    }
+
+    // --- TESTE AUTOMÁTICO (só para ver se funciona) ---
+    // Assim que você abrir o site, ele vai tentar salvar um "Olá" no banco.
+    setTimeout(() => {
+      salvarMemoriaIA("Teste de conexão", "Se você ler isso no banco, funcionou!");
+    }, 3000);
+  </script>
 </body>
 
 </html>

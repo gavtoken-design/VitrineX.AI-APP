@@ -17,6 +17,13 @@ dist-ssr
 .env.*
 !server/.env.example
 
+# FTP & Credentials
+ftp-upload.txt
+upload.txt
+DEPLOY_CREDENCIAIS.md
+*.credentials
+*.auth
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
