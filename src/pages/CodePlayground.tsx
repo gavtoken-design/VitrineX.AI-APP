@@ -104,7 +104,7 @@ ${isReact ? '- Exporte um componente funcional padrão: `export default function
 
 ## CONTEÚDO FORNECIDO
 ${contentText ? `**Texto/Copy:**\n${contentText}\n` : ''}
-${imageUrl ? `**Imagem URL Externa:**\n${imageUrl}\n` : ''}
+${imageUrl ? `**Link de Destino (CTA):**\nUse esta URL em todos os botões principais/CTA: ${imageUrl}\n` : ''}
 ${uploadedImages.length > 0 ? `**Imagens Carregadas (${uploadedImages.length}):**\n${uploadedImages.map((img, i) => `${i + 1}. ${img.name} (Base64 embutida)`).join('\n')}\n` : ''}
 
 ## LINKS DE REDE SOCIAL E CONTATO
@@ -324,13 +324,20 @@ Retorne APENAS o código. Sem markdown, sem explicações.`;
 
               <div className="grid grid-cols-1 gap-4">
                 <Input
-                  id="image-url"
-                  label="URL de Imagem Externa"
+                  id="cta-link"
+                  label="Link de Destino / CTA"
                   value={imageUrl}
                   onChange={(e) => setImageUrl(e.target.value)}
-                  placeholder="https://..."
+                  placeholder="https://seu-site.com (Para onde os botões devem levar)"
                   className="bg-black/20 border-white/10 rounded-xl"
                 />
+
+                {/* Legacy or multi-purpose image field if needed, but user requested specific replacement semantics for 'External Image URL' spot */}
+                {/* Keeping logic bound to 'imageUrl' state variable for now to minimize refactor risk, 
+                    but repurposing UI label as requested. 
+                    Ideally valid variable rename would be 'targetUrl' but 'imageUrl' is deeply wired. 
+                    I will update the prompt generation to clearer handle this as a CTA Link.
+                */}
 
                 <div>
                   <input
@@ -448,8 +455,8 @@ Retorne APENAS o código. Sem markdown, sem explicações.`;
                   <iframe
                     srcDoc={generatedCode}
                     className={`transition-all duration-500 bg-white shadow-2xl ${isMobilePreview
-                        ? 'w-[375px] h-[667px] rounded-[2.5rem] border-[8px] border-zinc-900 ring-1 ring-white/10'
-                        : 'w-full h-full'
+                      ? 'w-[375px] h-[667px] rounded-[2.5rem] border-[8px] border-zinc-900 ring-1 ring-white/10'
+                      : 'w-full h-full'
                       }`}
                     title="Preview"
                     sandbox="allow-scripts"
