@@ -31,7 +31,7 @@ import { useNavigate } from '../hooks/useNavigate';
 import JSZip from 'jszip';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
-import { GEMINI_FLASH_MODEL, IMAGEN_ULTRA_MODEL } from '../constants';
+import { GEMINI_FLASH_MODEL, IMAGEN_ULTRA_MODEL, IMAGE_STYLES } from '../constants';
 
 // Components
 import Button from '../components/ui/Button';
@@ -49,6 +49,7 @@ const CarouselStudio: React.FC = () => {
     // Basic States
     const [theme, setTheme] = useState('');
     const [loading, setLoading] = useState(false);
+    const [selectedStyle, setSelectedStyle] = useState<string>('photorealistic');
     const [slides, setSlides] = useState<CarouselSlide[]>([
         { id: 1, imageUrl: null, text: 'Título do Slide 1', prompt: '' },
         { id: 2, imageUrl: null, text: 'Título do Slide 2', prompt: '' },
@@ -140,32 +141,46 @@ const CarouselStudio: React.FC = () => {
 
             addToast({ type: 'info', message: 'Gerando imagens com Imagen 4.0 Ultra...' });
 
-            const newSlides = [...slides];
-            for (let i = 0; i < 4; i++) {
-                // Injetar modificadores avançados no prompt
-                let enhancedPrompt = plan[i].prompt;
+            // Parallel Generation for maximal speed
+            const promises = plan.map(async (slidePlan: any, i: number) => {
+                let enhancedPrompt = slidePlan.prompt;
+
+                // 1. Inject Style Modifier
+                const styleData = IMAGE_STYLES.find(s => s.id === selectedStyle);
+                if (styleData && styleData.prompt) {
+                    enhancedPrompt += `, ${styleData.prompt}`;
+                }
+
+                // 2. Inject Technical Modifiers
                 if (lightingStyle !== 'natural') enhancedPrompt += `, ${lightingStyle} lighting`;
                 if (sharpness === 'critical') enhancedPrompt += `, extremely sharp, high resolution 8k details`;
 
-                // HandleAspectRatio: Map 4:5 (which might be in UI) to 3:4 if needed for model support
-                // Imagen supports 3:4. The UI now offers 3:4 instead of 4:5.
+                try {
+                    const response = await generateImage(enhancedPrompt, {
+                        model: IMAGEN_ULTRA_MODEL,
+                        aspectRatio: aspectRatio as any
+                    });
 
-                const response = await generateImage(enhancedPrompt, {
-                    model: IMAGEN_ULTRA_MODEL,
-                    aspectRatio: aspectRatio as any
-                });
-
-                if (response.type === 'image') {
-                    newSlides[i] = {
-                        ...newSlides[i],
-                        imageUrl: response.imageUrl,
-                        text: plan[i].text,
-                        prompt: plan[i].prompt
-                    };
+                    if (response.type === 'image') {
+                        return {
+                            id: i + 1,
+                            imageUrl: response.imageUrl,
+                            text: slidePlan.text,
+                            prompt: slidePlan.prompt
+                        };
+                    }
+                } catch (e) {
+                    console.error(`Slide ${i} failed`, e);
                 }
-            }
 
-            setSlides(newSlides);
+                // Fallback in case of individual error, keep previous or empty
+                return slides[i];
+            });
+
+            const results = await Promise.all(promises);
+            // Filter nulls if any, though we return fallback above
+            setSlides(results as CarouselSlide[]);
+
             addToast({ type: 'success', title: 'Sucesso', message: 'Carrossel de 4 slides gerado com maestria!' });
         } catch (err) {
             console.error(err);
@@ -520,6 +535,19 @@ const CarouselStudio: React.FC = () => {
                                     <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-4 block pl-1">Branding</label>
                                     <BrandAssetsManager settings={logoSettings} onSettingsChange={setLogoSettings} />
                                 </div>
+
+                                <div className="pt-6 border-t border-white/5 bg-black/20 p-2 rounded-xl">
+                                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 block pl-1">Estilo Visual</label>
+                                    <select
+                                        value={selectedStyle}
+                                        onChange={(e) => setSelectedStyle(e.target.value)}
+                                        className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg text-xs font-bold text-gray-300 focus:border-blue-500/50 outline-none"
+                                    >
+                                        {IMAGE_STYLES.map(style => (
+                                            <option key={style.id} value={style.id}>{style.label}</option>
+                                        ))}
+                                    </select>
+                                </div>
                             </div>
                         </section>
 
@@ -789,7 +817,7 @@ const CarouselStudio: React.FC = () => {
 
                 </div>
             </div>
-        </div>
+        </div >
     );
 };
 

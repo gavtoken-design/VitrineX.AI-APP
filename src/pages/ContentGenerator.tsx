@@ -20,7 +20,7 @@ import { uploadFileToDrive, isDriveConnected } from '../services/integrations/go
 import { generateText, generateImage } from '../services/ai';
 import { saveLibraryItem } from '../services/core/db';
 import { Post } from '../types';
-import { GEMINI_FLASH_MODEL, GEMINI_IMAGE_MODEL, PLACEHOLDER_IMAGE_BASE64, GEMINI_PRO_MODEL, SEASONAL_TEMPLATES } from '../constants';
+import { GEMINI_FLASH_MODEL, GEMINI_IMAGE_MODEL, PLACEHOLDER_IMAGE_BASE64, GEMINI_PRO_MODEL, SEASONAL_TEMPLATES, IMAGEN_ULTRA_MODEL } from '../constants';
 import { uploadFile } from '../services/media/storage';
 import { useToast } from '../contexts/ToastContext';
 import HowToUse from '../components/ui/HowToUse';
@@ -49,6 +49,7 @@ const ContentGenerator: React.FC = () => {
 
 
   const [targetAudience, setTargetAudience] = useState<string>('general');
+  const [aspectRatio, setAspectRatio] = useState<string>('1:1');
 
   // Avatar & Analysis State
   const [avatars, setAvatars] = useState<Avatar[]>([]);
@@ -224,7 +225,7 @@ const ContentGenerator: React.FC = () => {
     setLoadingImages(prev => [...prev, post.id]);
 
     try {
-      const imageResponse = await generateImage(post.image_prompt, { model: GEMINI_IMAGE_MODEL });
+      const imageResponse = await generateImage(post.image_prompt, { model: GEMINI_IMAGE_MODEL, aspectRatio: aspectRatio as any });
 
       let finalImageUrl = PLACEHOLDER_IMAGE_BASE64;
       if (imageResponse.type === 'image') {
@@ -496,6 +497,21 @@ const ContentGenerator: React.FC = () => {
                           <PhotoIcon className="w-4 h-4" />
                           3. GERAR
                         </Button>
+                      </div>
+                      <div className="flex justify-end items-center gap-2">
+                        <label htmlFor="aspect-ratio-select" className="text-[10px] uppercase font-bold text-gray-500">Aspect Ratio:</label>
+                        <select
+                          id="aspect-ratio-select"
+                          value={aspectRatio}
+                          onChange={(e) => setAspectRatio(e.target.value)}
+                          className="bg-black/20 text-[var(--text-premium-secondary)] text-xs border border-white/10 rounded-lg px-2 py-1.5 focus:border-purple-500/30 outline-none"
+                        >
+                          <option value="1:1">Quadrado (1:1)</option>
+                          <option value="16:9">Paisagem (16:9)</option>
+                          <option value="9:16">Story (9:16)</option>
+                          <option value="4:3">Post (4:3)</option>
+                          <option value="3:4">Retrato (3:4)</option>
+                        </select>
                       </div>
 
                     </div>

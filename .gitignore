@@ -58,6 +58,9 @@ validar_chave.html
 # Documentation allowed for private repo
 # *.md (Removed check)
 
+test_*.js
+*.sql
+
 
 
 

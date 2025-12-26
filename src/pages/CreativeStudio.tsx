@@ -49,6 +49,7 @@ const CreativeStudio: React.FC = () => {
   const [imageAspectRatio, setImageAspectRatio] = useState<string>(DEFAULT_ASPECT_RATIO);
   const [imageSize, setImageSize] = useState<string>(DEFAULT_IMAGE_SIZE);
   const [selectedStyle, setSelectedStyle] = useState<string>('photorealistic');
+  const [negativePrompt, setNegativePrompt] = useState<string>(DEFAULT_NEGATIVE_PROMPT);
   const [savedItemName, setSavedItemName] = useState<string>('');
 
   const [logoSettings, setLogoSettings] = useState<LogoSettings>({
@@ -300,6 +301,8 @@ Output JSON ONLY:
               isFileUploaded={!!file}
               logoSettings={logoSettings}
               setLogoSettings={setLogoSettings}
+              negativePrompt={negativePrompt}
+              setNegativePrompt={setNegativePrompt}
             />
           </div>
 

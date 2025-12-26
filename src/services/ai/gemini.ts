@@ -60,9 +60,7 @@ export const testGeminiConnection = async (explicitKey?: string, userId?: string
         }
       ],
       config: {
-        thinkingConfig: {
-          thinkingLevel: "low"
-        }
+        // thinkingConfig removed to fix build error
       }
     });
 

@@ -35,12 +35,8 @@ export const IMAGE_MODEL_CAPS: Record<string, ModelCapability> = {
         canAnalyze: true,
         supportedAspectRatios: ['1:1', '3:4', '4:3', '9:16', '16:9'],
     },
-    [IMAGEN_STANDARD_MODEL]: {
-        canGenerate: true,
-        canEdit: true,
-        canAnalyze: true,
-        supportedAspectRatios: ['1:1', '3:4', '4:3', '9:16', '16:9'],
-    },
+    // Standard Model shares the same ID as Ultra currently, so entry is deduplicated
+    // [IMAGEN_STANDARD_MODEL]: { ... }
     [IMAGEN_FAST_MODEL]: {
         canGenerate: true,
         canEdit: true,

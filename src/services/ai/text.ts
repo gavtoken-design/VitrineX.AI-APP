@@ -365,8 +365,18 @@ export const campaignBuilder = async (campaignPrompt: string, userId: string = '
             description: plan.description,
             strategy: plan.strategy,
             hashtags: plan.hashtags,
-            posts: plan.posts || [],
-            ads: plan.ads || [],
+            posts: (plan.posts || []).map((p: any, i: number) => ({
+                ...p,
+                id: `post-${Date.now()}-${i}`,
+                userId: userId,
+                createdAt: new Date().toISOString()
+            })),
+            ads: (plan.ads || []).map((a: any, i: number) => ({
+                ...a,
+                id: `ad-${Date.now()}-${i}`,
+                userId: userId,
+                createdAt: new Date().toISOString()
+            })),
             timeline: plan.timeline || '',
             createdAt: new Date().toISOString(),
             userId: userId

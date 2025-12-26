@@ -34,6 +34,8 @@ interface StudioSidebarProps {
     isFileUploaded: boolean;
     logoSettings: LogoSettings;
     setLogoSettings: (settings: LogoSettings) => void;
+    negativePrompt: string;
+    setNegativePrompt: (v: string) => void;
 }
 
 const StudioSidebar: React.FC<StudioSidebarProps> = ({
@@ -50,10 +52,13 @@ const StudioSidebar: React.FC<StudioSidebarProps> = ({
     onReset,
     isFileUploaded,
     logoSettings,
-    setLogoSettings
+    setLogoSettings,
+    negativePrompt,
+    setNegativePrompt
 }) => {
     const [isAdvancedOpen, setIsAdvancedOpen] = React.useState(false);
     const [isLibraryOpen, setIsLibraryOpen] = React.useState(false);
+    const [isNegativePromptOpen, setIsNegativePromptOpen] = React.useState(false);
     const { user } = useAuth();
     const { addToast } = useToast();
 
@@ -199,6 +204,33 @@ const StudioSidebar: React.FC<StudioSidebarProps> = ({
                         </div>
                     </div>
                 </div>
+
+                {/* Negative Prompt Toggler */}
+                <div className="pt-2 border-t border-white/5">
+                    <button
+                        onClick={() => setIsNegativePromptOpen(!isNegativePromptOpen)}
+                        className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-[var(--text-premium-muted)] hover:text-red-400 transition-colors mb-3"
+                    >
+                        <span className={isNegativePromptOpen ? 'text-red-400' : ''}>O que NÃO incluir (Negativo)</span>
+                        <ChevronDownIcon className={`w-3 h-3 transition-transform ${isNegativePromptOpen ? 'rotate-180' : ''}`} />
+                    </button>
+
+                    {isNegativePromptOpen && (
+                        <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                        >
+                            <Textarea
+                                id="negative-prompt"
+                                value={negativePrompt}
+                                onChange={(e) => setNegativePrompt(e.target.value)}
+                                placeholder="Ex: low quality, blurry, distorted text, ugly..."
+                                rows={3}
+                                className="bg-black/40 border-red-500/10 focus:border-red-500/30 text-xs text-red-200 placeholder:text-red-500/20"
+                            />
+                        </motion.div>
+                    )}
+                </div>
             </div>
 
             {/* Brand Logo Integration */}
@@ -267,7 +299,7 @@ const StudioSidebar: React.FC<StudioSidebarProps> = ({
                 onSelect={(content) => setPrompt(content)}
                 initialFilter="text"
             />
-        </aside>
+        </aside >
     );
 };
 

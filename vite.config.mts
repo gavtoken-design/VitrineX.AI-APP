@@ -19,7 +19,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,json}'],
-        cleanupOutdatedCaches: true
+        cleanupOutdatedCaches: true,
+        maximumFileSizeToCacheInBytes: 4 * 1024 * 1024, // 4MB
       },
       manifest: false // Use existing manifest.json in public or generated one? If public has it, use false or configure to copy? Vite copies public.
       // Actually, if I set manifest: false, it won't generate one, but it will generate sw.js.

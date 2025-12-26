@@ -81,16 +81,25 @@ const CalendarManager: React.FC = () => {
 
   useEffect(() => {
     loadEvents();
-
-    // Request notification permission
-    if ('Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission().then(permission => {
-        setNotificationsEnabled(permission === 'granted');
-      });
-    } else {
-      setNotificationsEnabled(Notification.permission === 'granted');
-    }
   }, [userId]);
+
+  const requestNotificationPermission = () => {
+    if (!('Notification' in window)) {
+      addToast({ type: 'warning', message: 'Este navegador não suporta notificações de área de trabalho.' });
+      return;
+    }
+
+    Notification.requestPermission().then(permission => {
+      if (permission === 'granted') {
+        setNotificationsEnabled(true);
+        addToast({ type: 'success', message: 'Notificações ativadas!' });
+        new Notification('VitrineX', { body: 'Notificações ativadas com sucesso!' });
+      } else {
+        setNotificationsEnabled(false);
+        addToast({ type: 'info', message: 'Permissão de notificação negada.' });
+      }
+    });
+  };
 
   // Check for events to notify every minute
   useEffect(() => {
@@ -177,13 +186,18 @@ const CalendarManager: React.FC = () => {
           <Button onClick={loadEvents} variant="ghost" size="sm">
             <ArrowPathIcon className="w-4 h-4 mr-1" /> Atualizar
           </Button>
-          {notificationsEnabled && (
+
+          {notificationsEnabled ? (
             <div className="flex items-center gap-2 px-3 py-2 bg-green-100 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
               <BellIcon className="w-4 h-4 text-green-600 dark:text-green-400" />
               <span className="text-sm font-medium text-green-700 dark:text-green-400">
                 Ativo
               </span>
             </div>
+          ) : (
+            <Button onClick={requestNotificationPermission} variant="outline" size="sm" className="border-dashed border-gray-600">
+              <BellIcon className="w-4 h-4 mr-1" /> Ativar Notificações
+            </Button>
           )}
         </div>
       </div>

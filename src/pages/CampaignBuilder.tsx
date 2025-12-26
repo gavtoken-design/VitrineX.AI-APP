@@ -59,6 +59,10 @@ const CampaignBuilder: React.FC = () => {
 
     try {
       const { campaign } = await campaignBuilder(campaignPrompt, userId);
+
+      // Save to Database
+      await saveCampaign(campaign);
+
       setGeneratedCampaign(campaign);
       addToast({ type: 'success', title: 'Sucesso!', message: `Campanha "${campaign.name}" criada e salva com sucesso!` });
     } catch (err) {
