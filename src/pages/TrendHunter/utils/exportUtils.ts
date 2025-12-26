@@ -22,20 +22,8 @@ export const handleCopyReport = (result: TrendResultStructured, query: string, c
     navigator.clipboard.writeText(textContent);
 };
 
-export const handleSaveToDrive = async (result: TrendResultStructured, query: string): Promise<void> => {
-    const textContent = `
-RELATÓRIO DE TENDÊNCIA VITRINEX AI
-Data: ${new Date().toLocaleDateString()}
-Palavra-chave: ${query}
-Score: ${result.score}/100
-
-== RESUMO ==
-${result.resumo}
-
-== CONCLUSÃO ==
-Avaliação: ${result.conclusao.avaliacao}
-Melhor Estratégia: ${result.conclusao.melhorEstrategia}
-  `.trim();
+export const handleSaveToDrive = async (result: TrendResultStructured, query: string, city: string): Promise<void> => {
+    const textContent = generateReportText(result, query, city);
 
     const blob = new Blob([textContent], { type: 'text/plain' });
     const safeQuery = query.trim().replace(/\s+/g, '-') || 'trend-report';

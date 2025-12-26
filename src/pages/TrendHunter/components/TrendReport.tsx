@@ -313,7 +313,7 @@ const TrendReport: React.FC<TrendReportProps> = ({
                 <Button onClick={() => handleDownloadTxt(result, query, city)} variant="ghost" size="sm" className="text-gray-400 hover:text-white hover:bg-white/5">
                     TXT
                 </Button>
-                <Button onClick={() => wrapAsync(() => handleSaveToDrive(result, query), 'Erro ao salvar no Drive')} variant="ghost" size="sm" className="text-gray-400 hover:text-white hover:bg-white/5">
+                <Button onClick={() => wrapAsync(() => handleSaveToDrive(result, query, city), 'Erro ao salvar no Drive')} variant="ghost" size="sm" className="text-gray-400 hover:text-white hover:bg-white/5">
                     Drive
                 </Button>
                 <Button onClick={() => wrapAsync(() => handleExportPDF('trend-report-container', query), 'Erro ao exportar PDF')} variant="ghost" size="sm" className="text-gray-400 hover:text-white hover:bg-white/5">
