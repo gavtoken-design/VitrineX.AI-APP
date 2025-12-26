@@ -177,7 +177,7 @@ const AppContent: React.FC = () => {
                         </div>
 
                         {/* Module Content */}
-                        <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6 lg:p-8 scroll-smooth relative z-10">
+                        <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 pb-28 md:p-6 lg:p-8 scroll-smooth relative z-10">
                             <div className="max-w-7xl mx-auto h-full w-full">
                                 <AnimatePresence mode="wait">
                                     <motion.div

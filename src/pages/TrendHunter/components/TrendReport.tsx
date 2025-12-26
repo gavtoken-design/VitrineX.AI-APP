@@ -145,13 +145,16 @@ const TrendReport: React.FC<TrendReportProps> = ({
                             <span className="p-2 bg-blue-500/20 rounded-lg text-blue-400"><DocumentTextIcon className="w-5 h-5" /></span>
                             Resumo Executivo
                         </h4>
-                        <button onClick={() => handleCopySection(result.resumo, 'Resumo')} className="p-2 hover:bg-white/10 rounded-lg text-gray-500 hover:text-white transition-colors"> <ClipboardDocumentIcon className="w-5 h-5" /> </button>
+                        <button onClick={() => handleCopySection(result.resumo, 'Resumo')} className="p-2 hover:bg-white/10 rounded-lg text-gray-500 hover:text-white transition-colors" title="Copiar Resumo"> <ClipboardDocumentIcon className="w-5 h-5" /> </button>
                     </div>
                     <p className="text-gray-300 text-lg leading-relaxed mb-10 font-light whitespace-pre-line">{result.resumo}</p>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="bg-black/30 p-6 rounded-2xl border border-white/5">
-                            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-4">Motivadores</p>
+                        <div className="bg-black/30 p-6 rounded-2xl border border-white/5 relative group/item">
+                            <div className="flex justify-between items-center mb-4">
+                                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Motivadores</p>
+                                <button onClick={() => handleCopySection(result.motivadores.join('\n'), 'Motivadores')} className="p-1.5 hover:bg-white/10 rounded-lg text-gray-600 hover:text-white transition-colors opacity-0 group-hover/item:opacity-100" title="Copiar Motivadores"> <ClipboardDocumentIcon className="w-4 h-4" /> </button>
+                            </div>
                             <ul className="space-y-4">
                                 {result.motivadores.map((m, i) => (
                                     <li key={i} className="flex items-center gap-3 text-gray-300 text-sm font-medium">
@@ -161,21 +164,25 @@ const TrendReport: React.FC<TrendReportProps> = ({
                                 ))}
                             </ul>
                         </div>
-                        <div className="bg-gradient-to-br from-yellow-500/10 to-transparent p-6 rounded-2xl border border-yellow-500/10">
-                            <p className="text-[10px] font-bold text-yellow-500/80 uppercase tracking-widest mb-4">Leitura de Cenário</p>
+                        <div className="bg-gradient-to-br from-yellow-500/10 to-transparent p-6 rounded-2xl border border-yellow-500/10 relative group/item">
+                            <div className="flex justify-between items-center mb-4">
+                                <p className="text-[10px] font-bold text-yellow-500/80 uppercase tracking-widest">Leitura de Cenário</p>
+                                <button onClick={() => handleCopySection(result.leituraCenario, 'Leitura de Cenário')} className="p-1.5 hover:bg-white/10 rounded-lg text-yellow-500/50 hover:text-yellow-200 transition-colors opacity-0 group-hover/item:opacity-100" title="Copiar Cenário"> <ClipboardDocumentIcon className="w-4 h-4" /> </button>
+                            </div>
                             <p className="text-yellow-100/80 text-sm leading-relaxed italic">"{result.leituraCenario}"</p>
                         </div>
                     </div>
                 </div>
 
                 {/* Termos em Alta (Side) */}
-                <div className="lg:col-span-4 glass-panel p-8 rounded-[2rem] border border-white/10 bg-white/5 flex flex-col justify-between">
+                <div className="lg:col-span-4 glass-panel p-8 rounded-[2rem] border border-white/10 bg-white/5 flex flex-col justify-between group">
                     <div>
                         <div className="flex justify-between items-center mb-6">
                             <h4 className="text-lg font-bold text-white flex items-center gap-2">
                                 <span className="p-2 bg-purple-500/20 rounded-lg text-purple-400"><TagIcon className="w-5 h-5" /></span>
                                 Termos Correlatos
                             </h4>
+                            <button onClick={() => handleCopySection(result.buscasSemelhantes.join(', '), 'Termos')} className="p-2 hover:bg-white/10 rounded-lg text-gray-500 hover:text-white transition-colors opacity-0 group-hover:opacity-100" title="Copiar Termos"> <ClipboardDocumentIcon className="w-4 h-4" /> </button>
                         </div>
                         <div className="flex flex-wrap gap-2">
                             {result.buscasSemelhantes.map((tag, i) => (
@@ -185,8 +192,11 @@ const TrendReport: React.FC<TrendReportProps> = ({
                             ))}
                         </div>
                     </div>
-                    <div className="mt-8 pt-6 border-t border-white/5">
-                        <p className="text-[10px] font-mono text-gray-500 uppercase mb-3">Intenção do Usuário</p>
+                    <div className="mt-8 pt-6 border-t border-white/5 relative group/intent">
+                        <div className="flex justify-between items-center mb-3">
+                            <p className="text-[10px] font-mono text-gray-500 uppercase">Intenção do Usuário</p>
+                            <button onClick={() => handleCopySection(result.interpretacaoBuscas, 'Intenção')} className="p-1.5 hover:bg-white/10 rounded-lg text-gray-500 hover:text-white transition-colors opacity-0 group-hover/intent:opacity-100" title="Copiar Intenção"> <ClipboardDocumentIcon className="w-3.5 h-3.5" /> </button>
+                        </div>
                         <p className="text-sm text-gray-400 leading-relaxed font-light">"{result.interpretacaoBuscas}"</p>
                     </div>
                 </div>
@@ -201,7 +211,10 @@ const TrendReport: React.FC<TrendReportProps> = ({
                             <span className="p-2 bg-pink-500/20 rounded-lg text-pink-400"><PencilSquareIcon className="w-5 h-5" /></span>
                             Conteúdo
                         </h4>
-                        <span className="hidden xl:inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide bg-pink-500/20 text-pink-300 border border-pink-500/20 truncate max-w-[100px]">{result.sugestaoConteudo.formato}</span>
+                        <div className="flex items-center gap-2">
+                            <button onClick={() => handleCopySection(result.sugestaoConteudo.oque, 'Ideia de Conteúdo')} className="p-1.5 hover:bg-white/10 rounded-lg text-pink-300/50 hover:text-pink-300 transition-colors" title="Copiar Ideia"> <ClipboardDocumentIcon className="w-4 h-4" /> </button>
+                            <span className="hidden xl:inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide bg-pink-500/20 text-pink-300 border border-pink-500/20 truncate max-w-[100px]">{result.sugestaoConteudo.formato}</span>
+                        </div>
                     </div>
                     <p className="text-white mb-6 min-h-[60px] whitespace-pre-line relative z-10 text-sm font-light leading-relaxed line-clamp-4">"{result.sugestaoConteudo.oque}"</p>
                     <div className="flex flex-col gap-2 relative z-10 mt-auto">
@@ -215,12 +228,13 @@ const TrendReport: React.FC<TrendReportProps> = ({
                 </div>
 
                 {/* Oportunidade de Produto */}
-                <div className="lg:col-span-4 glass-panel p-6 rounded-[2rem] border border-white/10 bg-gradient-to-br from-emerald-500/5 to-transparent relative overflow-hidden hover:bg-white/[0.02] transition-colors">
-                    <div className="mb-6">
+                <div className="lg:col-span-4 glass-panel p-6 rounded-[2rem] border border-white/10 bg-gradient-to-br from-emerald-500/5 to-transparent relative overflow-hidden hover:bg-white/[0.02] transition-colors group">
+                    <div className="mb-6 flex justify-between items-center">
                         <h4 className="text-lg font-bold text-white flex items-center gap-2">
                             <span className="p-2 bg-emerald-500/20 rounded-lg text-emerald-400"><ShoppingBagIcon className="w-5 h-5" /></span>
                             Produto
                         </h4>
+                        <button onClick={() => handleCopySection(`${result.sugestaoProduto.tipo}\nTemas: ${result.sugestaoProduto.temas.join(', ')}`, 'Sugestão de Produto')} className="p-1.5 hover:bg-white/10 rounded-lg text-emerald-400/50 hover:text-emerald-400 transition-colors opacity-0 group-hover:opacity-100" title="Copiar Produto"> <ClipboardDocumentIcon className="w-4 h-4" /> </button>
                     </div>
                     <div className="space-y-4 h-full flex flex-col">
                         <div className="bg-black/30 rounded-xl p-4 border border-white/5 flex-grow">
@@ -241,12 +255,13 @@ const TrendReport: React.FC<TrendReportProps> = ({
                 </div>
 
                 {/* Estratégia de Campanha */}
-                <div className="lg:col-span-4 glass-panel p-6 rounded-[2rem] border border-white/10 bg-gradient-to-br from-orange-500/5 to-transparent relative overflow-hidden hover:bg-white/[0.02] transition-colors">
-                    <div className="mb-6">
+                <div className="lg:col-span-4 glass-panel p-6 rounded-[2rem] border border-white/10 bg-gradient-to-br from-orange-500/5 to-transparent relative overflow-hidden hover:bg-white/[0.02] transition-colors group">
+                    <div className="mb-6 flex justify-between items-center">
                         <h4 className="text-lg font-bold text-white flex items-center gap-2">
                             <span className="p-2 bg-orange-500/20 rounded-lg text-orange-400"><RocketLaunchIcon className="w-5 h-5" /></span>
                             Tráfego
                         </h4>
+                        <button onClick={() => handleCopySection(`${result.sugestaoCampanha.estrategia}\nCTA: ${result.sugestaoCampanha.cta}`, 'Estratégia de Tráfego')} className="p-1.5 hover:bg-white/10 rounded-lg text-orange-400/50 hover:text-orange-400 transition-colors opacity-0 group-hover:opacity-100" title="Copiar Estratégia"> <ClipboardDocumentIcon className="w-4 h-4" /> </button>
                     </div>
                     <p className="text-gray-300 text-sm mb-6 leading-relaxed whitespace-pre-line font-light min-h-[60px] max-h-[100px] overflow-y-auto custom-scrollbar custom-scrollbar-light">{result.sugestaoCampanha.estrategia}</p>
                     <div className="mt-auto bg-black/30 rounded-xl p-4 border border-white/10 text-center">
@@ -260,11 +275,12 @@ const TrendReport: React.FC<TrendReportProps> = ({
                     <div className="absolute inset-0 bg-gradient-to-r from-[#0A0F19] to-black border border-white/10" />
                     <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150" />
 
-                    <div className="relative z-10 p-8 md:p-12 flex flex-col md:flex-row gap-10 items-center">
+                    <div className="relative z-10 p-8 md:p-12 flex flex-col md:flex-row gap-10 items-center group">
                         <div className="flex-1">
                             <div className="flex items-center gap-3 mb-4">
                                 <span className="text-3xl">⚡</span>
                                 <h4 className="text-2xl font-black text-white uppercase tracking-tight">Veredito da IA</h4>
+                                <button onClick={() => handleCopySection(`${result.conclusao.avaliacao}\n${result.conclusao.melhorEstrategia}`, 'Veredito')} className="p-1.5 hover:bg-white/10 rounded-lg text-gray-500 hover:text-white transition-colors opacity-0 group-hover:opacity-100" title="Copiar Veredito"> <ClipboardDocumentIcon className="w-5 h-5" /> </button>
                             </div>
                             <p className="text-xl text-gray-300 font-light leading-relaxed mb-6">
                                 {result.conclusao.avaliacao}

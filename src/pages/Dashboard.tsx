@@ -159,7 +159,7 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="animate-fade-in duration-500 pb-20 md:pb-0"> {/* Mobile Fix: Pb-20 for bottom nav space */}
+    <div className="animate-fade-in duration-500"> {/* Removed redundant padding, now in App.tsx */}
       <div id="dashboard-header" className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 border-b border-[var(--border-default)] pb-4 gap-4 md:gap-0">
         <div>
           <h2 className="text-2xl font-bold text-[var(--text-primary)]">{t('dashboard.title')}</h2>

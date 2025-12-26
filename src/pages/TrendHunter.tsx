@@ -66,11 +66,11 @@ const TrendHunterSkeleton = () => (
   </div>
 );
 
-const TrendHunter: React.FC = () => {
-  const [query, setQuery] = useState<string>('');
-  const [city, setCity] = useState<string>('');
-  const [objective, setObjective] = useState<string>('all');
-  const [loading, setLoading] = useState<boolean>(false);
+const TrendHunter = () => {
+  const [query, setQuery] = useState('');
+  const [city, setCity] = useState('');
+  const [objective, setObjective] = useState('all');
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [locationStatus, setLocationStatus] = useState<'pending' | 'success' | 'denied'>('pending');
   const [showConfigModal, setShowConfigModal] = useState(false);
@@ -78,7 +78,7 @@ const TrendHunter: React.FC = () => {
 
   // Resultado estruturado
   const [result, setResult] = useState<TrendResultStructured | null>(null);
-  const [rawQuery, setRawQuery] = useState<string>('');
+  const [rawQuery, setRawQuery] = useState('');
 
   // Perfil do cliente
   const [userProfile, setUserProfile] = useState<BusinessProfile>(DEFAULT_BUSINESS_PROFILE);
@@ -372,7 +372,7 @@ IMPORTANTE: Forneça insights práticos e prontos para uso. Retorne APENAS o JSO
       const item: LibraryItem = {
         id: `page-${Date.now()}`,
         userId,
-        type: 'html' as any,
+        type: 'html',
         name: `Landing Page - ${query}`,
         file_url: htmlCode,
         tags: ['landing-page', 'html', ...result.motivadores],
@@ -516,7 +516,7 @@ ${result.resumo}
               serpData={serpData}
               onCreateContent={handleCreateContent}
               onSchedule={handleSchedule}
-              onGenerateHTML={() => setShowConfigModal(true)}
+              onGenerateHTML={async () => setShowConfigModal(true)}
               onSaveToLibrary={handleSaveToLibrary}
             />
           )}

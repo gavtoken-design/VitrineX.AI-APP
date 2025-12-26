@@ -14,11 +14,11 @@ import { GEMINI_PRO_MODEL, CODE_TEMPLATES } from '../constants';
 import { uploadFileToDrive } from '../services/integrations/googleDrive';
 import Modal from '../components/ui/Modal';
 
-const CodePlayground: React.FC = () => {
+const CodePlayground = () => {
   const { user } = useAuth();
   const [contentText, setContentText] = useState('');
   const [imageUrl, setImageUrl] = useState('');
-  const [uploadedImages, setUploadedImages] = useState<Array<{ name: string; data: string }>>([]);
+  const [uploadedImages, setUploadedImages] = useState<{ name: string; data: string }[]>([]);
   const [pageDescription, setPageDescription] = useState('');
   const [generatedCode, setGeneratedCode] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -147,8 +147,9 @@ Retorne APENAS o código. Sem markdown, sem explicações.`;
       }
 
       addToast({ type: 'success', message: 'Código gerado com sucesso!' });
-    } catch (error: any) {
-      addToast({ type: 'error', message: `Erro ao gerar código: ${error.message}` });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Erro desconhecido';
+      addToast({ type: 'error', message: `Erro ao gerar código: ${message}` });
     } finally {
       setIsGenerating(false);
     }
@@ -167,12 +168,13 @@ Retorne APENAS o código. Sem markdown, sem explicações.`;
     try {
       const extension = outputFormat === 'react' ? 'tsx' : 'html';
       const file = new File([generatedCode], `vitrinex-page-${Date.now()}.${extension}`, { type: outputFormat === 'react' ? 'text/plain' : 'text/html' });
-      const uploadedItem = await uploadFile(file, user.id, 'other' as any);
+      const uploadedItem = await uploadFile(file, user.id, outputFormat === 'react' ? 'code' : 'html');
 
       setPublishedUrl(uploadedItem.file_url);
       addToast({ type: 'success', title: 'Página Publicada!', message: 'Link gerado com sucesso.' });
-    } catch (error: any) {
-      addToast({ type: 'error', message: `Erro ao publicar: ${error.message}` });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Erro desconhecido';
+      addToast({ type: 'error', message: `Erro ao publicar: ${message}` });
     } finally {
       setLoading(false);
     }
@@ -187,11 +189,12 @@ Retorne APENAS o código. Sem markdown, sem explicações.`;
       addToast({ type: 'info', message: 'Salvando no Google Drive...' });
       await uploadFileToDrive(blob, fileName, outputFormat === 'react' ? 'text/plain' : 'text/html');
       addToast({ type: 'success', title: 'Sucesso', message: `Arquivo salvo no Drive: ${fileName}` });
-    } catch (err: any) {
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Falha ao salvar no Drive.';
       addToast({
         type: 'error',
         title: 'Erro no Drive',
-        message: err.message || 'Falha ao salvar no Drive.'
+        message: message
       });
     } finally {
       setLoading(false);
@@ -384,12 +387,12 @@ Retorne APENAS o código. Sem markdown, sem explicações.`;
             <div className="bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] rounded-3xl p-6 shadow-2xl shadow-black/50 space-y-6">
               <h3 className="text-sm font-medium text-slate-400 uppercase tracking-wider">Conexões Sociais</h3>
               <div className="grid grid-cols-2 gap-3">
-                {['instagram', 'facebook', 'pinterest', 'twitter', 'tiktok', 'contact', 'email', 'website'].map((social) => (
+                {(['instagram', 'facebook', 'pinterest', 'twitter', 'tiktok', 'contact', 'email', 'website'] as const).map((social) => (
                   <div key={social} className="relative group">
                     <input
                       type="text"
                       placeholder={social.charAt(0).toUpperCase() + social.slice(1)}
-                      value={socialLinks[social as keyof typeof socialLinks]}
+                      value={socialLinks[social]}
                       onChange={(e) => handleSocialChange(social, e.target.value)}
                       className="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-indigo-500/50 transition-colors placeholder:text-slate-600"
                     />

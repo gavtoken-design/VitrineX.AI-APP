@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
-    ArrowTrendingUpIcon,
     ArrowsRightLeftIcon,
     MagnifyingGlassIcon,
     ArrowDownTrayIcon,
@@ -10,11 +9,12 @@ import {
     ClockIcon,
     ShareIcon,
     CloudArrowUpIcon,
-    ArrowPathIcon
+    ArrowPathIcon,
+    DocumentDuplicateIcon,
+    SparklesIcon
 } from '@heroicons/react/24/outline';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '../contexts/ToastContext';
-import { useAuth } from '../contexts/AuthContext';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import { fetchSerpApiTrends, GoogleTrendsResult } from '../services/integrations/serpApi';
@@ -24,7 +24,38 @@ import { generateMockData, MOCK_DATA } from '../data/mocks/marketRadarData';
 // Recharts removed due to build incompatibility
 // import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useMediaActions } from '../hooks/useMediaActions';
+import { useNavigate } from '../hooks/useNavigate';
 import html2canvas from 'html2canvas';
+
+// Cache Helpers
+const getCacheKey = (term: string, prd: string, geo: string = 'BR') => `radar_cache_${term}_${prd}_${geo}`;
+const CACHE_DURATION = 1000 * 60 * 60 * 24; // 24 hours
+
+const getCachedData = (key: string): GoogleTrendsResult | null => {
+    try {
+        const cached = localStorage.getItem(key);
+        if (!cached) return null;
+        const { timestamp, data } = JSON.parse(cached);
+        if (Date.now() - timestamp > CACHE_DURATION) {
+            localStorage.removeItem(key);
+            return null;
+        }
+        return data;
+    } catch (e) {
+        return null;
+    }
+};
+
+const setCachedData = (key: string, data: GoogleTrendsResult) => {
+    try {
+        localStorage.setItem(key, JSON.stringify({
+            timestamp: Date.now(),
+            data
+        }));
+    } catch (e) {
+        console.warn('Cache quota exceeded or error', e);
+    }
+};
 
 const MarketRadar: React.FC = () => {
     const { addToast } = useToast();
@@ -40,35 +71,15 @@ const MarketRadar: React.FC = () => {
     const [dailyTrends, setDailyTrends] = useState<string[]>([]);
     const [isCachedData, setIsCachedData] = useState(false);
     const reportRef = useRef<HTMLDivElement>(null);
+    const { navigateTo } = useNavigate();
 
-    // Cache Helpers
-    const getCacheKey = (term: string, prd: string, geo: string = 'BR') => `radar_cache_${term}_${prd}_${geo}`;
-    const CACHE_DURATION = 1000 * 60 * 60 * 24; // 24 hours
-
-    const getCachedData = (key: string): GoogleTrendsResult | null => {
-        try {
-            const cached = localStorage.getItem(key);
-            if (!cached) return null;
-            const { timestamp, data } = JSON.parse(cached);
-            if (Date.now() - timestamp > CACHE_DURATION) {
-                localStorage.removeItem(key);
-                return null;
-            }
-            return data;
-        } catch (e) {
-            return null;
-        }
-    };
-
-    const setCachedData = (key: string, data: GoogleTrendsResult) => {
-        try {
-            localStorage.setItem(key, JSON.stringify({
-                timestamp: Date.now(),
-                data
-            }));
-        } catch (e) {
-            console.warn('Cache quota exceeded or error', e);
-        }
+    const copyToClipboard = (text: string) => {
+        navigator.clipboard.writeText(text);
+        addToast({
+            type: 'success',
+            title: 'Copiado!',
+            message: `"${text}" copiado para a área de transferência.`
+        });
     };
 
     // Carregar dados iniciais
@@ -217,7 +228,7 @@ const MarketRadar: React.FC = () => {
     ];
 
     return (
-        <div className="min-h-screen relative overflow-hidden bg-[#050505] text-white selection:bg-blue-500/30 font-sans pb-20">
+        <div className="min-h-screen relative overflow-hidden bg-[#050505] text-white selection:bg-blue-500/30 font-sans">
             {/* Ambient Background */}
             <div className="fixed inset-0 pointer-events-none">
                 <div className="absolute top-[-20%] left-[10%] w-[50vw] h-[50vw] bg-blue-600/10 blur-[150px] rounded-full mix-blend-screen opacity-30 animate-pulse-gentle" />
@@ -483,7 +494,7 @@ const MarketRadar: React.FC = () => {
 
                                             const getPath = () => {
                                                 if (!timeline.length) return '';
-                                                const points = timeline.map((item: any, i: number) => {
+                                                const points = timeline.map((item, i: number) => {
                                                     const x = (i / (timeline.length - 1)) * width;
                                                     const val = item.values[0]?.value || 0;
                                                     const y = height - ((val / maxVal) * height);
@@ -494,7 +505,7 @@ const MarketRadar: React.FC = () => {
 
                                             const linePath = () => {
                                                 if (!timeline.length) return '';
-                                                const points = timeline.map((item: any, i: number) => {
+                                                const points = timeline.map((item, i: number) => {
                                                     const x = (i / (timeline.length - 1)) * width;
                                                     const val = item.values[0]?.value || 0;
                                                     const y = height - ((val / maxVal) * height);
@@ -526,7 +537,7 @@ const MarketRadar: React.FC = () => {
                                                         if (!compTimeline || compTimeline.length < 2) return null;
 
                                                         const getCompPoints = () => {
-                                                            return compTimeline.map((item: any, i: number) => {
+                                                            return compTimeline.map((item, i: number) => {
                                                                 const x = (i / (compTimeline.length - 1)) * width;
                                                                 const val = item.values[0]?.value || 0;
                                                                 const y = height - ((val / maxVal) * height);
@@ -575,11 +586,37 @@ const MarketRadar: React.FC = () => {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 relative z-10">
                                     {(data.related_queries?.rising || []).slice(0, 6).map((q, i) => (
-                                        <div key={i} className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/5 group-hover:bg-white/10 transition-colors">
-                                            <span className="text-sm text-gray-200 font-medium truncate pr-4">{q.query}</span>
-                                            <span className="text-[10px] font-bold text-orange-400 whitespace-nowrap bg-orange-400/10 px-2.5 py-1 rounded-full border border-orange-400/20">
-                                                {q.value}
-                                            </span>
+                                        <div
+                                            key={i}
+                                            onClick={() => copyToClipboard(q.query)}
+                                            className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-orange-500/30 transition-all cursor-pointer group/item relative overflow-hidden"
+                                        >
+                                            {/* Glow Effect on Hover */}
+                                            <div className="absolute inset-0 bg-gradient-to-r from-orange-500/0 to-orange-500/5 opacity-0 group-hover/item:opacity-100 transition-opacity" />
+
+                                            <div className="flex items-center gap-3 truncate relative z-10">
+                                                <div className="p-1.5 bg-orange-500/10 rounded-lg group-hover/item:bg-orange-500/20 transition-colors">
+                                                    <DocumentDuplicateIcon className="w-4 h-4 text-orange-400" />
+                                                </div>
+                                                <div className="flex flex-col truncate">
+                                                    <span className="text-sm text-gray-200 font-bold truncate">{q.query}</span>
+                                                    <span className="text-[10px] text-gray-500 font-medium">{q.value} growth</span>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center gap-2 relative z-10">
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        navigateTo('ContentGenerator', { prompt: `Crie um conteúdo épico sobre ${q.query}` });
+                                                        addToast({ type: 'info', message: 'Direcionando para o Gerador de Conteúdo...' });
+                                                    }}
+                                                    className="p-2 bg-white/5 hover:bg-primary/20 text-gray-400 hover:text-primary rounded-lg transition-all border border-transparent hover:border-primary/30"
+                                                    title="Gerar Conteúdo com esta Tendência"
+                                                >
+                                                    <SparklesIcon className="w-4 h-4" />
+                                                </button>
+                                            </div>
                                         </div>
                                     ))}
                                     {(data.related_queries?.rising || []).length === 0 && (
@@ -686,9 +723,26 @@ const MarketRadar: React.FC = () => {
                             </div>
                             <div className="flex flex-wrap gap-3">
                                 {(data.related_queries?.top || []).slice(0, 15).map((q, i) => (
-                                    <span key={i} className="px-4 py-2 bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white text-xs font-bold rounded-lg border border-white/5 hover:border-white/20 transition-all cursor-pointer select-all">
-                                        {q.query}
-                                    </span>
+                                    <div
+                                        key={i}
+                                        onClick={() => copyToClipboard(q.query)}
+                                        className="group/key px-3 py-2 bg-white/5 hover:bg-indigo-500/10 text-gray-300 hover:text-white text-xs font-bold rounded-xl border border-white/5 hover:border-indigo-500/30 transition-all cursor-pointer flex items-center gap-3"
+                                    >
+                                        <DocumentDuplicateIcon className="w-3.5 h-3.5 text-indigo-400 group-hover/key:scale-110 transition-transform" />
+                                        <span className="truncate">{q.query}</span>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setQuery(q.query);
+                                                handleSearch(q.query);
+                                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                                            }}
+                                            className="opacity-0 group-hover/key:opacity-100 p-1 hover:bg-white/10 rounded-md transition-all"
+                                            title="Pesquisar este termo"
+                                        >
+                                            <MagnifyingGlassIcon className="w-3 h-3 text-gray-400 hover:text-white" />
+                                        </button>
+                                    </div>
                                 ))}
                                 {(data.related_queries?.top || []).length === 0 && (
                                     <p className="text-gray-500 text-sm">Nenhuma keyword relacionada encontrada.</p>

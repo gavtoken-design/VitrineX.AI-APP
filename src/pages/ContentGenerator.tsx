@@ -19,7 +19,7 @@ import {
 import { uploadFileToDrive, isDriveConnected } from '../services/integrations/googleDrive';
 import { generateText, generateImage } from '../services/ai';
 import { saveLibraryItem } from '../services/core/db';
-import { Post } from '../types';
+import { Post, LibraryItem } from '../types';
 import { GEMINI_FLASH_MODEL, GEMINI_IMAGE_MODEL, PLACEHOLDER_IMAGE_BASE64, GEMINI_PRO_MODEL, SEASONAL_TEMPLATES, IMAGEN_ULTRA_MODEL } from '../constants';
 import { uploadFile } from '../services/media/storage';
 import { useToast } from '../contexts/ToastContext';
@@ -195,27 +195,7 @@ const ContentGenerator: React.FC = () => {
     }
   };
 
-  // Passo 2: Conversão para JSON
-  const handleConvertToJSON = (postIndex: number) => {
-    const post = generatedPosts[postIndex];
-    if (!post || !post.image_prompt) return;
 
-    const jsonStructure = {
-      prompt: post.image_prompt,
-      negative_prompt: "deformed, ugly, bad anatomy, blur, watermark, text, signature",
-      width: 1024,
-      height: 1024,
-      steps: 30,
-      cfg_scale: 7
-    };
-
-    const jsonString = JSON.stringify(jsonStructure, null, 2);
-
-    // Copy to clipboard or show modal? Requirement says "conversao para JSON". I'll replace the prompt text with JSON for visibility or just copy to clipboard.
-    // Let's copy to clipboard AND show a toast with the JSON snippet
-    navigator.clipboard.writeText(jsonString);
-    addToast({ type: 'success', message: 'JSON copiado para a área de transferência!' });
-  };
 
   // Passo 3: Gerar Imagem (Final)
   const handleGenerateImageFinal = async (postIndex: number) => {
@@ -284,6 +264,29 @@ const ContentGenerator: React.FC = () => {
     } catch (e: any) {
       console.error(e);
       addToast({ type: 'error', message: `Erro ao salvar: ${e.message}` });
+    }
+  };
+
+  const handleSavePrompt = async (postIndex: number) => {
+    const post = generatedPosts[postIndex];
+    if (!post || !post.image_prompt) return;
+
+    try {
+      const item: LibraryItem = {
+        id: `prompt-${Date.now()}`,
+        userId,
+        type: 'prompt',
+        name: `Prompt: ${post.title}`,
+        file_url: post.image_prompt,
+        tags: ['prompt', 'ai-image', ...(post.hashtags || [])],
+        createdAt: new Date().toISOString()
+      };
+
+      await saveLibraryItem(item);
+      addToast({ type: 'success', message: 'Prompt salvo na Biblioteca!' });
+    } catch (error) {
+      console.error(error);
+      addToast({ type: 'error', message: 'Erro ao salvar prompt.' });
     }
   };
 
@@ -476,16 +479,16 @@ const ContentGenerator: React.FC = () => {
                           title="Melhora o prompt com técnicas profissionais"
                         >
                           <SparklesIcon className="w-4 h-4 text-yellow-400" />
-                          1. Refinar
+                          1. Otimizar
                         </Button>
 
                         <Button
-                          onClick={() => handleConvertToJSON(index)}
+                          onClick={() => handleSavePrompt(index)}
                           className="text-[10px] py-2 h-auto flex flex-col items-center gap-1 bg-[var(--background-input)] hover:bg-[var(--background-input)]/80 border border-[var(--border-default)] text-[var(--text-secondary)]"
-                          title="Copia a estrutura JSON do prompt"
+                          title="Salvar prompt na biblioteca"
                         >
-                          <CodeBracketIcon className="w-4 h-4 text-blue-400" />
-                          2. JSON
+                          <BookmarkSquareIcon className="w-4 h-4 text-blue-400" />
+                          2. Salvar Prompt
                         </Button>
 
                         <Button
@@ -495,7 +498,7 @@ const ContentGenerator: React.FC = () => {
                           disabled={isImgLoading}
                         >
                           <PhotoIcon className="w-4 h-4" />
-                          3. GERAR
+                          3. GERAR IMAGEM
                         </Button>
                       </div>
                       <div className="flex justify-end items-center gap-2">
