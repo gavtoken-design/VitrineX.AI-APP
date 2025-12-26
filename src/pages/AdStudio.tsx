@@ -14,6 +14,7 @@ import { GEMINI_PRO_MODEL, IMAGEN_ULTRA_MODEL, PLACEHOLDER_IMAGE_BASE64 } from '
 import { useToast } from '../contexts/ToastContext';
 import { uploadFile } from '../services/media/storage';
 import { useAuth } from '../contexts/AuthContext';
+import { hostingerApi } from '../services/integrations/hostinger';
 import {
   ChartBarIcon,
   SparklesIcon,
@@ -85,6 +86,16 @@ const AdStudio: React.FC = () => {
       });
 
       const adData = JSON.parse(textResponse);
+
+      // Antigravit: Save Memory to Hostinger
+      if (user) {
+        hostingerApi.saveMemory(
+          adPrompt,
+          JSON.stringify(adData),
+          'ad_generator'
+        ).catch(e => console.error('Background memory save failed:', e));
+      }
+
       const newAd: Ad = {
         id: `ad-${Date.now()}`,
         userId: userId,
@@ -133,7 +144,7 @@ const AdStudio: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [productDescription, targetAudience, selectedPlatform, userId, addToast]);
+  }, [productDescription, targetAudience, selectedPlatform, userId, user, addToast]);
 
   const handleSaveAd = useCallback(async () => {
     if (!generatedAd) {
@@ -142,7 +153,7 @@ const AdStudio: React.FC = () => {
     }
     setLoading(true); // Re-use loading state for saving
     try {
-      const savedAd = await saveAd(generatedAd); // Save to mock Firestore
+      const savedAd = await saveAd(generatedAd); // Save to Supabase (or LocalStorage fallback)
       addToast({
         type: 'success',
         title: 'Salvo',
@@ -179,6 +190,13 @@ Forneça:
 Responda em Markdown estruturado.`;
 
       const response = await generateText(prompt, { model: GEMINI_PRO_MODEL });
+
+      // Antigravit: Save Memory
+      if (user) {
+        hostingerApi.saveMemory(prompt, response, 'ad_analysis')
+          .catch(e => console.error('Background memory save failed:', e));
+      }
+
       setAnalysisResult(response);
       addToast({ type: 'success', message: 'Análise concluída!' });
     } catch (err) {

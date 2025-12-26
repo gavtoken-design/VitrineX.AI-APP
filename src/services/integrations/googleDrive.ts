@@ -152,3 +152,11 @@ export const isDriveConnected = async (): Promise<boolean> => {
     const token = await getStoredToken();
     return !!token;
 };
+
+/**
+ * Abre a pasta raiz do Google Drive do usuário em nova aba.
+ */
+export const openDriveFolder = () => {
+    window.open('https://drive.google.com/drive/my-drive', '_blank');
+};
+

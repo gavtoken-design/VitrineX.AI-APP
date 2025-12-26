@@ -40,7 +40,15 @@ export const AuthPage: React.FC = () => {
                 await signUp(email, password, { full_name: name });
             }
         } catch (err: any) {
-            setError(err.message || 'Erro ao processar sua solicitação');
+            console.error("Auth Error:", err);
+            let errorMessage = err.message || 'Erro ao processar sua solicitação';
+
+            // Tratamento amigável para erro comum de configuração
+            if (errorMessage.includes('signups are disabled')) {
+                errorMessage = 'O cadastro por e-mail está desativado no Supabase. Vá em Authentication > Providers > Email e habilite-o.';
+            }
+
+            setError(errorMessage);
         } finally {
             setLoading(false);
         }

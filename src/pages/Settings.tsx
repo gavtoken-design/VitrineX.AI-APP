@@ -22,7 +22,7 @@ import {
     MoonIcon,
     CloudIcon
 } from '@heroicons/react/24/outline';
-import { connectGoogleDrive, isDriveConnected } from '../services/integrations/googleDrive';
+import { GoogleDriveConnect } from '../components/features/GoogleDriveConnect';
 
 const Settings: React.FC = () => {
     const { user, profile, signOut } = useAuth();
@@ -31,35 +31,6 @@ const Settings: React.FC = () => {
     const { addToast } = useToast();
     const [verifying, setVerifying] = useState(false);
     const [saving, setSaving] = useState(false);
-    const [driveConnected, setDriveConnected] = useState(false);
-
-    useEffect(() => {
-        const checkDrive = async () => {
-            const connected = await isDriveConnected();
-            setDriveConnected(connected);
-        };
-        checkDrive();
-    }, []);
-
-    const handleConnectDrive = async () => {
-        try {
-            await connectGoogleDrive();
-            // Polling simple para verificar se conectou (o callback do GIS é async)
-            const interval = setInterval(async () => {
-                const connected = await isDriveConnected();
-                if (connected) {
-                    setDriveConnected(true);
-                    addToast({ type: 'success', title: 'Conectado', message: 'Google Drive ativado com sucesso!' });
-                    clearInterval(interval);
-                }
-            }, 2000);
-
-            // Timeout de 1 minuto para parar o polling
-            setTimeout(() => clearInterval(interval), 60000);
-        } catch (error) {
-            addToast({ type: 'error', title: 'Erro', message: 'Falha ao iniciar conexão com Google.' });
-        }
-    };
 
     // Notifications State
     const [notifications, setNotifications] = useState({
@@ -564,62 +535,8 @@ const Settings: React.FC = () => {
                     </section>
 
                     {/* Integrations Section (New) */}
-                    <section id="integrations-section" className="glass-card p-8">
-                        <div className="flex items-center gap-3 mb-6">
-                            <CloudIcon className="w-6 h-6 text-primary" />
-                            <h2 className="text-xl font-bold text-[var(--text-primary)]">Canais Digitais</h2>
-                        </div>
-                        <div className="space-y-6">
-                            <div className="flex items-center justify-between p-6 bg-[var(--background-input)] rounded-2xl border border-[var(--border-default)]">
-                                <div className="flex items-center gap-4">
-                                    <div className="p-3 bg-white/5 rounded-xl border border-white/10">
-                                        <svg className="w-8 h-8" viewBox="0 0 24 24">
-                                            <path fill="#4285F4" d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z" />
-                                            <path fill="#34A853" d="M12 18l-6.79 3 .71-.71L12 18z" />
-                                            <path fill="#FBBC05" d="M12 2L4.5 20.29l.71.71L12 18z" />
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <h3 className="font-bold text-[var(--text-primary)]">Google Drive</h3>
-                                        <p className="text-sm text-[var(--text-secondary)]">Salve seus relatórios e criativos automaticamente na nuvem.</p>
-                                    </div>
-                                </div>
-
-                                {driveConnected ? (
-                                    <div className="flex items-center gap-3">
-                                        <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-green-500/10 text-green-500 text-xs font-bold border border-green-500/20">
-                                            <CheckBadgeIcon className="w-4 h-4" />
-                                            CONECTADO
-                                        </span>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="text-red-400 hover:text-red-500"
-                                            onClick={() => {
-                                                localStorage.removeItem('vitrinex_google_drive_token');
-                                                setDriveConnected(false);
-                                                addToast({ type: 'info', message: 'Google Drive desconectado.' });
-                                            }}
-                                        >
-                                            Desconectar
-                                        </Button>
-                                    </div>
-                                ) : (
-                                    <Button
-                                        onClick={handleConnectDrive}
-                                        className="bg-white text-black hover:bg-gray-100 border-none font-bold"
-                                    >
-                                        Ativar Google Drive
-                                    </Button>
-                                )}
-                            </div>
-
-                            <div className="p-4 bg-primary/5 rounded-xl border border-primary/10">
-                                <p className="text-xs text-primary leading-relaxed">
-                                    <strong>Nota:</strong> Ao ativar o Google Drive, a VitrineX AI terá permissão apenas para gerenciar arquivos criados por este aplicativo, garantindo sua privacidade.
-                                </p>
-                            </div>
-                        </div>
+                    <section id="integrations-section" className="space-y-6">
+                        <GoogleDriveConnect />
                     </section>
                 </div>
             </div>
