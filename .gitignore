@@ -30,6 +30,7 @@ dist-ssr
 .env
 .env.*
 env.ps1
+!.env.example
 !server/.env.example
 
 # Editor & OS
