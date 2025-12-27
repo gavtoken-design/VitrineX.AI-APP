@@ -1,30 +1,38 @@
 # Logs
-# logs
-# *.log
+logs
+*.log
 npm-debug.log*
 yarn-debug.log*
-yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+build-log.txt
+build_debug.txt
+build_error.log
+build_error.txt
+build_error_final.txt
+build_log_2.txt
+build_log_3.txt
+build_log_update.txt
+tsc_errors.txt
+errors.log
+electron_errors.log
+tsc_check.txt
+tsc_output.txt
 
+# Dependencies
 node_modules
 dist
 dist-electron
 dist-ssr
+
+# Environment
 *.local
 .env
-!server/.env.example
 .env.*
+env.ps1
 !server/.env.example
 
-# FTP & Credentials
-ftp-upload.txt
-upload.txt
-DEPLOY_CREDENCIAIS.md
-*.credentials
-*.auth
-
-# Editor directories and files
+# Editor & OS
 .vscode/*
 !.vscode/extensions.json
 .idea
@@ -34,35 +42,40 @@ DEPLOY_CREDENCIAIS.md
 *.njsproj
 *.sln
 *.sw?
+.agent/
 
-# Deploy files
-winscp.log
-# *.txt
+# Credentials & Deploy
+ftp-upload.txt
+upload.txt
+DEPLOY_CREDENCIAIS.md
+*.credentials
+*.auth
+hash_live.txt
+hash_local.txt
 upload*.ps1
 deploy*.ps1
+backup*.ps1
+
+# Temporary & Reports
 temp_*
+tmp_*
+backups/
+relatorios_verificacao/
+market_research/
+instrucoes_serpapi/
+visual-assets-showcase/
+vitrinex-architecture-export/
+analise-codigo.txt
+preview_export.html
+tree_75.txt
+funcoes_inativas.md
+relatorio_auditoria.md
 
-# Documentation (keep only README.md)
-CHECKLIST_FINAL.md
-DEPLOYMENT_HOSTINGER.md
-DEPLOY_CREDENCIAIS.md
-DEPLOY_FINAL.md
-DEPLOY_PUTTY_SFTP.md
-RESUMO_FINAL.md
-SOLUCAO_MOTOR_IA.md
-STATUS_FINAL.md
-RELEASE_INSTRUCTIONS.md
-validar_chave.html
-
-# Bloquear Docs e Scripts (Pedido do Usuário)
-# Documentation allowed for private repo
-# *.md (Removed check)
-
-test_*.js
+# SQL & Data
 *.sql
+*.sqlite
 
-
-
-
-!backups/
-!vitrinex-architecture-export/*.md
+# Tests
+test_*.js
+test_*.ts
+test_*.tsx

@@ -1,3 +1,4 @@
+
 import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -40,9 +41,7 @@ import SocialNetworks from './pages/SocialNetworks';
 // Components
 import { ToastContainer } from './components/ui/Toast';
 import AnimatedBackground from './components/ui/animated-shader-background';
-
-// Mock missing components
-const TutorialOverlay: React.FC = () => null;
+import OnboardingOverlay from './components/features/OnboardingOverlay';
 
 export type ModuleName =
     | 'Dashboard'
@@ -191,6 +190,12 @@ const AppContent: React.FC = () => {
                                         {renderModule()}
                                     </motion.div>
                                 </AnimatePresence>
+
+                                {/* Espaçador Mobile Adicional - Melhora a experiência ao rolar e evita sobreposição do BottomNav */}
+                                <div className="mt-12 h-40 md:hidden flex flex-col items-center justify-center text-white/5 select-none pointer-events-none">
+                                    <div className="w-12 h-1 bg-white/10 rounded-full mb-4 opacity-20" />
+                                    <span className="text-[10px] tracking-[0.3em] font-black uppercase">VitrineX.AI</span>
+                                </div>
                             </div>
                         </main>
 
@@ -214,7 +219,7 @@ const AppContent: React.FC = () => {
                     </div>
 
                     {/* Toast & Overlays */}
-                    <TutorialOverlay />
+                    <OnboardingOverlay />
 
                 </div>
             )}
@@ -224,8 +229,6 @@ const AppContent: React.FC = () => {
 
 // React Query
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-
-// ... other imports
 
 // Initialize QueryClient
 const queryClient = new QueryClient({

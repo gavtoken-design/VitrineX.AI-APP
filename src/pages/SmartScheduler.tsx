@@ -22,6 +22,7 @@ import { ScheduleEntry as DbScheduleEntry } from '../types';
 import LiquidCalendar from '../components/features/LiquidCalendar';
 import LibrarySelectorModal from '../components/features/LibrarySelectorModal';
 import { useLanguage } from '../contexts/LanguageContext';
+import { getRealTimeCalendarEvents, CalendarEvent } from '../services/calendar';
 
 interface ScheduledPost {
     id: string;
@@ -66,6 +67,10 @@ const SmartScheduler: React.FC = () => {
     const [newImage, setNewImage] = useState<string | null>(null);
     const [isGeneratingAI, setIsGeneratingAI] = useState(false);
 
+    // Real-time Events
+    const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
+    const [selectedEventContext, setSelectedEventContext] = useState<CalendarEvent | null>(null);
+
     // View & Edit State
     const [viewMode, setViewMode] = useState<'list' | 'calendar'>('calendar');
     const [editingId, setEditingId] = useState<string | null>(null);
@@ -100,6 +105,21 @@ const SmartScheduler: React.FC = () => {
         };
         load();
     }, [userId]);
+
+    // Load Real-Time Events (Holidays & Trends)
+    useEffect(() => {
+        const loadEvents = async () => {
+            const year = new Date().getFullYear();
+            const month = new Date().getMonth() + 1;
+            try {
+                const events = await getRealTimeCalendarEvents(year, month);
+                setCalendarEvents(events);
+            } catch (e) {
+                console.error("Failed to load calendar events", e);
+            }
+        };
+        loadEvents();
+    }, []);
 
     const handleDateSelect = (date: string) => {
         setNewDate(date);
@@ -160,7 +180,19 @@ const SmartScheduler: React.FC = () => {
         if (!newTitle) return addToast({ type: 'warning', message: 'Adicione um título primeiro' });
         setIsGeneratingAI(true);
         try {
-            const text = await generateText(`Crie um post para ${newPlatform} sobre: ${newTitle}`);
+            let prompt = `Crie um post para ${newPlatform} sobre: ${newTitle}`;
+
+            if (selectedEventContext) {
+                if (selectedEventContext.type === 'holiday') {
+                    prompt += `. O contexto é lúdico e comemorativo para o feriado de ${selectedEventContext.title}. Inclua emojis festivos.`;
+                } else if (selectedEventContext.type === 'trend') {
+                    prompt += `. Aproveite esta tendência de mercado (${selectedEventContext.description}). Seja ágil, noticioso e relevante.`;
+                } else if (selectedEventContext.type === 'event') {
+                    prompt += `. Este é um evento de marketing (${selectedEventContext.description}). Foco em engajamento ou conversão.`;
+                }
+            }
+
+            const text = await generateText(prompt);
             setNewContent(text);
         } catch (e) {
             addToast({ type: 'error', message: 'Erro ao gerar' });
@@ -261,8 +293,17 @@ const SmartScheduler: React.FC = () => {
                         <div className="animate-fade-in">
                             <LiquidCalendar
                                 posts={posts}
+                                events={calendarEvents}
                                 onDateSelect={handleDateSelect}
                                 onPostSelect={handlePostSelect}
+                                onEventSelect={(event) => {
+                                    setNewTitle(event.title.replace('🔥 Tendência: ', '').replace('🎉 ', ''));
+                                    setNewDate(event.date);
+                                    setNewContent(`Post sobre ${event.title}. ${event.description || ''}`);
+                                    setSelectedEventContext(event); // Store for AI context
+                                    addToast({ type: 'info', message: 'Evento selecionado! Edite os detalhes.' });
+                                    document.getElementById('scheduler-form')?.scrollIntoView({ behavior: 'smooth' });
+                                }}
                             />
                         </div>
                     ) : (

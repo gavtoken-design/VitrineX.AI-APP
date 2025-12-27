@@ -1,3 +1,4 @@
+
 import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
@@ -5,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useToast } from '../contexts/ToastContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useTutorial } from '../contexts/TutorialContext';
 import { supabase } from '../lib/supabase';
 import { updateUserProfile } from '../services/core/db';
 import Button from '../components/ui/Button';
@@ -28,6 +30,7 @@ const Settings: React.FC = () => {
     const { user, profile, signOut } = useAuth();
     const { t, language, setLanguage } = useLanguage();
     const { theme, toggleTheme } = useTheme();
+    const { isGuidesEnabled, toggleGuides, resetTutorials } = useTutorial();
     const { addToast } = useToast();
     const [verifying, setVerifying] = useState(false);
     const [saving, setSaving] = useState(false);
@@ -221,6 +224,13 @@ const Settings: React.FC = () => {
                             >
                                 <SunIcon className="w-5 h-5" />
                                 Aparência
+                            </button>
+                            <button
+                                onClick={() => document.getElementById('interface-section')?.scrollIntoView({ behavior: 'smooth' })}
+                                className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-[var(--text-secondary)] hover:bg-[var(--background-input)] hover:text-[var(--text-primary)] transition-colors"
+                            >
+                                <SparklesIcon className="w-5 h-5" />
+                                Interface e Guias
                             </button>
                             <button
                                 onClick={() => document.getElementById('integrations-section')?.scrollIntoView({ behavior: 'smooth' })}
@@ -531,6 +541,44 @@ const Settings: React.FC = () => {
                                     )}
                                 </span>
                             </button>
+                        </div>
+                    </section>
+
+                    {/* Interface & Guides Section */}
+                    <section id="interface-section" className="glass-card p-8">
+                        <div className="flex items-center gap-3 mb-6">
+                            <SparklesIcon className="w-6 h-6 text-primary" />
+                            <h2 className="text-xl font-bold text-[var(--text-primary)]">Interface e Guias</h2>
+                        </div>
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between p-4 bg-[var(--background-input)] rounded-xl border border-[var(--border-default)]">
+                                <div>
+                                    <h3 className="font-semibold text-[var(--text-primary)]">Guias de Onboarding</h3>
+                                    <p className="text-sm text-[var(--text-secondary)]">
+                                        Exibir dicas e tutoriais ao acessar novas páginas.
+                                    </p>
+                                </div>
+                                <label className="relative inline-flex items-center cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={isGuidesEnabled}
+                                        onChange={(e) => toggleGuides(e.target.checked)}
+                                        className="sr-only peer"
+                                    />
+                                    <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                                </label>
+                            </div>
+                            <div className="flex items-center justify-between p-4 bg-[var(--background-input)] rounded-xl border border-[var(--border-default)]">
+                                <div>
+                                    <h3 className="font-semibold text-[var(--text-primary)]">Reiniciar Tour de Boas-vindas</h3>
+                                    <p className="text-sm text-[var(--text-secondary)]">
+                                        Voltar a ver a tela de boas-vindas inicial.
+                                    </p>
+                                </div>
+                                <Button size="sm" variant="outline" onClick={resetTutorials}>
+                                    Reiniciar
+                                </Button>
+                            </div>
                         </div>
                     </section>
 

@@ -8,13 +8,14 @@ import { useAuth } from '../contexts/AuthContext';
 import { getScheduleEntries, saveScheduleEntry, deleteScheduleEntry } from '../services/core/db';
 import { ScheduleEntry } from '../types';
 import { useNavigate } from '../hooks/useNavigate';
+import { getRealTimeCalendarEvents } from '../services/calendar';
 
 interface CalendarEvent {
   id: string;
   title: string;
   date: string;
   time: string;
-  type: 'post' | 'meeting' | 'task';
+  type: 'post' | 'meeting' | 'task' | 'holiday' | 'trend' | 'event';
   platform?: string; // To identify source
   notified?: boolean;
 }
@@ -70,7 +71,21 @@ const CalendarManager: React.FC = () => {
         };
       });
 
-      setEvents(mappedEvents);
+      // Fetch Real-Time Events
+      const today = new Date();
+      const realTimeEvents = await getRealTimeCalendarEvents(today.getFullYear(), today.getMonth() + 1);
+
+      const mappedRealTimeEvents: CalendarEvent[] = realTimeEvents.map(evt => ({
+        id: evt.id,
+        title: evt.title,
+        date: evt.date,
+        time: '09:00', // Default time for all-day events
+        type: evt.type as any,
+        platform: evt.type === 'holiday' ? 'Feriado' : 'Tendência',
+      }));
+
+      setEvents([...mappedEvents, ...mappedRealTimeEvents].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
+
     } catch (e) {
       console.error('Failed to load schedule', e);
       addToast({ type: 'error', message: 'Erro ao carregar agenda.' });
@@ -270,7 +285,11 @@ const CalendarManager: React.FC = () => {
                         {event.time}
                       </span>
                       <span className={`text-xs font-bold px-2 py-0.5 rounded capitalize 
-                                ${event.platform === 'Calendar' ? 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400' : 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'}`}>
+                                ${event.type === 'holiday' ? 'bg-yellow-100 text-yellow-600' :
+                          event.type === 'trend' ? 'bg-purple-100 text-purple-600' :
+                            event.type === 'event' ? 'bg-green-100 text-green-600' :
+                              event.platform === 'Calendar' ? 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400' :
+                                'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'}`}>
                         {event.platform === 'Calendar' ? 'Tarefa' : event.platform}
                       </span>
                     </div>

@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Button from '../components/ui/Button';
 import { useToast } from '../contexts/ToastContext';
+import { useTutorial, TutorialStep } from '../contexts/TutorialContext';
 
 export default function SocialNetworks() {
     const { addToast } = useToast();
     const [fbConnected, setFbConnected] = useState(false);
     const [igConnected, setIgConnected] = useState(false);
+    const { startTutorial, completedModules } = useTutorial();
 
     // -------------------------------------------------------------------------
     // 1. Simulação / Verificação Básica (Ao carregar)
@@ -81,7 +83,7 @@ export default function SocialNetworks() {
 
     return (
         <div className="container mx-auto py-8">
-            <header className="mb-10">
+            <header id="social-networks-header" className="mb-10">
                 <h1 className="text-3xl font-bold text-title mb-2">Redes Sociais</h1>
                 <p className="text-body">Gerencie suas conexões e integrações com plataformas externas.</p>
             </header>
@@ -90,6 +92,7 @@ export default function SocialNetworks() {
 
                 {/* Facebook Card */}
                 <motion.div
+                    id="facebook-card"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="bg-surface border border-border rounded-xl p-6 shadow-sm flex flex-col items-center text-center hover:shadow-md transition-shadow"
@@ -121,6 +124,7 @@ export default function SocialNetworks() {
 
                 {/* Instagram Card */}
                 <motion.div
+                    id="instagram-card"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}

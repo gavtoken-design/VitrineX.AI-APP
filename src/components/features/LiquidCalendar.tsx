@@ -12,10 +12,21 @@ interface ScheduledPost {
     status: 'scheduled' | 'published' | 'failed';
 }
 
+
+export interface CalendarEvent {
+    id: string;
+    title: string;
+    date: string; // YYYY-MM-DD
+    type: 'holiday' | 'trend' | 'event';
+    description?: string;
+}
+
 interface LiquidCalendarProps {
     posts: ScheduledPost[];
+    events?: CalendarEvent[];
     onDateSelect: (date: string) => void;
     onPostSelect: (post: ScheduledPost) => void;
+    onEventSelect?: (event: CalendarEvent) => void;
 }
 
 const DAYS_OF_WEEK = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
@@ -29,7 +40,7 @@ const platformColors = {
     all: 'bg-gradient-to-r from-blue-500 to-purple-500'
 };
 
-const LiquidCalendar: React.FC<LiquidCalendarProps> = ({ posts, onDateSelect, onPostSelect }) => {
+const LiquidCalendar: React.FC<LiquidCalendarProps> = ({ posts, events = [], onDateSelect, onPostSelect, onEventSelect }) => {
     const [currentDate, setCurrentDate] = useState(new Date());
 
     const getDaysInMonth = (date: Date) => {
@@ -86,6 +97,25 @@ const LiquidCalendar: React.FC<LiquidCalendarProps> = ({ posts, onDateSelect, on
                     </div>
 
                     <div className="mt-2 space-y-1 overflow-y-auto max-h-[calc(100%-24px)] scrollbar-hide">
+                        {/* Render Events (Holidays/Trends) */}
+                        {events?.filter(e => e.date === dateStr).map(event => (
+                            <div
+                                key={event.id}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (onEventSelect) onEventSelect(event);
+                                }}
+                                className={`text-[10px] sm:text-xs truncate px-2 py-0.5 rounded border border-dashed flex items-center gap-1 cursor-pointer hover:bg-white/10 transition-colors
+                                    ${event.type === 'holiday' ? 'border-yellow-500/50 text-yellow-500' : 'border-purple-500/50 text-purple-400'}
+                                `}
+                                title={event.description || event.title}
+                            >
+                                <span className="text-[8px]">{event.type === 'holiday' ? '🎉' : '🔥'}</span>
+                                {event.title}
+                            </div>
+                        ))}
+
+                        {/* Render Posts */}
                         {dayPosts.map(post => (
                             <div
                                 key={post.id}

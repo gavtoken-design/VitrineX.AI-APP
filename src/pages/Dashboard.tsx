@@ -29,7 +29,7 @@ const Dashboard: React.FC = () => {
   const { navigateTo } = useNavigate();
   const { t } = useLanguage();
   const { addToast } = useToast();
-  const { startTutorial, hasSeenTutorial } = useTutorial();
+  // Removed duplicate useTutorial hook usage here as it is called later with completedModules
   const [testingApi, setTestingApi] = useState(false);
 
   const totalPosts = data?.library?.length || 0;
@@ -117,8 +117,12 @@ const Dashboard: React.FC = () => {
     return 'Agora mesmo';
   };
 
+  const { startTutorial, completedModules } = useTutorial();
+
+  // ... (existing code)
+
   useEffect(() => {
-    if (!hasSeenTutorial) {
+    if (!completedModules['dashboard']) {
       const tutorialSteps: TutorialStep[] = [
         {
           targetId: 'dashboard-header',
@@ -127,15 +131,27 @@ const Dashboard: React.FC = () => {
           position: 'bottom',
         },
         {
+          targetId: 'dashboard-metrics',
+          title: 'Métricas Principais',
+          content: 'Visualize o resumo do seu desempenho em tempo real.',
+          position: 'bottom',
+        },
+        {
           targetId: 'quick-actions-grid',
           title: t('dashboard.quick_actions'),
           content: 'Acesse as ferramentas mais importantes com um clique.',
           position: 'top',
         },
+        {
+          targetId: 'dashboard-activity',
+          title: 'Atividade Recente',
+          content: 'Acompanhe as últimas ações e atualizações do sistema.',
+          position: 'top',
+        },
       ];
-      startTutorial(tutorialSteps);
+      startTutorial('dashboard', tutorialSteps);
     }
-  }, [hasSeenTutorial, startTutorial, t]);
+  }, [completedModules, startTutorial, t]);
 
   const handleApiTest = async () => {
     setTestingApi(true);
@@ -183,7 +199,7 @@ const Dashboard: React.FC = () => {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
+        <div id="dashboard-metrics" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
           <SummaryCard
             title={t('dashboard.total_content')}
             value={totalPosts}
@@ -258,7 +274,7 @@ const Dashboard: React.FC = () => {
         </div>
       </LiquidGlassCard>
 
-      <section className="mt-8">
+      <section id="dashboard-activity" className="mt-8">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-xl font-bold text-[var(--text-primary)]">{t('dashboard.recent_activity')}</h3>
           <button

@@ -29,14 +29,14 @@ const MobileNavMenu: React.FC<MobileNavMenuProps> = ({ isOpen, onClose, activeMo
       {/* Overlay com vidro translúcido */}
       {isOpen && (
         <div
-          className="fixed inset-0 liquid-overlay z-30 liquid-transition"
+          className="fixed inset-0 liquid-overlay z-[60] liquid-transition"
           onClick={onClose}
           aria-hidden="true"
         ></div>
       )}
 
       {/* Painel Deslizante Líquido */}
-      <aside className={`fixed top-0 left-0 h-full w-72 liquid-glass-heavy liquid-shadow-deep border-r border-white/10 z-40
+      <aside className={`fixed top-0 left-0 h-full w-72 liquid-glass-heavy liquid-shadow-deep border-r border-white/10 z-[70]
         transform liquid-transition-slow shadow-2xl flex flex-col liquid-emerge
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
 

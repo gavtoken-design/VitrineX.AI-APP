@@ -9,7 +9,8 @@
     "build:standalone": "BUILD_MODE=standalone vite build",
     "preview": "vite preview",
     "electron:dev": "tsc -p electron/tsconfig.json && electron .",
-    "dist:electron": "tsc -p electron/tsconfig.json && electron-builder"
+    "dist:electron": "tsc -p electron/tsconfig.json && electron-builder",
+    "deploy:cloudrun": "gcloud run deploy vitrinex-app --source . --port 8080 --allow-unauthenticated"
   },
   "dependencies": {
     "@babel/runtime": "^7.28.4",
@@ -28,6 +29,7 @@
     "@tanstack/react-query": "^5.24.1",
     "@types/socket.io-client": "^1.4.36",
     "axios": "^1.13.2",
+    "chart.js": "^4.5.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.23.26",
@@ -37,6 +39,7 @@
     "lucide-react": "^0.561.0",
     "pptxgenjs": "^4.0.1",
     "react": "^19.2.3",
+    "react-chartjs-2": "^5.3.1",
     "react-dom": "^19.2.3",
     "recharts": "^3.6.0",
     "rxjs": "^7.8.1",

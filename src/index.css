@@ -148,23 +148,52 @@
 /* === UTILITIES & COMPONENTS === */
 @layer components {
 
-  /* Scrollbar */
+  /* Premium Scrollbar System (Desktop & Mobile) */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(var(--color-primary), 0.4) transparent;
+  }
+
   ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 10px;
+    height: 10px;
   }
 
   ::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background: rgba(var(--color-border), 0.9);
+    background: rgba(var(--color-background), 0.1);
     border-radius: 10px;
   }
 
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, rgba(var(--color-primary), 0.4) 0%, rgba(var(--color-primary), 0.7) 100%);
+    border-radius: 20px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(var(--color-text-muted), 0.5);
+    background: linear-gradient(135deg, rgba(var(--color-primary), 0.7) 0%, rgba(var(--color-primary), 1) 100%);
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+
+  /* Force Scrollbar visibility on Webkit (Chrome/Safari) */
+  ::-webkit-scrollbar-thumb:active {
+    background: rgba(var(--color-primary), 1);
+    border: 1px solid transparent;
+    background-clip: content-box;
+  }
+
+  /* Specific fix for Mobile - Ensure scrollbar shows when scrolling */
+  @media (max-width: 767px) {
+    ::-webkit-scrollbar {
+      width: 5px; /* Thinner on mobile but more contrast */
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(var(--color-primary), 0.6);
+      border: 1px solid transparent;
+    }
   }
 }
 
@@ -518,6 +547,16 @@
   100% {
     left: 100%;
   }
+}
+
+@keyframes marquee {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+
+.animate-marquee {
+  display: inline-block;
+  animation: marquee 30s linear infinite;
 }
 
 /* Icon Fluid Animations (Subset) */

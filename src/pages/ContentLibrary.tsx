@@ -27,6 +27,7 @@ import {
 import { useNavigate } from '../hooks/useNavigate';
 import { useToast } from '../contexts/ToastContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useTutorial, TutorialStep } from '../contexts/TutorialContext';
 import JSZip from 'jszip';
 import { CODE_TEMPLATES } from '../constants';
 import Modal from '../components/ui/Modal';
@@ -47,6 +48,7 @@ const ContentLibrary: React.FC = () => {
   const { addToast } = useToast();
   const { handleDownload } = useMediaActions();
   const { user } = useAuth();
+  const { startTutorial, completedModules } = useTutorial();
 
   const userId = user?.id || 'guest-user';
 
@@ -66,6 +68,32 @@ const ContentLibrary: React.FC = () => {
   useEffect(() => {
     fetchLibrary();
   }, [fetchLibrary]);
+
+  useEffect(() => {
+    if (!completedModules['content_library']) {
+      const tutorialSteps: TutorialStep[] = [
+        {
+          targetId: 'library-header',
+          title: 'Sua Biblioteca',
+          content: 'Centralize todos os seus ativos digitais, imagens e textos aqui.',
+          position: 'bottom',
+        },
+        {
+          targetId: 'upload-button',
+          title: 'Upload Rápido',
+          content: 'Carregue arquivos para usar em seus projetos ou treinar a IA.',
+          position: 'bottom',
+        },
+        {
+          targetId: 'filter-tabs',
+          title: 'Organização Inteligente',
+          content: 'Filtre por tipo de mídia para encontrar o que precisa em segundos.',
+          position: 'bottom',
+        }
+      ];
+      startTutorial('content_library', tutorialSteps);
+    }
+  }, [completedModules, startTutorial]);
 
   useEffect(() => {
     if (viewItem && (viewItem.type === 'text' || viewItem.type === 'code' || viewItem.type === 'prompt' || viewItem.type === 'html')) {
@@ -193,14 +221,14 @@ const ContentLibrary: React.FC = () => {
   return (
     <div className="container mx-auto py-8 px-4 animate-fade-in">
       {/* Header & Stats */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6">
+      <div id="library-header" className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6">
         <div>
           <h2 className="text-3xl font-black text-[var(--text-primary)] tracking-tighter uppercase italic">Biblioteca <span className="text-primary not-italic">Digital</span></h2>
           <p className="text-[var(--text-secondary)] text-sm font-medium tracking-wide mt-1">Gerencie seus ativos, mídias e templates.</p>
         </div>
 
         <div className="flex gap-3 w-full md:w-auto">
-          <label className="flex-1 md:flex-none cursor-pointer group relative overflow-hidden bg-primary/10 hover:bg-primary/20 border border-primary/30 hover:border-primary px-6 py-3 rounded-xl text-sm font-bold text-primary flex items-center justify-center gap-2 transition-all shadow-[0_0_20px_rgba(var(--color-primary),0.1)] hover:shadow-[0_0_30px_rgba(var(--color-primary),0.3)]">
+          <label id="upload-button" className="flex-1 md:flex-none cursor-pointer group relative overflow-hidden bg-primary/10 hover:bg-primary/20 border border-primary/30 hover:border-primary px-6 py-3 rounded-xl text-sm font-bold text-primary flex items-center justify-center gap-2 transition-all shadow-[0_0_20px_rgba(var(--color-primary),0.1)] hover:shadow-[0_0_30px_rgba(var(--color-primary),0.3)]">
             {uploading ? <LoadingSpinner className="w-4 h-4" /> : <CloudArrowUpIcon className="w-5 h-5 group-hover:-translate-y-1 transition-transform" />}
             <span>Upload Rápido</span>
             <input type="file" onChange={handleFileUpload} className="hidden" />
@@ -228,7 +256,7 @@ const ContentLibrary: React.FC = () => {
             />
           </div>
 
-          <div className="flex gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 custom-scrollbar hide-scrollbar snap-x">
+          <div id="filter-tabs" className="flex gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 custom-scrollbar hide-scrollbar snap-x">
             <FilterTab id="all" label="Todos" icon={Square2StackIcon} activeId={activeTab} onClick={setActiveTab} />
             <FilterTab id="image" label="Imagens" icon={PhotoIcon} activeId={activeTab} onClick={setActiveTab} />
             <FilterTab id="video" label="Vídeos" icon={VideoCameraIcon} activeId={activeTab} onClick={setActiveTab} />
@@ -292,10 +320,23 @@ const ContentLibrary: React.FC = () => {
                     >
                       Visualizar
                     </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDownload(item.file_url, item.name);
+                      }}
+                      className="px-4 py-2 bg-primary/20 text-primary hover:bg-primary hover:text-white border border-primary/30 rounded-full text-xs font-bold uppercase tracking-wider transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 delay-50"
+                      title="Baixar Arquivo"
+                    >
+                      Baixar
+                    </button>
                     {activeTab !== 'templates' && (
                       <button
-                        onClick={() => handleDeleteItem(item.id)}
-                        className="px-4 py-2 bg-red-500/20 text-red-500 hover:bg-red-500 hover:text-white border border-red-500/30 rounded-full text-xs font-bold uppercase tracking-wider transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 delay-75"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteItem(item.id);
+                        }}
+                        className="px-4 py-2 bg-red-500/20 text-red-500 hover:bg-red-500 hover:text-white border border-red-500/30 rounded-full text-xs font-bold uppercase tracking-wider transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 delay-100"
                       >
                         Excluir
                       </button>

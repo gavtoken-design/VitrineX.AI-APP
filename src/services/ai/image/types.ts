@@ -84,5 +84,11 @@ export const IMAGE_MODEL_CAPS: Record<string, ModelCapability> = {
         canEdit: true,
         canAnalyze: true,
         supportedAspectRatios: [],
+    },
+    'gemini-3-pro-image-preview': {
+        canGenerate: true,
+        canEdit: true,
+        canAnalyze: true,
+        supportedAspectRatios: ['1:1', '3:4', '4:3', '9:16', '16:9'],
     }
 };

@@ -12,6 +12,7 @@ import { saveLibraryItem } from '../services/core/db';
 import { LibraryItem } from '../types';
 import { useToast } from '../contexts/ToastContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useTutorial, TutorialStep } from '../contexts/TutorialContext';
 import Skeleton from '../components/ui/Skeleton';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fetchSerpApiTrends, formatTrendsDataForAI, fetchDailyTrends, DailyTrend, GoogleTrendsResult } from '../services/integrations/serpApi';
@@ -89,6 +90,7 @@ const TrendHunter = () => {
   const { addToast } = useToast();
   const { user } = useAuth();
   const userId = user?.id || 'guest-user';
+  const { startTutorial, completedModules } = useTutorial();
 
   // Carregar perfil do cliente e tendências diárias
   useEffect(() => {
@@ -129,6 +131,26 @@ const TrendHunter = () => {
     };
     loadTrends();
   }, [requestLocation]);
+
+  useEffect(() => {
+    if (!completedModules['trend_hunter']) {
+      const tutorialSteps: TutorialStep[] = [
+        {
+          targetId: 'trend-search-panel',
+          title: 'Pesquisa Inteligente',
+          content: 'Digite um termo e deixe a IA analisar o volume de busca e viralidade.',
+          position: 'bottom',
+        },
+        {
+          targetId: 'daily-trends-section',
+          title: 'Tendências do Dia',
+          content: 'Veja o que está em alta no Brasil agora e aproveite o hype.',
+          position: 'top',
+        }
+      ];
+      startTutorial('trend_hunter', tutorialSteps);
+    }
+  }, [completedModules, startTutorial]);
 
   // BUSCA DE TENDÊNCIAS COM RESULTADO ESTRUTURADO
   const handleSearchTrends = useCallback(async () => {
@@ -482,27 +504,31 @@ ${result.resumo}
           </motion.div>
         )}
 
-        <SearchPanel
-          query={query}
-          setQuery={setQuery}
-          city={city}
-          setCity={setCity}
-          objective={objective}
-          setObjective={setObjective}
-          locationStatus={locationStatus}
-          loading={loading}
-          hasResult={!!result}
-          onSearch={handleSearchTrends}
-          onClear={handleClear}
-          onPaste={handlePaste}
-        />
+        <div id="trend-search-panel">
+          <SearchPanel
+            query={query}
+            setQuery={setQuery}
+            city={city}
+            setCity={setCity}
+            objective={objective}
+            setObjective={setObjective}
+            locationStatus={locationStatus}
+            loading={loading}
+            hasResult={!!result}
+            onSearch={handleSearchTrends}
+            onClear={handleClear}
+            onPaste={handlePaste}
+          />
+        </div>
 
-        <DailyTrends
-          trends={dailyTrends}
-          onSelectTrend={(val) => { setQuery(val); handleSearchTrends(); }}
-          loading={loading}
-          hasResult={!!result}
-        />
+        <div id="daily-trends-section">
+          <DailyTrends
+            trends={dailyTrends}
+            onSelectTrend={(val) => { setQuery(val); handleSearchTrends(); }}
+            loading={loading}
+            hasResult={!!result}
+          />
+        </div>
 
         {loading && <TrendHunterSkeleton />}
 

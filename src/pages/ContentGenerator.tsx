@@ -14,8 +14,10 @@ import {
   SparklesIcon,
   CodeBracketIcon,
   PhotoIcon,
-  ArrowPathIcon
+  ArrowPathIcon,
+  PaperAirplaneIcon
 } from '@heroicons/react/24/outline';
+import { publishFacebookPost, createInstagramMedia, publishInstagramMedia } from '../services/social';
 import { uploadFileToDrive, isDriveConnected } from '../services/integrations/googleDrive';
 import { generateText, generateImage } from '../services/ai';
 import { saveLibraryItem } from '../services/core/db';
@@ -25,6 +27,7 @@ import { uploadFile } from '../services/media/storage';
 import { useToast } from '../contexts/ToastContext';
 import HowToUse from '../components/ui/HowToUse';
 import { useAuth } from '../contexts/AuthContext';
+import { useTutorial, TutorialStep } from '../contexts/TutorialContext';
 import TargetAudienceDropdown from '../components/ui/TargetAudienceDropdown';
 import Input from '../components/ui/Input';
 
@@ -46,6 +49,7 @@ const ContentGenerator: React.FC = () => {
   const [loadingText, setLoadingText] = useState<boolean>(false);
   const [loadingImages, setLoadingImages] = useState<string[]>([]); // Array of IDs currently generating images
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
+  const { startTutorial, completedModules } = useTutorial();
 
 
   const [targetAudience, setTargetAudience] = useState<string>('general');
@@ -59,6 +63,14 @@ const ContentGenerator: React.FC = () => {
   const [loadingProfileAnalysis, setLoadingProfileAnalysis] = useState(false);
   const [creativeIdeas, setCreativeIdeas] = useState<string[]>([]);
   const [selectedAvatar, setSelectedAvatar] = useState<Avatar | null>(null);
+
+  // Social Publish State
+  const [showPublishModal, setShowPublishModal] = useState(false);
+  const [publishMessage, setPublishMessage] = useState("");
+  const [publishImage, setPublishImage] = useState("");
+  const [publishStatus, setPublishStatus] = useState("");
+  const fbPageId = import.meta.env.VITE_FB_PAGE_ID;
+  const igUserId = import.meta.env.VITE_IG_USER_ID;
 
   const { addToast } = useToast();
   const userId = user?.id || 'guest-user';
@@ -86,6 +98,32 @@ const ContentGenerator: React.FC = () => {
       }
     }
   }, [addToast]);
+
+  React.useEffect(() => {
+    if (!completedModules['content_generator']) {
+      const tutorialSteps: TutorialStep[] = [
+        {
+          targetId: 'content-prompt-area',
+          title: 'Descreva sua Ideia',
+          content: 'Digite o tema, cole uma tendência ou descreva o que você quer criar.',
+          position: 'bottom',
+        },
+        {
+          targetId: 'target-audience-selector',
+          title: 'Defina o Público',
+          content: 'Escolha quem você quer atingir para ajustar o tom da comunicação.',
+          position: 'top',
+        },
+        {
+          targetId: 'generator-action-buttons',
+          title: 'Gere Conteúdo',
+          content: 'Crie posts únicos ou carrosséis completos com um clique.',
+          position: 'top',
+        }
+      ];
+      startTutorial('content_generator', tutorialSteps);
+    }
+  }, [completedModules, startTutorial]);
 
   // --- 1. Content Generation Logic ---
 
@@ -166,22 +204,26 @@ const ContentGenerator: React.FC = () => {
 
   // --- 2. Image Workflow Logic (3 Steps) ---
 
-  // Passo 1: Gerar/Refinar Prompt
+  // Passo 1: Gerar/Refinar Prompt (Expansion Engine)
   const handleRefineImagePrompt = async (postIndex: number) => {
     const post = generatedPosts[postIndex];
     if (!post) return;
 
-    // Use a temporary loading state or toast
-    addToast({ type: 'info', message: 'Refinando prompt de imagem...' });
+    addToast({ type: 'info', message: 'Ativando Engine de Expansão...' });
 
     try {
-      const refinePrompt = `Atue como um Engenheiro de Prompt especialista em Midjourney e Dall-E 3.
-        Transforme esta ideia simples em um prompt PROMPTOPERFEITO (inglês), detalhado, focado em fotorealismo, iluminação cinematográfica e alta definição.
-        
-        Ideia Original: "${post.image_prompt}"
-        Contexto do Post: "${post.content_text.substring(0, 100)}..."
-        
-        Retorne APENAS o texto do prompt refinado em inglês. Sem explicações.`;
+      const refinePrompt = `Act as a Senior Prompt Engineer for High-End AI Image Generators (like Midjourney v6).
+        Your task is to EXPAND this simple concept into a professional, photorealistic prompt.
+
+        Input Concept: "${post.image_prompt}"
+        Context: "${post.content_text.substring(0, 100)}..."
+
+        Apply this formula:
+        [Subject/Main Action] + [Art Style/Medium] + [Lighting/Atmosphere] + [Camera/Composition] + [Quality Keywords]
+
+        Quality Keywords to include: "8k resolution, photorealistic, cinematic composition, sharp focus, volumetric fog, highly detailed, architectural digest style (if meaningful)".
+
+        Return ONLY the raw prompt text in English. No explanations.`;
 
       const refined = await generateText(refinePrompt, { model: GEMINI_FLASH_MODEL });
 
@@ -189,9 +231,9 @@ const ContentGenerator: React.FC = () => {
       const updatedPosts = [...generatedPosts];
       updatedPosts[postIndex].image_prompt = refined.trim();
       setGeneratedPosts(updatedPosts);
-      addToast({ type: 'success', message: 'Prompt refinado!' });
+      addToast({ type: 'success', message: 'Prompt expandido para nível Pro!' });
     } catch (e) {
-      addToast({ type: 'error', message: 'Erro ao refinar prompt.' });
+      addToast({ type: 'error', message: 'Erro na expansão.' });
     }
   };
 
@@ -312,6 +354,80 @@ const ContentGenerator: React.FC = () => {
     } catch (e) { addToast({ type: 'error', message: 'Erro na análise.' }); } finally { setLoadingProfileAnalysis(false); }
   }, [profileAnalysisText, addToast]);
 
+  // --- Helpers for Actions ---
+  const handleDownloadImage = async (url: string, title: string) => {
+    try {
+      if (!url || url === PLACEHOLDER_IMAGE_BASE64) {
+        addToast({ type: 'warning', message: 'Nenhuma imagem para baixar.' });
+        return;
+      }
+      addToast({ type: 'info', message: 'Iniciando download...' });
+
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = `${title.replace(/\s+/g, '-').toLowerCase()}-image.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(blobUrl);
+      addToast({ type: 'success', message: 'Download concluído!' });
+    } catch (e) {
+      console.error(e);
+      addToast({ type: 'error', message: 'Erro ao baixar imagem.' });
+    }
+  };
+
+  const handleOpenPublishModal = (post: Post) => {
+    setPublishMessage(`${post.title}\n\n${post.content_text}\n\n${(post.hashtags || []).join(' ')}`);
+    setPublishImage(post.image_url !== PLACEHOLDER_IMAGE_BASE64 ? post.image_url : '');
+    setShowPublishModal(true);
+    setPublishStatus("");
+  };
+
+  const handleFacebookPublish = async () => {
+    const fbAccessToken = localStorage.getItem("fb_access_token");
+    try {
+      if (!fbPageId) {
+        addToast({ type: 'warning', message: 'ID da Página não configurado (.env)' });
+      }
+      setPublishStatus("Publicando no Facebook...");
+      await publishFacebookPost(fbPageId || "", fbAccessToken || "", publishMessage);
+      setPublishStatus("Publicação no Facebook concluída!");
+      addToast({ type: 'success', message: 'Publicado no Facebook com sucesso!' });
+      setTimeout(() => setShowPublishModal(false), 2000);
+    } catch (e: any) {
+      console.error(e);
+      const errorMsg = e.response?.data?.error?.message || "Erro desconhecido";
+      setPublishStatus("Erro na publicação.");
+      addToast({ type: 'error', message: `Erro Facebook: ${errorMsg}` });
+    }
+  };
+
+  const handleInstagramPublish = async () => {
+    const igAccessToken = localStorage.getItem("ig_access_token");
+    try {
+      if (!igUserId) {
+        addToast({ type: 'warning', message: 'ID do Instagram não configurado (.env)' });
+      }
+      setPublishStatus("Criando mídia no Instagram...");
+      const mediaId = await createInstagramMedia(igUserId || "", igAccessToken || "", publishImage, publishMessage);
+      setPublishStatus("Publicando no Instagram...");
+      await publishInstagramMedia(igUserId || "", igAccessToken || "", mediaId);
+      setPublishStatus("Publicação no Instagram concluída!");
+      addToast({ type: 'success', message: 'Publicado no Instagram com sucesso!' });
+      setTimeout(() => setShowPublishModal(false), 2000);
+    } catch (e: any) {
+      console.error(e);
+      const errorMsg = e.response?.data?.error?.message || "Erro desconhecido";
+      setPublishStatus("Erro na publicação Instagram.");
+      addToast({ type: 'error', message: `Erro Instagram: ${errorMsg}` });
+    }
+  };
+
   return (
     <div className="container mx-auto py-8 lg:py-10 pb-40 lg:pb-10">
       <h2 className="text-3xl font-bold text-white mb-8">Content Generator</h2>
@@ -350,19 +466,23 @@ const ContentGenerator: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Textarea
-            id="contentPrompt"
-            label="Descreva o conteúdo que deseja gerar (Colagem Automática Ativa):"
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            rows={6}
-            placeholder="Cole sua tendência ou descreva sua ideia..."
-            className="md:col-span-2"
-          />
-          <TargetAudienceDropdown selectedAudience={targetAudience} onAudienceChange={setTargetAudience} />
+          <div id="content-prompt-area" className="md:col-span-2">
+            <Textarea
+              id="contentPrompt"
+              label="Descreva o conteúdo que deseja gerar (Colagem Automática Ativa):"
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              rows={6}
+              placeholder="Cole sua tendência ou descreva sua ideia..."
+              className="w-full"
+            />
+          </div>
+          <div id="target-audience-selector">
+            <TargetAudienceDropdown selectedAudience={targetAudience} onAudienceChange={setTargetAudience} />
+          </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-3 mt-4">
+        <div id="generator-action-buttons" className="flex flex-col sm:flex-row gap-3 mt-4">
           <Button onClick={handleGenerateOnePost} isLoading={isGenerating} variant="liquid" className="w-full sm:w-auto shadow-lg shadow-indigo-500/20">
             {isGenerating ? 'Criando...' : 'GERAR 1 POST'}
           </Button>
@@ -441,7 +561,7 @@ const ContentGenerator: React.FC = () => {
                       </label>
 
                       {/* Preview da Imagem */}
-                      <div className="relative aspect-video rounded-2xl overflow-hidden bg-black/50 border border-white/10 group/image">
+                      <div className={`relative aspect-video rounded-2xl overflow-hidden bg-black/50 border border-white/10 group/image ${isImgLoading ? 'shimmer-effect ring-2 ring-indigo-500/50' : ''}`}>
                         {isImgLoading ? (
                           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
                             <LoadingSpinner />
@@ -534,6 +654,12 @@ const ContentGenerator: React.FC = () => {
                     <Button onClick={() => handleSaveToDrive(post)} variant="ghost" className="text-xs flex items-center gap-2">
                       <CloudIcon className="w-4 h-4" /> Salvar Drive
                     </Button>
+                    <Button onClick={() => handleDownloadImage(post.image_url, post.title)} variant="ghost" className="text-xs flex items-center gap-2" disabled={post.image_url === PLACEHOLDER_IMAGE_BASE64}>
+                      <ArrowDownTrayIcon className="w-4 h-4" /> Baixar Imagem
+                    </Button>
+                    <Button onClick={() => handleOpenPublishModal(post)} variant="primary" className="text-xs flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 border-none shadow-lg shadow-purple-500/20">
+                      <PaperAirplaneIcon className="w-4 h-4" /> Enviar / Publicar
+                    </Button>
                   </div>
                 </div>
               );
@@ -578,6 +704,67 @@ const ContentGenerator: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Social Publish Modal */}
+      {showPublishModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setShowPublishModal(false)}>
+          <div className="bg-[#0A0A0A] border border-white/10 rounded-2xl p-6 max-w-md w-full shadow-2xl relative" onClick={(e) => e.stopPropagation()}>
+            <button onClick={() => setShowPublishModal(false)} className="absolute top-4 right-4 text-gray-500 hover:text-white">
+              <span className="sr-only">Fechar</span>
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+
+            <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+              <PaperAirplaneIcon className="w-6 h-6 text-primary" />
+              Publicar Agora
+            </h2>
+
+            <div className="flex flex-col gap-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Legenda Final</label>
+                <textarea
+                  className="w-full p-3 border border-white/10 rounded-xl bg-black/50 text-gray-200 resize-none focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary/50 transition-all placeholder-gray-600 text-sm"
+                  rows={6}
+                  value={publishMessage}
+                  onChange={(e) => setPublishMessage(e.target.value)}
+                />
+              </div>
+
+              {publishImage && (
+                <div className="flex items-center gap-3 p-3 bg-black/50 rounded-xl border border-white/10">
+                  <img src={publishImage} className="w-12 h-12 object-cover rounded-lg" alt="Preview" />
+                  <div className="overflow-hidden">
+                    <p className="text-xs text-green-400 font-bold">Imagem Anexada</p>
+                    <p className="text-[10px] text-gray-500 truncate">{publishImage}</p>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex gap-3 mt-2">
+                <button
+                  className="flex-1 px-4 py-3 bg-[#1877F2] text-white rounded-xl hover:bg-[#166fe5] transition-all font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-[#1877F2]/20 hover:shadow-[#1877F2]/40"
+                  onClick={handleFacebookPublish}
+                  disabled={!publishMessage || !!publishStatus}
+                >
+                  Facebook
+                </button>
+                <button
+                  className="flex-1 px-4 py-3 bg-gradient-to-tr from-[#FD1D1D] to-[#833AB4] text-white rounded-xl hover:opacity-90 transition-all font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-[#E1306C]/20 hover:shadow-[#E1306C]/40"
+                  onClick={handleInstagramPublish}
+                  disabled={!publishMessage || !publishImage || !!publishStatus}
+                >
+                  Instagram
+                </button>
+              </div>
+              {publishStatus && (
+                <p className="text-sm text-center text-primary mt-2 flex items-center justify-center gap-2">
+                  <LoadingSpinner className="w-4 h-4" /> {publishStatus}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div >
   );
 };

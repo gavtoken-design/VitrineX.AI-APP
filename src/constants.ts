@@ -65,41 +65,7 @@ export const PAYMENT_LINK = 'https://buy.stripe.com/cNibJ0aqfeUTaA66Pv6oo01';
 
 
 // --- Seasonal Templates (Christmas & New Year) ---
-export const SEASONAL_TEMPLATES = [
-    {
-        id: 'christmas-sale',
-        label: 'Promoção de Natal',
-        icon: '🎄',
-        basePrompt: 'Crie uma imagem publicitária profissional de Natal para o produto "[PRODUTO]". Estilo minimalista e elegante, fundo vermelho escuro com detalhes em dourado, iluminação suave de estúdio, 4k, alta resolução. Texto "OFERTA DE NATAL" em fonte moderna dourada no topo.',
-        // Links ocultos para guiar a IA (Conceito de Few-Shot/Image Prompting)
-        referenceImage: 'https://images.unsplash.com/photo-1512389142860-9c449e58a543?q=80&w=2069&auto=format&fit=crop',
-        colorPalette: ['#8B0000', '#FFD700', '#F0F0F0']
-    },
-    {
-        id: 'new-year-party',
-        label: 'Festa de Ano Novo',
-        icon: '🥂',
-        basePrompt: 'Design de post para redes sociais de Ano Novo 2026. Tema: Festa e Celebração. Cores: Prata, Branco e Azul Marinho. Mostre garrafas de champanhe estourando e confetes. Espaço central para texto promocional. Estilo luxuoso e vibrante.',
-        referenceImage: 'https://images.unsplash.com/photo-1467810563316-b5476525c0f9?q=80&w=2069&auto=format&fit=crop',
-        colorPalette: ['#C0C0C0', '#000080', '#FFFFFF']
-    },
-    {
-        id: 'holiday-gift',
-        label: 'Guia de Presentes',
-        icon: '🎁',
-        basePrompt: 'Layout de "Guia de Presentes" para Instagram Stories. Fundo Clean com elementos natalinos sutis (galhos de pinheiro, fitas). Espaços em branco reservados para colagem de produtos. Atmosfera aconchegante e sofisticada.',
-        referenceImage: 'https://images.unsplash.com/photo-1512909006721-3d6018887383?q=80&w=2070&auto=format&fit=crop',
-        colorPalette: ['#2F4F4F', '#D2691E', '#F5F5DC']
-    },
-    {
-        id: 'stock-clearance',
-        label: 'Queima de Estoque',
-        icon: '🔥',
-        basePrompt: 'Banner impactante de "Queima de Estoque de Fim de Ano". Fundo amarelo vibrante com texto preto em negrito. Elementos de "porcentagem de desconto" flutuando em 3D. Estilo varejo moderno e agressivo, alta conversão.',
-        referenceImage: 'https://images.unsplash.com/photo-1526178613552-2b45c6c302f0?q=80&w=2068&auto=format&fit=crop',
-        colorPalette: ['#FFD700', '#000000', '#FF4500']
-    }
-];
+export const SEASONAL_TEMPLATES = [];
 
 // Image Styles for Creative Studio
 export const IMAGE_STYLES = [
