@@ -5,12 +5,12 @@ import Logo from '../ui/Logo';
 import Button from '../ui/Button';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { SunIcon, MoonIcon, GlobeAltIcon, Bars3Icon, UserGroupIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
+import { SunIcon, MoonIcon, GlobeAltIcon, Bars3Icon, UserGroupIcon, ArrowDownTrayIcon, BookOpenIcon } from '@heroicons/react/24/outline';
 import NotificationDropdown from '../features/NotificationDropdown';
+import { useNavigate } from '../../hooks/useNavigate';
 
 import { useAuth } from '../../contexts/AuthContext';
 import ClientGreeting from '../ui/ClientGreeting';
-import LibraryImportModal from '../features/LibraryImportModal';
 
 interface NavbarProps {
   onMenuClick: () => void;
@@ -20,85 +20,69 @@ const Navbar: React.FC<NavbarProps> = memo(({ onMenuClick }) => {
   const { theme, toggleTheme } = useTheme();
   const { language, setLanguage } = useLanguage();
   const { user } = useAuth();
-  const [isLibraryModalOpen, setIsLibraryModalOpen] = useState(false);
+  const { navigateTo } = useNavigate();
 
   return (
     <>
-      <nav className="bg-surface text-body px-4 md:px-6 py-3 shadow-sm border-b border-border z-20 transition-colors duration-200 sticky top-0">
-        <div className="flex justify-between items-center max-w-full">
+      <nav className="absolute top-0 left-0 w-full z-[60] px-4 py-3 md:px-6 pointer-events-none">
+        <div className="max-w-7xl mx-auto h-14 rounded-2xl md:rounded-full bg-[#09090b]/40 backdrop-blur-xl border border-white/5 shadow-2xl pointer-events-auto flex justify-between items-center px-4">
           <div className="flex items-center gap-2">
             <button
               onClick={onMenuClick}
-              className="md:hidden p-2 -ml-2 text-muted hover:text-primary transition-colors rounded-full hover:bg-background bounce-on-click"
+              className="md:hidden p-2 -ml-2 text-gray-400 hover:text-white transition-colors rounded-full hover:bg-white/5"
               aria-label="Abrir menu"
             >
-              <Bars3Icon className="w-6 h-6 wiggle-on-hover" />
+              <Bars3Icon className="w-6 h-6" />
             </button>
-            <Logo className="h-8 w-8 md:hidden" />
-            {/* Client Greeting on Mobile Navbar */}
-            <div className="md:hidden ml-2 scalefade-enter">
-              <ClientGreeting name={user?.user_metadata?.name || "Visitante"} />
+            <Logo className="h-7 w-7 md:h-8 md:w-8" />
+            <div className="md:hidden ml-2">
+              <ClientGreeting name={user?.user_metadata?.name || "User"} />
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            {/* Import Button */}
+          <div className="flex items-center gap-2 md:gap-4">
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
-              className="hidden lg:flex items-center gap-2 border-primary/30 hover:bg-primary/10 text-primary"
-              onClick={() => setIsLibraryModalOpen(true)}
+              className="hidden lg:flex items-center gap-2 border-white/10 hover:bg-white/5 text-gray-300 hover:text-white rounded-full px-4"
+              onClick={() => navigateTo('ContentLibrary')}
             >
-              <ArrowDownTrayIcon className="w-4 h-4" />
-              <span className="hidden xl:inline">Importar</span>
+              <BookOpenIcon className="w-4 h-4" />
+              <span>Biblioteca</span>
             </Button>
-
 
             <NotificationDropdown />
 
             <div className="relative group hidden sm:block">
-              <button className="flex items-center gap-1.5 px-2 py-1.5 rounded-md hover:bg-background text-sm font-medium text-muted transition-colors pop-on-hover">
-                <GlobeAltIcon className="w-5 h-5 rotate-on-hover" />
-                <span className="uppercase">{language.split('-')[0]}</span>
+              <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full hover:bg-white/5 text-xs font-bold text-gray-400 hover:text-white transition-all uppercase tracking-widest">
+                <GlobeAltIcon className="w-4 h-4" />
+                <span>{language.split('-')[0]}</span>
               </button>
 
-              <div className="absolute right-0 top-full mt-1 w-24 bg-surface border border-border rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
-                <div className="py-1">
-                  <button
-                    onClick={() => setLanguage('pt-BR')}
-                    className={`block w-full text-left px-4 py-2 text-sm hover:bg-background ${language === 'pt-BR' ? 'text-primary font-bold' : 'text-body'}`}
-                  >
-                    PT-BR
-                  </button>
-                  <button
-                    onClick={() => setLanguage('en-US')}
-                    className={`block w-full text-left px-4 py-2 text-sm hover:bg-background ${language === 'en-US' ? 'text-primary font-bold' : 'text-body'}`}
-                  >
-                    EN-US
-                  </button>
-                </div>
+              <div className="absolute right-0 top-full mt-2 w-32 bg-[#09090b] border border-white/10 rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[70] p-1">
+                <button
+                  onClick={() => setLanguage('pt-BR')}
+                  className={`flex w-full items-center px-3 py-2 text-xs font-bold rounded-lg hover:bg-white/5 ${language === 'pt-BR' ? 'text-purple-400 bg-purple-500/5' : 'text-gray-400'}`}
+                >
+                  Português (BR)
+                </button>
+                <button
+                  onClick={() => setLanguage('en-US')}
+                  className={`flex w-full items-center px-3 py-2 text-xs font-bold rounded-lg hover:bg-white/5 ${language === 'en-US' ? 'text-purple-400 bg-purple-500/5' : 'text-gray-400'}`}
+                >
+                  English (US)
+                </button>
               </div>
             </div>
 
-            <button
-              onClick={toggleTheme}
-              className="p-2 rounded-full text-muted hover:bg-background transition-colors spin-on-click"
-              title={theme === 'light' ? 'Mudar para o Modo Escuro' : 'Mudar para o Modo Claro'}
-            >
-              {theme === 'light' ? (
-                <MoonIcon className="w-5 h-5 rotate-on-hover" />
-              ) : (
-                <SunIcon className="w-5 h-5 rotate-on-hover" />
-              )}
-            </button>
 
-            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 cursor-pointer heartbeat hidden sm:flex">
-              <span className="text-xs font-bold text-primary">US</span>
+
+            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center border border-white/10 shadow-lg hidden sm:flex">
+              <span className="text-[10px] font-black text-white uppercase">{user?.user_metadata?.name?.substring(0, 2) || 'VX'}</span>
             </div>
           </div>
         </div>
       </nav>
-      <LibraryImportModal isOpen={isLibraryModalOpen} onClose={() => setIsLibraryModalOpen(false)} />
     </>
   );
 });

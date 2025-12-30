@@ -44,7 +44,9 @@ import {
   MapPinIcon,
   SpeakerWaveIcon,
   CalendarIcon,
-  ViewColumnsIcon
+  ViewColumnsIcon,
+  LinkIcon,
+  GiftIcon
 } from '@heroicons/react/24/outline';
 
 // Registro central de ícones. 
@@ -62,6 +64,7 @@ export const iconRegistry = {
   calendar: CalendarDaysIcon,
   chat: ChatBubbleLeftRightIcon,
   settings: Cog6ToothIcon,
+  cosmic: SparklesIcon,
 
   // Interface / Ações Gerais
   menu: Bars3Icon,
@@ -97,7 +100,9 @@ export const iconRegistry = {
   map: MapPinIcon,
   audio: SpeakerWaveIcon,
   calendarAlt: CalendarIcon,
-  carousel: ViewColumnsIcon
+  carousel: ViewColumnsIcon,
+  link: LinkIcon,
+  gift: GiftIcon
 };
 
 export type IconName = keyof typeof iconRegistry;

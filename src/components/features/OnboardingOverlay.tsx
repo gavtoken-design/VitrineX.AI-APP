@@ -28,16 +28,20 @@ const OnboardingOverlay: React.FC = () => {
                 if (element) {
                     const rect = element.getBoundingClientRect();
                     setTargetRect(rect);
-                    // Scroll to element if needed
-                    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
             };
+
+            // Scroll ONLY when the step changes
+            const element = document.getElementById(steps[currentStepIndex].targetId);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
 
             updatePosition();
             window.addEventListener('resize', updatePosition);
             window.addEventListener('scroll', updatePosition, true);
 
-            // Small delay to ensure layout
+            // Small delay to ensure layout is ready after step transition
             const timeout = setTimeout(updatePosition, 300);
 
             return () => {
@@ -59,7 +63,7 @@ const OnboardingOverlay: React.FC = () => {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+                    className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
                 >
                     <motion.div
                         initial={{ scale: 0.9, y: 20 }}
@@ -84,9 +88,9 @@ const OnboardingOverlay: React.FC = () => {
                             <div className="flex flex-col gap-3">
                                 <Button
                                     onClick={closeWelcome}
-                                    className="w-full justify-center py-4 text-base bg-white text-black hover:bg-gray-200 border-none"
+                                    className="w-full justify-center py-4 text-base bg-white !text-black hover:bg-gray-200 border-none font-bold shadow-xl shadow-white/10"
                                 >
-                                    Iniciar Guia Interativo
+                                    Iniciar Startup
                                 </Button>
                                 <button
                                     onClick={closeWelcome} // Just close, no tutorial active
@@ -109,13 +113,13 @@ const OnboardingOverlay: React.FC = () => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[90] bg-black/60 backdrop-blur-[2px]"
+                        className="fixed inset-0 z-[9990] bg-black/60 backdrop-blur-[2px]"
                     />
 
                     {/* Highlight Box */}
                     <motion.div
                         layoutId="highlight-box"
-                        className="fixed z-[95] rounded-xl ring-2 ring-primary ring-offset-4 ring-offset-black/50 shadow-[0_0_30px_rgba(59,130,246,0.5)] pointer-events-none"
+                        className="fixed z-[9995] rounded-xl ring-2 ring-primary ring-offset-4 ring-offset-black/50 shadow-[0_0_30px_rgba(59,130,246,0.5)] pointer-events-none"
                         style={{
                             top: targetRect.top,
                             left: targetRect.left,
@@ -127,17 +131,17 @@ const OnboardingOverlay: React.FC = () => {
 
                     {/* Tooltip Card */}
                     <motion.div
-                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
                         key={currentStepIndex}
-                        className="fixed z-[100] w-[calc(100vw-32px)] sm:w-auto max-w-sm"
+                        className="fixed z-[10000] w-[calc(100vw-32px)] sm:w-80"
                         style={{
-                            top: (targetRect.top > window.innerHeight - 250)
-                                ? Math.max(20, targetRect.top - 200)
-                                : targetRect.bottom + 20,
-                            left: Math.max(16, Math.min(window.innerWidth - 384 - 16, targetRect.left + (targetRect.width / 2) - 192)),
-                            // On mobile, force center
-                            ...(window.innerWidth < 640 ? { left: '50%', transform: 'translateX(-50%)', width: 'calc(100vw - 32px)' } : {})
+                            top: (targetRect.top > window.innerHeight - 280)
+                                ? Math.max(80, targetRect.top - 220)
+                                : Math.min(window.innerHeight - 200, targetRect.bottom + 20),
+                            left: window.innerWidth < 640
+                                ? '16px'
+                                : Math.max(16, Math.min(window.innerWidth - 340, targetRect.left + (targetRect.width / 2) - 160)),
                         }}
                     >
                         <div className="bg-[#111827] border border-white/10 rounded-2xl p-5 shadow-2xl relative overflow-hidden">

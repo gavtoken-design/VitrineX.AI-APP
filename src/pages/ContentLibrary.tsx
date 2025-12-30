@@ -22,14 +22,19 @@ import {
   Square2StackIcon,
   RocketLaunchIcon,
   SparklesIcon,
-  CubeTransparentIcon
+  CubeTransparentIcon,
+  UserCircleIcon,
+  ViewColumnsIcon,
+  FilmIcon,
+  CommandLineIcon
 } from '@heroicons/react/24/outline';
 import { useNavigate } from '../hooks/useNavigate';
 import { useToast } from '../contexts/ToastContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useTutorial, TutorialStep } from '../contexts/TutorialContext';
 import JSZip from 'jszip';
-import { CODE_TEMPLATES } from '../constants';
+import { CODE_TEMPLATES, ANIMATION_PROMPTS } from '../constants';
+import { VISUAL_TEMPLATES } from '../templates';
 import Modal from '../components/ui/Modal';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -192,79 +197,117 @@ const ContentLibrary: React.FC = () => {
   }, [libraryItems, addToast]);
 
   // -- Filtering Logic --
-  const filteredItems = libraryItems.filter(item => {
-    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesTab = activeTab === 'all'
-      ? true
-      : activeTab === 'trends'
-        ? item.tags?.includes('trend') || item.tags?.includes('tendencia')
-        : activeTab === 'templates'
-          ? item.tags?.includes('template')
-          : item.type === activeTab;
+  // -- Filtering Logic with Performance Optimization --
+  const filteredItems = React.useMemo(() => {
+    return libraryItems.filter(item => {
+      const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesTab = activeTab === 'all'
+        ? true
+        : activeTab === 'trends'
+          ? item.tags?.includes('trend') || item.tags?.includes('tendencia')
+          : activeTab === 'templates'
+            ? item.tags?.includes('template')
+            : activeTab === 'avatar'
+              ? item.tags?.includes('avatar')
+              : item.type === activeTab;
 
-    return matchesSearch && matchesTab;
-  });
+      return matchesSearch && matchesTab;
+    });
+  }, [libraryItems, searchTerm, activeTab]);
 
-  const displayItems = activeTab === 'templates'
-    ? CODE_TEMPLATES.map(t => ({
-      id: t.id,
-      name: t.name,
-      type: 'code' as const,
-      file_url: t.code,
-      userId: 'system',
-      tags: ['template'],
-      thumbnail_url: '',
-      createdAt: new Date().toISOString()
-    } as unknown as LibraryItem)).filter(i => i.name.toLowerCase().includes(searchTerm.toLowerCase()))
-    : filteredItems;
+  const displayItems = React.useMemo(() => {
+    return activeTab === 'code_templates'
+      ? CODE_TEMPLATES.map(t => ({
+        id: t.id,
+        name: t.name,
+        type: 'code' as const,
+        file_url: t.code,
+        userId: 'system',
+        tags: ['template'],
+        thumbnail_url: '',
+        createdAt: new Date().toISOString()
+      } as unknown as LibraryItem)).filter(i => i.name.toLowerCase().includes(searchTerm.toLowerCase()))
+      : activeTab === 'visual_templates'
+        ? VISUAL_TEMPLATES.map(t => ({
+          id: t.id,
+          name: t.name,
+          type: 'visual_template' as any,
+          file_url: 'component://' + t.id,
+          userId: 'system',
+          tags: ['template', 'visual', 'react'],
+          thumbnail_url: '',
+          createdAt: new Date().toISOString()
+        } as unknown as LibraryItem)).filter(i => i.name.toLowerCase().includes(searchTerm.toLowerCase()))
+
+        : activeTab === 'anim_prompts'
+          ? ANIMATION_PROMPTS.map(t => ({
+            id: t.id,
+            name: t.name,
+            type: 'prompt' as const,
+            file_url: t.prompt,
+            userId: 'system',
+            tags: ['prompt', 'animation'],
+            thumbnail_url: '',
+            createdAt: new Date().toISOString()
+          } as unknown as LibraryItem)).filter(i => i.name.toLowerCase().includes(searchTerm.toLowerCase()))
+          : filteredItems;
+  }, [activeTab, searchTerm, filteredItems]);
 
   return (
-    <div className="container mx-auto py-8 px-4 animate-fade-in">
-      {/* Header & Stats */}
-      <div id="library-header" className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6">
-        <div>
-          <h2 className="text-3xl font-black text-[var(--text-primary)] tracking-tighter uppercase italic">Biblioteca <span className="text-primary not-italic">Digital</span></h2>
-          <p className="text-[var(--text-secondary)] text-sm font-medium tracking-wide mt-1">Gerencie seus ativos, mídias e templates.</p>
-        </div>
-
-        <div className="flex gap-3 w-full md:w-auto">
-          <label id="upload-button" className="flex-1 md:flex-none cursor-pointer group relative overflow-hidden bg-primary/10 hover:bg-primary/20 border border-primary/30 hover:border-primary px-6 py-3 rounded-xl text-sm font-bold text-primary flex items-center justify-center gap-2 transition-all shadow-[0_0_20px_rgba(var(--color-primary),0.1)] hover:shadow-[0_0_30px_rgba(var(--color-primary),0.3)]">
-            {uploading ? <LoadingSpinner className="w-4 h-4" /> : <CloudArrowUpIcon className="w-5 h-5 group-hover:-translate-y-1 transition-transform" />}
-            <span>Upload Rápido</span>
-            <input type="file" onChange={handleFileUpload} className="hidden" />
-          </label>
-
-          {libraryItems.length > 0 && (
-            <Button variant="outline" size="sm" onClick={handleDownloadAll} className="border-white/10 hover:bg-white/5" title="Baixar ZIP">
-              <ArrowDownTrayIcon className="w-4 h-4" />
-            </Button>
-          )}
-        </div>
+    <div className="container mx-auto py-8 px-4 pb-24 animate-fade-in">
+      {/* Header & Stats - REDESIGNED */}
+      <div id="library-header" className="flex flex-col mb-6 gap-2">
+        <h2 className="text-3xl font-black text-[var(--text-primary)] tracking-tighter uppercase italic">Biblioteca <span className="text-primary not-italic">Digital</span></h2>
+        <p className="text-[var(--text-secondary)] text-sm font-medium tracking-wide">Gerencie seus ativos, mídias e templates com máxima performance.</p>
       </div>
 
-      {/* Search & Tabs */}
-      <div className="sticky top-0 z-30 bg-[#050505]/80 backdrop-blur-xl py-4 mb-8 -mx-4 px-4 border-b border-white/5">
-        <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
-          <div className="relative w-full md:max-w-xs group">
-            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-primary transition-colors" />
-            <input
-              type="text"
-              placeholder="Buscar arquivos..."
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-              className="w-full bg-black/40 border border-white/10 rounded-full pl-9 pr-4 py-2.5 text-sm text-white focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all placeholder:text-gray-600"
-            />
+      {/* Unified Toolbar (Search + Filters + Upload) */}
+      <div className="sticky top-0 z-30 bg-[#050505]/90 backdrop-blur-2xl py-4 mb-8 -mx-4 px-4 border-b border-white/5 shadow-2xl">
+        <div className="flex flex-col gap-4">
+
+          <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
+            {/* Search */}
+            <div className="relative w-full md:max-w-md group">
+              <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-primary transition-colors" />
+              <input
+                type="text"
+                placeholder="Pesquisar em toda a biblioteca..."
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                className="w-full bg-[#0A0A0A] border border-white/10 rounded-xl pl-12 pr-4 py-3 text-sm text-white focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all placeholder:text-gray-600 shadow-inner"
+              />
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-2 w-full md:w-auto">
+              <label id="upload-button" className="cursor-pointer bg-primary hover:bg-primary-dark text-white px-5 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-lg hover:shadow-primary/20 hover:-translate-y-0.5 active:translate-y-0 duration-200">
+                {uploading ? <LoadingSpinner className="w-4 h-4 text-white" /> : <CloudArrowUpIcon className="w-5 h-5" />}
+                <span className="hidden sm:inline">Upload</span>
+                <input type="file" onChange={handleFileUpload} className="hidden" />
+              </label>
+
+              {libraryItems.length > 0 && (
+                <Button variant="outline" size="sm" onClick={handleDownloadAll} className="border-white/10 hover:bg-white/5 hover:text-white px-4">
+                  <ArrowDownTrayIcon className="w-5 h-5" />
+                </Button>
+              )}
+            </div>
           </div>
 
-          <div id="filter-tabs" className="flex gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 custom-scrollbar hide-scrollbar snap-x">
+          {/* Scrollable Filters */}
+          <div id="filter-tabs" className="flex gap-2 overflow-x-auto w-full pb-2 md:pb-0 custom-scrollbar hide-scrollbar snap-x pt-2">
             <FilterTab id="all" label="Todos" icon={Square2StackIcon} activeId={activeTab} onClick={setActiveTab} />
             <FilterTab id="image" label="Imagens" icon={PhotoIcon} activeId={activeTab} onClick={setActiveTab} />
             <FilterTab id="video" label="Vídeos" icon={VideoCameraIcon} activeId={activeTab} onClick={setActiveTab} />
             <FilterTab id="audio" label="Áudios" icon={MusicalNoteIcon} activeId={activeTab} onClick={setActiveTab} />
             <FilterTab id="text" label="Textos" icon={DocumentTextIcon} activeId={activeTab} onClick={setActiveTab} />
             <FilterTab id="prompt" label="Prompts" icon={SparklesIcon} activeId={activeTab} onClick={setActiveTab} />
+            <FilterTab id="anim_prompts" label="Prompts Animação" icon={FilmIcon} activeId={activeTab} onClick={setActiveTab} />
             <FilterTab id="trends" label="Trends" icon={RocketLaunchIcon} activeId={activeTab} onClick={setActiveTab} />
-            <FilterTab id="templates" label="Codes" icon={CodeBracketIcon} activeId={activeTab} onClick={setActiveTab} />
+            <FilterTab id="code" label="Meus Projetos" icon={CodeBracketIcon} activeId={activeTab} onClick={setActiveTab} />
+            <FilterTab id="code_templates" label="Templates Dev" icon={CommandLineIcon} activeId={activeTab} onClick={setActiveTab} />
+            <FilterTab id="visual_templates" label="Templates UI" icon={ViewColumnsIcon} activeId={activeTab} onClick={setActiveTab} />
+            <FilterTab id="avatar" label="Avatares" icon={UserCircleIcon} activeId={activeTab} onClick={setActiveTab} />
           </div>
         </div>
       </div>
@@ -306,10 +349,13 @@ const ContentLibrary: React.FC = () => {
                   ) : (
                     <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900 gap-4 p-4 text-center">
                       {item.type === 'audio' && <MusicalNoteIcon className="w-16 h-16 text-gray-700 group-hover:text-purple-500 transition-colors" />}
-                      {item.type === 'text' && <DocumentTextIcon className="w-16 h-16 text-gray-700 group-hover:text-blue-500 transition-colors" />}
-                      {item.type === 'prompt' && <SparklesIcon className="w-16 h-16 text-gray-700 group-hover:text-amber-500 transition-colors" />}
+                      {item.type === 'text' && !item.tags?.includes('avatar') && <DocumentTextIcon className="w-16 h-16 text-gray-700 group-hover:text-blue-500 transition-colors" />}
+                      {item.tags?.includes('avatar') && <UserCircleIcon className="w-16 h-16 text-gray-700 group-hover:text-indigo-500 transition-colors" />}
+                      {item.type === 'prompt' && item.tags?.includes('animation') && <FilmIcon className="w-16 h-16 text-gray-700 group-hover:text-amber-500 transition-colors" />}
+                      {item.type === 'prompt' && !item.tags?.includes('animation') && <SparklesIcon className="w-16 h-16 text-gray-700 group-hover:text-amber-500 transition-colors" />}
                       {item.type === 'code' && <CodeBracketIcon className="w-16 h-16 text-gray-700 group-hover:text-emerald-500 transition-colors" />}
-                      <span className="text-[10px] uppercase font-black tracking-widest text-gray-600 group-hover:text-white transition-colors">{item.type}</span>
+                      {(item.type as any) === 'visual_template' && <ViewColumnsIcon className="w-16 h-16 text-gray-700 group-hover:text-pink-500 transition-colors" />}
+                      <span className="text-[10px] uppercase font-black tracking-widest text-gray-600 group-hover:text-white transition-colors">{item.tags?.includes('avatar') ? 'Avatar' : item.tags?.includes('animation') ? 'Animação' : (item.type as any) === 'visual_template' ? 'Modelo Visual' : item.type}</span>
                     </div>
                   )}
 
@@ -330,7 +376,7 @@ const ContentLibrary: React.FC = () => {
                     >
                       Baixar
                     </button>
-                    {activeTab !== 'templates' && (
+                    {activeTab !== 'code_templates' && (
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -366,6 +412,14 @@ const ContentLibrary: React.FC = () => {
             <div className="rounded-xl overflow-hidden border border-white/10 bg-black/50 flex justify-center max-h-[60vh]">
               {viewItem.type === 'image' ? (
                 <img src={viewItem.file_url} className="h-full object-contain" />
+              ) : (viewItem.type as any) === 'visual_template' ? (
+                <div className="w-full h-full overflow-auto bg-black p-4">
+                  {(() => {
+                    const Template = VISUAL_TEMPLATES.find(t => t.id === viewItem.id)?.component;
+                    const defaultProps = VISUAL_TEMPLATES.find(t => t.id === viewItem.id)?.defaultProps;
+                    return Template ? <div className="transform scale-[0.6] origin-top py-10"><Template {...defaultProps} /></div> : <p>Template not found</p>;
+                  })()}
+                </div>
               ) : (
                 <div className="p-4 w-full overflow-auto"><pre className="text-xs text-green-400 font-mono">{previewContent}</pre></div>
               )}

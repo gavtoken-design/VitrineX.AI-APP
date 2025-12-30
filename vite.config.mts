@@ -41,9 +41,15 @@ export default defineConfig({
         main: path.resolve(__dirname, 'index.html'),
       },
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom', 'framer-motion'],
-          ui: ['@headlessui/react', '@heroicons/react', 'lucide-react'],
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('react-dom') || id.includes('framer-motion')) {
+              return 'vendor';
+            }
+            if (id.includes('@headlessui') || id.includes('@heroicons') || id.includes('lucide-react')) {
+              return 'ui';
+            }
+          }
         }
       }
     }

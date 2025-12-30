@@ -251,7 +251,7 @@ Retorne no formato JSON: { "headline": "...", "copy": "..." }`;
 
 
   return (
-    <div className="container mx-auto py-8 lg:py-10">
+    <div className="container mx-auto py-8 lg:py-10 pb-24 md:pb-10">
       <h2 className="text-3xl font-bold text-title mb-8 flex items-center gap-3">
         <RocketLaunchIcon className="w-8 h-8 text-primary" />
         Estúdio de Anúncios

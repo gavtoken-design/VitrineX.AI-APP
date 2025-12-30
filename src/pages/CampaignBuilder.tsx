@@ -105,7 +105,7 @@ const CampaignBuilder: React.FC = () => {
 
 
   return (
-    <div className="container mx-auto py-8 lg:py-10">
+    <div className="container mx-auto py-8 lg:py-10 pb-24 md:pb-10">
       <h2 className="text-3xl font-bold text-white mb-8">Construtor de Campanhas</h2>
 
       {error && (

@@ -175,19 +175,35 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="animate-fade-in duration-500"> {/* Removed redundant padding, now in App.tsx */}
-      <div id="dashboard-header" className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 border-b border-[var(--border-default)] pb-4 gap-4 md:gap-0">
-        <div>
-          <h2 className="text-2xl font-bold text-[var(--text-primary)]">{t('dashboard.title')}</h2>
-          <p className="text-[var(--text-secondary)] mt-1">{t('dashboard.subtitle')}</p>
-        </div>
+    <div className="animate-fade-in duration-700 space-y-8 pb-24 md:pb-8">
 
-        {/* Mobile Fix: Flex wrap for small screens */}
-        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-          <ClientGreeting name={user?.user_metadata?.full_name || user?.user_metadata?.name || "Visitante"} />
-          <div className="hidden sm:block">
+      {/* Premium Dashboard Header */}
+      <div id="dashboard-header" className="relative z-20 flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-white/5">
+        <div className="space-y-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 backdrop-blur-xl">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-500 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
+            </span>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-400">System Live</span>
+          </div>
+
+          <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white via-white to-white/50 filter drop-shadow-2xl">
+            {t('dashboard.title')} <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">Center</span>
+          </h1>
+
+          <div className="flex items-center gap-4 flex-wrap">
+            <ClientGreeting name={user?.user_metadata?.full_name || user?.user_metadata?.name || "Visitante"} />
+            <div className="h-4 w-px bg-white/10 hidden sm:block" />
             <DateTimeDisplay />
           </div>
+        </div>
+
+        <div className="flex gap-2">
+          <Button onClick={handleApiTest} isLoading={testingApi} variant="ghost" size="sm" className="bg-white/5 border-white/10 hover:bg-white/10 rounded-full px-5 text-gray-300">
+            <BoltIcon className="w-4 h-4 mr-2 text-yellow-500" />
+            Status API
+          </Button>
         </div>
       </div>
 
@@ -265,9 +281,7 @@ const Dashboard: React.FC = () => {
           <Button onClick={() => navigateTo('TrendHunter')} variant="ghost" size="lg" className="w-full justify-start border border-gray-200 dark:border-gray-700 hover:border-cyan-500/50 hover:bg-cyan-500/10 transition-all">
             {t('dashboard.btn_market')}
           </Button>
-          <Button onClick={() => navigateTo('CreativeStudio')} variant="ghost" size="lg" className="w-full justify-start border border-gray-200 dark:border-gray-700 hover:border-purple-500/50 hover:bg-purple-500/10 transition-all">
-            {t('dashboard.btn_media')}
-          </Button>
+
           <Button onClick={() => navigateTo('SmartScheduler')} variant="ghost" size="lg" className="w-full justify-start border border-gray-200 dark:border-gray-700 hover:border-green-500/50 hover:bg-green-500/10 transition-all">
             {t('dashboard.btn_schedule')}
           </Button>

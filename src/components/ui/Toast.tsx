@@ -50,7 +50,7 @@ const Toast: React.FC<ToastProps> = ({ id, type, title, message, duration = 5000
       initial={{ opacity: 0, x: 100, scale: 0.9 }}
       animate={{ opacity: 1, x: 0, scale: 1 }}
       exit={{ opacity: 0, x: 20, scale: 0.9, transition: { duration: 0.2 } }}
-      className="pointer-events-auto w-full max-w-sm"
+      className="pointer-events-auto w-80 md:w-96"
     >
       <LiquidGlassCard
         className="w-full relative overflow-hidden bg-black/40 backdrop-blur-xl border border-white/10 group"

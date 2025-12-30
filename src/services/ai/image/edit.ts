@@ -108,11 +108,42 @@ export const editImageInternal = async (
 
         return { type: 'error', code: 'GENERATION_FAILED', message: 'Nenhuma edição retornada pelo SDK. Verifique se o modelo suporta saída de imagem.' };
     } catch (innerError: any) {
-        console.error("Edit image SDK fallback failed:", innerError);
+        console.warn("Edit image SDK logic failed (primary model), attempting fallback to Analyze+Generate pipeline:", innerError);
+
+        // --- ERROR FALLBACK STRATEGY: Analyze + Generate ---
+        try {
+            const { generateImageInternal } = await import('./generate');
+            // We use a robust helper model (Flash) to analyze the image if the primary failed
+            const client = await getGeminiClient(undefined, options?.userId);
+            const analyzePrompt = "Describe this image in extreme detail, focusing on the subject's physical features, identity, lighting, and style. The description must be suitable for regenerating this exact subject.";
+
+            const analysisResult = await client.models.generateContent({
+                model: GEMINI_FLASH_MODEL,
+                contents: [
+                    {
+                        role: 'user',
+                        parts: [
+                            { inlineData: { data: base64ImageData, mimeType } } as any,
+                            { text: analyzePrompt }
+                        ]
+                    }
+                ]
+            });
+
+            const description = analysisResult.text || (analysisResult as any).candidates?.[0]?.content?.parts?.[0]?.text;
+
+            if (description) {
+                const enrichedPrompt = `Instruction: ${prompt}\n\nReference Image Context: ${description}\n\nTask: Recreate the reference subject and scene, applying the following instruction: ${prompt}. Maintain the subject's identity and style from the reference context exactly.`;
+                return await generateImageInternal(enrichedPrompt, options);
+            }
+        } catch (fallbackError) {
+            console.error("Fallback Analyze+Generate also failed:", fallbackError);
+        }
+
         return {
             type: 'error',
             code: 'GENERATION_FAILED',
-            message: innerError.message || 'Falha na edição client-side'
+            message: innerError.message || 'Falha na edição client-side e no fallback.'
         };
     }
 };

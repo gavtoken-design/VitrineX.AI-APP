@@ -1,6 +1,12 @@
 import { GoogleTrendsResult } from '../../services/integrations/serpApi';
 
-export const generateMockData = (period: string = 'today 1-m'): GoogleTrendsResult => {
+// ... (imports remain)
+
+export const generateMockData = (period: string = 'today 1-m', term: string = 'Mercado'): GoogleTrendsResult => {
+    // If term is generic, use a special seed or set of related queries
+    const isGeneral = term === 'Mercado' || term === 'Tendências Gerais' || term === '';
+    const displayTerm = isGeneral ? 'Tendências de Mercado' : term;
+
     let points = 30;
     let labelFormat = 'date'; // or 'hour'
 
@@ -14,6 +20,13 @@ export const generateMockData = (period: string = 'today 1-m'): GoogleTrendsResu
         points = 30;
     }
 
+    // Simple hash function for deterministic randomness based on term
+    const hash = displayTerm.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const pseudoRandom = (seed: number) => {
+        const x = Math.sin(seed) * 10000;
+        return x - Math.floor(x);
+    };
+
     const timelines = Array.from({ length: points }, (_, i) => {
         let dateLabel = '';
         if (labelFormat === 'hour') {
@@ -24,40 +37,61 @@ export const generateMockData = (period: string = 'today 1-m'): GoogleTrendsResu
             dateLabel = d.toISOString().split('T')[0];
         }
 
+        const baseValue = 40 + (hash % 30); // Higher base for general market
+        const noise = pseudoRandom(hash + i) * 20;
+        const trend = (i / points) * 15;
+
         return {
             date: dateLabel,
-            values: [{ value: Math.floor(Math.random() * 60) + 20 + (i % 5) * 5 }] // Simulated trend
+            values: [{ value: Math.floor(baseValue + noise + trend) }]
         };
     });
+
+    // Diverse topics for general view vs specific ones for term
+    const risingQueries = isGeneral ? [
+        { query: "Inteligência Artificial", value: "Breakout" },
+        { query: "Mercado Financeiro 2025", value: "+450%" },
+        { query: "Marketing Digital", value: "+300%" },
+        { query: "Criptomoedas hoje", value: "+200%" },
+        { query: "E-commerce tendências", value: "+150%" }
+    ] : [
+        { query: `${term} tendencias 2025`, value: "Breakout" },
+        { query: `como fazer ${term}`, value: "+350%" },
+        { query: `melhor ${term} do mercado`, value: "+180%" },
+        { query: `futuro do ${term}`, value: "+120%" },
+        { query: `${term} vs concorrencia`, value: "+90%" }
+    ];
+
+    const topQueries = isGeneral ? [
+        { query: "Google Trends", value: 100 },
+        { query: "ChatGPT", value: 95 },
+        { query: "Dólar hoje", value: 85 },
+        { query: "Notícias Brasil", value: 80 },
+        { query: "Empregos", value: 75 }
+    ] : [
+        { query: term, value: 100 },
+        { query: `${term} brasil`, value: 85 },
+        { query: `curso de ${term}`, value: 70 },
+        { query: `o que é ${term}`, value: 65 },
+        { query: `estratégia de ${term}`, value: 60 }
+    ];
 
     return {
         interest_over_time: {
             timeline_data: timelines
         },
         related_queries: {
-            rising: [
-                { query: "marketing digital para iniciantes", value: "Breakout" },
-                { query: "inteligência artificial generativa", value: "+350%" },
-                { query: "chatgpt vs gemini", value: "+180%" },
-                { query: "automação de anúncios", value: "+120%" },
-                { query: "estratégias de tráfego pago", value: "+90%" }
-            ],
-            top: [
-                { query: "marketing digital", value: 100 },
-                { query: "redes sociais", value: 85 },
-                { query: "seo", value: 70 },
-                { query: "copywriting", value: 65 },
-                { query: "e-commerce", value: 60 }
-            ]
+            rising: risingQueries,
+            top: topQueries
         },
         related_topics: {
             rising: [
-                { topic: { title: "Inteligência Artificial", type: "Tecnologia" }, value: "+500%" },
-                { topic: { title: "Automação", type: "Negócios" }, value: "+200%" },
-                { topic: { title: "Vendas Online", type: "Comércio" }, value: "+150%" }
+                { topic: { title: "Tecnologia", type: "Indústria" }, value: "+500%" },
+                { topic: { title: "Economia", type: "Finanças" }, value: "+350%" },
+                { topic: { title: "Inovação", type: "Negócios" }, value: "+200%" }
             ]
         }
     };
 };
 
-export const MOCK_DATA = generateMockData('today 1-m'); // Backwards compatibility if needed
+export const MOCK_DATA = generateMockData('today 1-m', 'Mercado');

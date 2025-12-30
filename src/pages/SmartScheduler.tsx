@@ -263,7 +263,7 @@ const SmartScheduler: React.FC = () => {
     };
 
     return (
-        <div className="animate-fade-in">
+        <div className="animate-fade-in pb-24 md:pb-0">
             {/* Header */}
             <div className="flex flex-col md:flex-row items-center justify-between pb-6 border-b border-white/10 gap-4 mb-8">
                 <div className="flex items-center gap-4">

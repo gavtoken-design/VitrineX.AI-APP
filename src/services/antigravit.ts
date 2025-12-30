@@ -3,6 +3,7 @@
  * Serviço responsável por registrar interações no banco de dados remoto.
  */
 import { supabase } from '../lib/supabase'; // Importação necessária para o contexto de autheticação
+import { translateText } from './ai/text';
 
 // === MÓDULO DE MEMÓRIA HÍBRIDA (Supabase + MySQL) ===
 
@@ -24,16 +25,26 @@ export const Antigravit_Memorizar = async (promptUsuario: string, respostaIA: st
         console.warn("⚠️ Supabase não detectado ou usuário deslogado.");
     }
 
-    // 2. Prepara o pacote para a Hostinger
+    // 2. Traduz os textos para o inglês
+    const [prompt_en, resposta_en, versao_final_en] = await Promise.all([
+        translateText(promptUsuario, 'en-US', 'pt-BR'),
+        translateText(respostaIA, 'en-US', 'pt-BR'),
+        textoEditado ? translateText(textoEditado, 'en-US', 'pt-BR') : null
+    ]);
+
+    // 3. Prepara o pacote para a Hostinger
     const pacoteDeDados = {
         session_id: usuarioID,      // O ID do Supabase vai aqui!
         tipo_acao: 'geracao_ia',
         prompt: promptUsuario,
         resposta: respostaIA,
-        versao_final: textoEditado
+        versao_final: textoEditado,
+        prompt_en: prompt_en,
+        resposta_en: resposta_en,
+        versao_final_en: versao_final_en
     };
 
-    // 3. Envia para o seu servidor MySQL
+    // 4. Envia para o seu servidor MySQL
     try {
         // Ajuste a URL se necessário
         const urlAPI = 'https://vitrinex.site/api/registrar_treino.php';

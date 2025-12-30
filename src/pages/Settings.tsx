@@ -164,7 +164,7 @@ const Settings: React.FC = () => {
     };
 
     return (
-        <div className="animate-fade-in pb-20">
+        <div className="animate-fade-in pb-24">
             <header className="mb-8">
                 <h1 className="text-3xl font-bold text-[var(--text-primary)]">Configurações</h1>
                 <p className="text-[var(--text-secondary)] mt-2">Gerencie sua conta, assinatura e preferências do sistema.</p>

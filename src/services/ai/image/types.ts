@@ -19,6 +19,7 @@ export interface ImageOptions {
     safetySetting?: string;
     userId?: string;
     negativePrompt?: string;
+    signal?: AbortSignal;
 }
 
 export interface ModelCapability {

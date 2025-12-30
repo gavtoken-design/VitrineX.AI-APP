@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
-import { UserProfile } from '../types';
+import { UserProfile, Role } from '../types';
 import { getUserProfile } from '../services/core/db';
 
 interface AuthContextType {
@@ -56,7 +56,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     setSession(data.session);
                     setUser(data.session?.user ?? null);
                     if (data.session?.user) {
-                        loadProfile(data.session.user.id);
+                        loadProfile(data.session.user.id, data.session.user.email);
                     } else {
                         setLoading(false);
                     }
@@ -79,7 +79,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 setUser(session?.user ?? null);
 
                 if (session?.user) {
-                    loadProfile(session.user.id);
+                    loadProfile(session.user.id, session.user.email);
                 } else {
                     setProfile(null);
                     setLoading(false);
@@ -96,12 +96,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
     }, []);
 
-    const loadProfile = async (userId: string) => {
+    const loadProfile = async (userId: string, email?: string) => {
         try {
-            const userProfile = await getUserProfile(userId);
+            let userProfile = await getUserProfile(userId);
+
+            // Hardcoded Admin Override
+            if (email === 'jeancarlosmedvet97@outlook.com' || userProfile?.email === 'jeancarlosmedvet97@outlook.com') {
+                userProfile = { ...userProfile, role: 'ADMIN' as any, email: 'jeancarlosmedvet97@outlook.com' };
+            }
+
             setProfile(userProfile);
         } catch (error) {
             console.error('Error loading user profile:', error);
+            // Fallback for mock/dev if DB fails
+            if (email === 'jeancarlosmedvet97@outlook.com') {
+                setProfile({
+                    id: userId,
+                    name: 'Jean Carlos',
+                    email: email,
+                    role: 'ADMIN' as any,
+                    avatar: ''
+                });
+            }
         } finally {
             setLoading(false);
         }
@@ -111,13 +127,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (!isSupabaseConfigured) {
             // Mock Login for development/demo
             console.log('Mode: Mock Login');
+
+            const isAdmin = email.toLowerCase() === 'jeancarlosmedvet97@outlook.com';
+
             const mockUser: User = {
-                id: 'mock-user-123',
+                id: isAdmin ? 'admin-jean-id' : 'mock-user-123',
                 app_metadata: {},
-                user_metadata: { full_name: 'Usuário Demo' },
+                user_metadata: { full_name: isAdmin ? 'Jean Carlos' : 'Usuário Demo' },
                 aud: 'authenticated',
                 created_at: new Date().toISOString(),
+                email: email
             };
+
             setUser(mockUser);
             setSession({
                 access_token: 'mock-token',
@@ -126,8 +147,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 token_type: 'bearer',
                 user: mockUser
             });
+
+            // Set Profile Immediately for Mock
+            setProfile({
+                id: mockUser.id,
+                name: mockUser.user_metadata.full_name,
+                email: email,
+                role: (isAdmin ? 'ADMIN' : 'VIEWER') as any,
+                avatar: ''
+            });
+
             // Persist mock session
-            localStorage.setItem('mock_session', 'true');
+            localStorage.setItem('mock_session', JSON.stringify({ user: mockUser, isAdmin }));
             return;
         }
 
@@ -139,12 +170,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (!isSupabaseConfigured) {
             // Mock Signup
             console.log('Mode: Mock Signup');
+
+            const isAdmin = email.toLowerCase() === 'jeancarlosmedvet97@outlook.com';
+
             const mockUser: User = {
                 id: 'mock-user-123',
                 app_metadata: {},
                 user_metadata: metadata || { full_name: 'Usuário Demo' },
                 aud: 'authenticated',
                 created_at: new Date().toISOString(),
+                email: email
             };
             setUser(mockUser);
             setSession({
@@ -154,6 +189,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 token_type: 'bearer',
                 user: mockUser
             });
+
+            // Set Profile
+            setProfile({
+                id: mockUser.id,
+                name: 'Novo Usuário',
+                email: email,
+                role: (isAdmin ? 'ADMIN' : 'VIEWER') as any,
+                avatar: ''
+            });
+
             localStorage.setItem('mock_session', 'true');
             return;
         }

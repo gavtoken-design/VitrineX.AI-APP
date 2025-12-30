@@ -257,16 +257,12 @@ const NotificationDropdown: React.FC = () => {
                                                         e.stopPropagation();
                                                         clearNotification(notification.id);
                                                     }}
-                                                    className="absolute top-4 right-4 p-1.5 text-muted hover:text-red-400 hover:bg-red-400/10 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+                                                    className="absolute top-3 right-3 p-1.5 text-muted hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all"
+                                                    title="Excluir notificação"
                                                 >
-                                                    <XMarkIcon className="w-4 h-4" />
+                                                    <TrashIcon className="w-4 h-4" />
                                                 </button>
                                             </div>
-
-                                            {/* Glow unread */}
-                                            {!notification.read && (
-                                                <div className="absolute top-4 right-4 w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_8px_rgba(var(--color-primary),0.8)]" />
-                                            )}
                                         </div>
                                     ))
                                 )}

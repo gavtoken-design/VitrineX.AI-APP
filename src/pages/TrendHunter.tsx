@@ -26,43 +26,37 @@ import { TrendResultStructured, OBJECTIVES, SocialLinks } from './TrendHunter/ty
 
 // Componente Skeleton para Loading
 const TrendHunterSkeleton = () => (
-  <div className="space-y-6 animate-pulse">
+  <div className="space-y-8 animate-pulse">
     {/* Header Skeleton */}
-    <div className="bg-[var(--background-input)]/50 p-6 rounded-xl border border-[var(--border-default)] h-32 w-full">
+    <div className="glass-panel p-8 rounded-[2rem] border border-white/10 bg-white/[0.02]">
       <div className="flex justify-between items-center h-full">
-        <div className="space-y-3 w-1/2">
-          <Skeleton className="h-4 w-32" />
-          <Skeleton className="h-8 w-64" />
-          <Skeleton className="h-4 w-48" />
+        <div className="space-y-4 w-1/2">
+          <div className="h-4 bg-white/5 rounded w-32" />
+          <div className="h-10 bg-white/10 rounded w-64" />
+          <div className="h-4 bg-white/5 rounded w-48" />
         </div>
-        <div className="flex items-center gap-4">
-          <Skeleton className="h-20 w-20 rounded-full" />
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-24" />
-            <Skeleton className="h-6 w-16" />
+        <div className="flex items-center gap-6">
+          <div className="h-24 w-24 bg-white/10 rounded-full border-4 border-white/5" />
+          <div className="space-y-3">
+            <div className="h-4 bg-white/5 rounded w-24" />
+            <div className="h-8 bg-blue-500/20 rounded w-16" />
           </div>
         </div>
       </div>
     </div>
 
     {/* Result Skeleton */}
-    <div className="bg-[var(--background-input)] p-6 rounded-xl border border-[var(--border-default)]">
-      <Skeleton className="h-6 w-48 mb-4" />
-      <div className="space-y-2 mb-4">
-        <Skeleton className="h-4 w-full" />
-        <Skeleton className="h-4 w-full" />
-        <Skeleton className="h-4 w-3/4" />
+    <div className="glass-panel p-8 rounded-[2rem] border border-white/10 bg-white/[0.02]">
+      <div className="h-7 bg-white/10 rounded w-48 mb-6" />
+      <div className="space-y-3 mb-6">
+        <div className="h-4 bg-white/5 rounded w-full" />
+        <div className="h-4 bg-white/5 rounded w-full" />
+        <div className="h-4 bg-white/5 rounded w-3/4" />
       </div>
-      <div className="grid grid-cols-2 gap-4">
-        <Skeleton className="h-24 w-full rounded-lg" />
-        <Skeleton className="h-24 w-full rounded-lg" />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="h-32 bg-white/5 rounded-2xl border border-white/5" />
+        <div className="h-32 bg-white/5 rounded-2xl border border-white/5" />
       </div>
-    </div>
-
-    {/* Suggestion Skeleton */}
-    <div className="bg-[var(--background-input)] p-6 rounded-xl border border-[var(--border-default)]">
-      <Skeleton className="h-6 w-40 mb-4" />
-      <Skeleton className="h-24 w-full rounded-lg" />
     </div>
   </div>
 );
@@ -109,17 +103,18 @@ const TrendHunter = () => {
 
   // Geolocalização
   const requestLocation = useCallback(() => {
+    if (city) return; // Se a cidade já foi definida manualmente, não tenta pegar gps
     setLocationStatus('pending');
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         () => setLocationStatus('success'),
         () => setLocationStatus('denied'),
-        { enableHighAccuracy: false, timeout: 5000, maximumAge: 0 }
+        { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 }
       );
     } else {
       setLocationStatus('denied');
     }
-  }, []);
+  }, [city]);
 
   useEffect(() => {
     requestLocation();
@@ -246,7 +241,7 @@ IMPORTANTE: Forneça insights práticos e prontos para uso. Retorne APENAS o JSO
         console.warn('Falha no protocolo de memória:', err);
       }
 
-      // Parse JSON
+      // Parse JSON com Proteção Anti-Markdown e Conversa
       let parsed: TrendResultStructured;
       try {
         const cleanResponse = response.replace(/```json/g, '').replace(/```/g, '').trim();
@@ -257,7 +252,13 @@ IMPORTANTE: Forneça insights práticos e prontos para uso. Retorne APENAS o JSO
           const jsonString = cleanResponse.substring(jsonStart, jsonEnd + 1);
           parsed = JSON.parse(jsonString);
         } else {
-          throw new Error("Formato JSON não encontrado na resposta.");
+          // Tenta encontrar um JSON mesmo que não esteja entre chaves perfeitas (fallback agressivo)
+          const jsonMatch = cleanResponse.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            parsed = JSON.parse(jsonMatch[0]);
+          } else {
+            throw new Error("Formato JSON não encontrado na resposta.");
+          }
         }
       } catch (parseError) {
         console.error('Failed to parse JSON:', parseError, response);
@@ -457,7 +458,7 @@ ${result.resumo}
         <div className="absolute top-[40%] left-[-10%] w-[20vw] h-[20vw] bg-blue-500/10 blur-[120px] rounded-full mix-blend-screen opacity-20" />
       </div>
 
-      <div className="relative z-10 container mx-auto px-4 py-8 lg:py-12 max-w-7xl">
+      <div className="relative z-10 container mx-auto px-4 py-8 lg:py-12 pb-24 md:pb-12 max-w-7xl">
 
         {/* Header */}
         <header className="mb-16 text-center space-y-6">

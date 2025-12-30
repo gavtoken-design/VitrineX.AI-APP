@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { XMarkIcon, MagnifyingGlassIcon, ClipboardDocumentIcon, PhotoIcon, DocumentTextIcon, CheckIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import { getLibraryItems } from '../../services/core/db';
+import { SEASONAL_TEMPLATES } from '../../constants';
 import { LibraryItem } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
@@ -41,7 +42,11 @@ const LibraryImportModal: React.FC<LibraryImportModalProps> = ({ isOpen, onClose
             if (filterType === 'trends') {
                 result = result.filter(item => item.tags?.includes('trend') || item.tags?.includes('tendencia'));
             } else {
-                result = result.filter(item => item.type === filterType);
+                result = result.filter(item =>
+                    item.type === filterType ||
+                    (filterType === 'text' && item.type === 'prompt') ||
+                    (filterType === 'prompt' && item.type === 'text')
+                );
             }
         }
 
@@ -61,7 +66,19 @@ const LibraryImportModal: React.FC<LibraryImportModalProps> = ({ isOpen, onClose
         setLoading(true);
         try {
             const fetchedItems = await getLibraryItems(user.id);
-            setItems(fetchedItems);
+
+            // Integrate System Templates
+            const systemTemplates: LibraryItem[] = SEASONAL_TEMPLATES.map(tmpl => ({
+                id: tmpl.id,
+                userId: 'system',
+                name: `${tmpl.icon} ${tmpl.label}`,
+                type: 'prompt',
+                file_url: tmpl.basePrompt,
+                tags: ['template', 'system', 'featured'],
+                createdAt: new Date().toISOString()
+            }));
+
+            setItems([...systemTemplates, ...fetchedItems]);
         } catch (error) {
             console.error('Error fetching library:', error);
             addToast({ type: 'error', message: 'Erro ao carregar biblioteca' });

@@ -22,7 +22,8 @@ export const generateImageInternal = async (prompt: string, options?: ImageOptio
                 aspectRatio: options?.aspectRatio,
                 numberOfImages: options?.numberOfImages || 1,
                 negativePrompt: options?.negativePrompt,
-            }
+            },
+            signal: options?.signal
         });
 
         if (response && response.base64Image) {

@@ -72,11 +72,9 @@ const AnimatedBackground: React.FC = () => {
         };
 
         const animate = () => {
-            ctx.clearRect(0, 0, width, height);
+            if (!canvas.offsetParent) return; // Skip if hidden in DOM
 
-            // Background tint
-            // ctx.fillStyle = 'rgba(10, 10, 20, 0.2)'; 
-            // ctx.fillRect(0, 0, width, height);
+            ctx.clearRect(0, 0, width, height);
 
             time += 0.005;
 
@@ -103,27 +101,32 @@ const AnimatedBackground: React.FC = () => {
                 ctx.fill();
             });
 
-            // Liquid Waves
-            // Back wave
+            // Liquid Waves - Reduced complexity
             drawWave(60, 0.003, 1, 'rgba(59, 130, 246, 0.1)', 'rgba(147, 51, 234, 0.1)', 150);
-            // Middle wave
-            drawWave(50, 0.005, 1.5, 'rgba(6, 182, 212, 0.15)', 'rgba(59, 130, 246, 0.15)', 100);
-            // Front wave
             drawWave(40, 0.007, 2, 'rgba(139, 92, 246, 0.05)', 'rgba(236, 72, 153, 0.05)', 50);
 
             requestAnimationFrame(animate);
         };
 
-        const animId = requestAnimationFrame(animate);
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    requestAnimationFrame(animate);
+                }
+            });
+        });
+
+        observer.observe(canvas);
+        requestAnimationFrame(animate);
 
         return () => {
-            cancelAnimationFrame(animId);
+            observer.disconnect();
             window.removeEventListener('resize', handleResize);
             window.removeEventListener('mousemove', handleMouseMove);
         };
     }, []);
 
-    return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />;
+    return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />;
 };
 
-export default AnimatedBackground;
+export default React.memo(AnimatedBackground);

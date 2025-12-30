@@ -17,6 +17,7 @@ export interface UserProfile {
   id: string;
   email: string;
   name?: string;
+  role?: Role; // Added role property
   phone?: string; // Added phone property
   plan: 'free' | 'premium' | 'enterprise';
   businessProfile: BusinessProfile;

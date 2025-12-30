@@ -172,6 +172,23 @@ export const generateText = async (prompt: string, options?: GenerateTextOptions
     }
 };
 
+
+export const translateText = async (text: string, targetLanguage: string, sourceLanguage: string): Promise<string> => {
+    const prompt = `Translate the following text from ${sourceLanguage} to ${targetLanguage}:\n\n"${text}"`;
+    try {
+        const translatedText = await generateText(prompt, {
+            model: GEMINI_FLASH_MODEL,
+            temperature: 0.3,
+            maxOutputTokens: 1024,
+        });
+        return translatedText.trim();
+    } catch (error) {
+        console.error("Translation failed:", error);
+        // Fallback to original text if translation fails
+        return text;
+    }
+};
+
 export const countTokens = async (text: string, modelId: string = GEMINI_FLASH_MODEL, userId?: string): Promise<number> => {
     try {
         const client = await getGeminiClient(undefined, userId);

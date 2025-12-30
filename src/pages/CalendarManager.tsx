@@ -185,7 +185,7 @@ const CalendarManager: React.FC = () => {
   };
 
   return (
-    <div className="space-y-8 animate-fade-in pb-20">
+    <div className="space-y-8 animate-fade-in pb-24">
       <div className="flex items-center justify-between pb-6 border-b border-border">
         <div className="flex items-center gap-4">
           <div className="p-3 bg-green-500/10 rounded-xl">

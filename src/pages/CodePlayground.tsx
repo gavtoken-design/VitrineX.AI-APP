@@ -138,8 +138,8 @@ Retorne APENAS o código. Sem markdown, sem explicações.`;
           userId: user?.id || 'anonymous',
           name: `${outputFormat.toUpperCase()} - ${prompt.substring(0, 30)}`,
           file_url: cleanCode,
-          type: 'text',
-          tags: ['code-playground', outputFormat, 'code'],
+          type: 'code',
+          tags: ['code-playground', outputFormat, 'generated-page'],
           createdAt: new Date().toISOString()
         });
       } catch (saveError) {
@@ -224,7 +224,7 @@ Retorne APENAS o código. Sem markdown, sem explicações.`;
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-indigo-500/30 selection:text-indigo-200">
-      <div className="max-w-[1600px] mx-auto p-4 lg:p-6 space-y-8">
+      <div className="max-w-[1600px] mx-auto p-4 lg:p-6 space-y-8 pb-24">
 
         {/* Header */}
         <header className="flex items-center justify-between pb-6 border-b border-white/5">

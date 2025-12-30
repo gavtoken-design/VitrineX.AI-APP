@@ -1,11 +1,21 @@
 import * as React from 'react';
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ModuleName } from '../../App';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { NavItem, useNavItems } from './NavigationItems';
-import { XMarkIcon, ArrowPathIcon, CreditCardIcon, SunIcon, MoonIcon, ArrowDownTrayIcon, UserGroupIcon } from '@heroicons/react/24/outline'; // Updated imports
+import {
+  XMarkIcon,
+  ArrowPathIcon,
+  SunIcon,
+  MoonIcon,
+  ArrowDownTrayIcon,
+  UserGroupIcon,
+  HomeIcon
+} from '@heroicons/react/24/outline';
 import { useTheme } from '../../contexts/ThemeContext';
-import LibraryImportModal from '../features/LibraryImportModal'; // Imported Modal
+import LibraryImportModal from '../features/LibraryImportModal';
+import Logo from '../ui/Logo';
 
 interface MobileNavMenuProps {
   isOpen: boolean;
@@ -18,113 +28,115 @@ const MobileNavMenu: React.FC<MobileNavMenuProps> = ({ isOpen, onClose, activeMo
   const navItems = useNavItems();
   const { t } = useLanguage();
   const { theme, toggleTheme } = useTheme();
-  const [isLibraryModalOpen, setIsLibraryModalOpen] = useState(false); // Modal State
+  const [isLibraryModalOpen, setIsLibraryModalOpen] = useState(false);
 
   const handleNavigate = () => {
     onClose();
   };
 
   return (
-    <div className="md:hidden">
-      {/* Overlay com vidro translúcido */}
+    <AnimatePresence>
       {isOpen && (
-        <div
-          className="fixed inset-0 liquid-overlay z-[60] liquid-transition"
-          onClick={onClose}
-          aria-hidden="true"
-        ></div>
-      )}
+        <div className="md:hidden fixed inset-0 z-[100] outline-none focus:outline-none">
+          {/* Overlay */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="absolute inset-0 bg-[#09090b]/60 backdrop-blur-sm"
+          />
 
-      {/* Painel Deslizante Líquido */}
-      <aside className={`fixed top-0 left-0 h-full w-72 liquid-glass-heavy liquid-shadow-deep border-r border-white/10 z-[70]
-        transform liquid-transition-slow shadow-2xl flex flex-col liquid-emerge
-        ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-
-        {/* Cabeçalho fixo no topo */}
-        <div className="flex justify-between items-center p-4 border-b border-white/10 flex-shrink-0 liquid-light-gradient">
-          <span className="font-bold text-lg text-title ml-2 liquid-text-glow">Menu</span>
-          <div className="flex items-center">
-            {/* Refresh button */}
-            <button onClick={() => window.location.reload()} className="p-2 text-muted hover:text-title hover:bg-primary/20 rounded-full liquid-transition icon-fluid-breathe icon-fluid-squeeze">
-              <ArrowPathIcon className="w-6 h-6 icon-fluid-viscous" />
-            </button>
-            <button onClick={onClose} className="p-2 text-muted hover:text-title hover:bg-primary/20 rounded-full liquid-transition icon-fluid-breathe icon-fluid-squeeze ml-2">
-              <XMarkIcon className="w-6 h-6 icon-fluid-viscous" />
-            </button>
-          </div>
-        </div>
-
-        {/* Área de navegação rolável - Usa flex-1 para ocupar o espaço restante */}
-        <nav className="flex-1 min-h-0 overflow-y-auto py-6 px-3 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-200 dark:[&::-webkit-scrollbar-thumb]:bg-gray-700 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gray-300 dark:hover:[&::-webkit-scrollbar-thumb]:bg-gray-600">
-
-          {/* Mobile Actions: Import & Persona */}
-          <div className="grid grid-cols-2 gap-2 mb-6 px-1">
-            <button
-              onClick={() => setIsLibraryModalOpen(true)}
-              className="flex flex-col items-center justify-center p-3 rounded-xl bg-surface border border-white/10 hover:border-primary/50 hover:bg-primary/5 transition-all active:scale-95"
-            >
-              <ArrowDownTrayIcon className="w-6 h-6 text-primary mb-1" />
-              <span className="text-xs font-bold text-body">Importar</span>
-            </button>
-            <button
-              onClick={() => alert("Funcionalidade em desenvolvimento: Troca de Personagem/Avatar")}
-              className="flex flex-col items-center justify-center p-3 rounded-xl bg-gradient-to-br from-purple-900/40 to-pink-900/40 border border-white/10 hover:border-purple-500/50 transition-all active:scale-95"
-            >
-              <UserGroupIcon className="w-6 h-6 text-pink-400 mb-1" />
-              <span className="text-xs font-bold text-body">Persona</span>
-            </button>
-          </div>
-
-          <ul className="flex flex-col">
-            {navItems.map((section, sectionIndex) => (
-              <React.Fragment key={sectionIndex}>
-                <div className={`px-4 pb-2 text-[11px] font-bold text-muted uppercase tracking-widest opacity-80 ${sectionIndex === 0 ? 'pt-2' : 'pt-8'}`}>
-                  {t(section.section)}
-                </div>
-
-                <div className="flex flex-col gap-[10px]">
-                  {section.items.map(item => (
-                    <NavItem
-                      key={item.name}
-                      id={item.id}
-                      name={item.name as ModuleName}
-                      label={item.label}
-                      icon={item.icon}
-                      activeModule={activeModule}
-                      setActiveModule={setActiveModule}
-                      onNavigate={handleNavigate}
-                    />
-                  ))}
-                </div>
-              </React.Fragment>
-            ))}
-            {/* Espaço extra no final para rolagem */}
-            <div className="h-4 flex-shrink-0"></div>
-          </ul>
-        </nav>
-
-        {/* Footer com Toggle de Tema */}
-        <div className="p-4 border-t border-white/10 mt-auto bg-surface/30 backdrop-blur-md pb-safe">
-          <button
-            onClick={toggleTheme}
-            className="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all active:scale-95 group"
+          {/* Sliding Panel */}
+          <motion.aside
+            initial={{ x: '-100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '-100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="absolute top-0 left-0 h-full w-[85%] max-w-[320px] bg-[#09090b] border-r border-white/5 shadow-2xl flex flex-col overflow-hidden"
           >
-            {theme === 'light' ? (
-              <>
-                <MoonIcon className="w-5 h-5 text-primary group-hover:rotate-12 transition-transform" />
-                <span className="text-sm font-bold text-body">Ativar Modo Escuro</span>
-              </>
-            ) : (
-              <>
-                <SunIcon className="w-5 h-5 text-yellow-400 group-hover:rotate-90 transition-transform" />
-                <span className="text-sm font-bold text-body">Ativar Modo Claro</span>
-              </>
-            )}
-          </button>
+            {/* Header */}
+            <div className="flex justify-between items-center p-5 border-b border-white/5 bg-gradient-to-b from-white/5 to-transparent">
+              <div className="flex items-center gap-3">
+                <Logo className="h-8 w-8" />
+                <span className="text-lg font-black tracking-tighter text-white">VitrineX<span className="text-purple-500">.AI</span></span>
+              </div>
+              <button
+                onClick={onClose}
+                className="p-2 rounded-full hover:bg-white/5 text-gray-400 hover:text-white transition-colors"
+                aria-label="Fecar menu"
+              >
+                <XMarkIcon className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto pt-6 px-4 no-scrollbar">
+              {/* Quick Actions */}
+              <div className="grid grid-cols-2 gap-3 mb-8">
+                <button
+                  onClick={() => { setIsLibraryModalOpen(true); }}
+                  className="flex flex-col items-center justify-center p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 transition-all active:scale-95 group"
+                >
+                  <div className="p-2 rounded-full bg-purple-500/10 mb-2 group-hover:scale-110 transition-transform">
+                    <ArrowDownTrayIcon className="w-6 h-6 text-purple-400" />
+                  </div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-gray-300">Importar</span>
+                </button>
+                <button
+                  onClick={() => alert("Funcionalidade em desenvolvimento")}
+                  className="flex flex-col items-center justify-center p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 transition-all active:scale-95 group"
+                >
+                  <div className="p-2 rounded-full bg-pink-500/10 mb-2 group-hover:scale-110 transition-transform">
+                    <UserGroupIcon className="w-6 h-6 text-pink-400" />
+                  </div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-gray-300">Persona</span>
+                </button>
+              </div>
+
+              {/* Navigation Sections */}
+              <div className="space-y-8">
+                {navItems.map((section, sectionIndex) => (
+                  <div key={sectionIndex} className="space-y-3">
+                    <h3 className="px-4 text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">
+                      {t(section.section)}
+                    </h3>
+                    <div className="flex flex-col gap-1">
+                      {section.items.map(item => (
+                        <NavItem
+                          key={item.name}
+                          id={item.id}
+                          name={item.name as ModuleName}
+                          label={item.label}
+                          icon={item.icon}
+                          activeModule={activeModule}
+                          setActiveModule={setActiveModule}
+                          onNavigate={handleNavigate}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="h-20" /> {/* Bottom Spacing */}
+            </div>
+
+            {/* Footer */}
+            <div className="p-5 border-t border-white/5 bg-[#09090b]/80 backdrop-blur-xl">
+
+
+              <div className="mt-4 flex items-center justify-center gap-2 opacity-30 text-[9px] font-bold uppercase tracking-widest text-gray-500">
+                <span className="w-1 h-1 rounded-full bg-gray-500" />
+                VitrineX v4.0.1 Premium
+                <span className="w-1 h-1 rounded-full bg-gray-500" />
+              </div>
+            </div>
+          </motion.aside>
         </div>
-      </aside>
+      )}
       <LibraryImportModal isOpen={isLibraryModalOpen} onClose={() => setIsLibraryModalOpen(false)} />
-    </div>
+    </AnimatePresence>
   );
 };
 

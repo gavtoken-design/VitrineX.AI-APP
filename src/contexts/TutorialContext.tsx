@@ -31,7 +31,7 @@ const TutorialContext = createContext<TutorialContextType | undefined>(undefined
 export const TutorialProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isActive, setIsActive] = useState(false);
   const [isWelcomeOpen, setIsWelcomeOpen] = useState(false); // Controls the initial welcome modal
-  const [isGuidesEnabled, setIsGuidesEnabled] = useState(true);
+  const [isGuidesEnabled, setIsGuidesEnabled] = useState(false);
 
   const [currentModuleId, setCurrentModuleId] = useState<string | null>(null);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
@@ -42,22 +42,46 @@ export const TutorialProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   // Load state on mount
   useEffect(() => {
     const savedState = localStorage.getItem('vitrinex_onboarding_state');
+    const now = Date.now();
+    const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+
     if (savedState) {
       try {
         const parsed = JSON.parse(savedState);
         setCompletedModules(parsed.completedModules || {});
-        setIsGuidesEnabled(parsed.isGuidesEnabled ?? true);
 
-        // If it's the very first time (no keys), or explicit flag missing
-        if (!parsed.hasSeenWelcome) {
-          setIsWelcomeOpen(true);
+        // Check first usage date
+        const firstUsage = parsed.firstUsageDate || now;
+        const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+
+        // Default to false unless explicitly true
+        const guidesEnabled = parsed.isGuidesEnabled ?? false;
+        setIsGuidesEnabled(guidesEnabled);
+
+        // Save firstUsageDate if it wasn't there (migration)
+        if (!parsed.firstUsageDate) {
+          const newState = { ...parsed, firstUsageDate: now };
+          localStorage.setItem('vitrinex_onboarding_state', JSON.stringify(newState));
         }
+
+        // We no longer auto-open Welcome Modal to avoid annoyance
+        // if (!parsed.hasSeenWelcome) { setIsWelcomeOpen(true); } 
+
       } catch (e) {
-        setIsWelcomeOpen(true);
+        // Error parsing, assume default safe state (off)
+        setIsGuidesEnabled(false);
       }
     } else {
       // First access ever
-      setIsWelcomeOpen(true);
+      // setIsWelcomeOpen(true); // Disable auto-welcome
+
+      // Save initial timestamp
+      const initialState = {
+        firstUsageDate: now,
+        isGuidesEnabled: false, // Default OFF
+        hasSeenWelcome: false // We track it but don't force show
+      };
+      localStorage.setItem('vitrinex_onboarding_state', JSON.stringify(initialState));
     }
   }, []);
 
