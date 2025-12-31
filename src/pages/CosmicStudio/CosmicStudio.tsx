@@ -28,7 +28,7 @@ const CosmicStudio: React.FC<CosmicStudioProps> = ({ initialView = 'editor' }) =
   }, []);
 
   return (
-    <div className="w-full h-[calc(100vh-6rem)] md:h-full md:min-h-screen flex items-center justify-center md:p-4 bg-black/90">
+    <div className="w-full h-[calc(100dvh-6rem)] md:h-full md:min-h-screen flex items-center justify-center md:p-4 bg-black/90">
       <div className="w-full max-w-7xl h-full md:h-[85vh] bg-[#0d0d1a] rounded-none md:rounded-2xl overflow-hidden shadow-2xl border-x-0 border-y-0 md:border md:border-white/10 flex flex-col">
         {currentView === 'editor' ? (
           <Editor

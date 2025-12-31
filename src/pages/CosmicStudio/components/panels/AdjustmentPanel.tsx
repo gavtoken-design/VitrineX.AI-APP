@@ -81,7 +81,7 @@ const AdjustmentPanel: React.FC<AdjustmentPanelProps> = ({ layer, onUpdate }) =>
                         </div>
                         <div className="space-y-2">
                             <div className="flex justify-between text-[10px] text-gray-500">
-                                <span>Gamma (Midtone)</span>
+                                <span>Gama (Tons Médios)</span>
                                 <span>{(layer.value as LevelValues).midtone.toFixed(2)}</span>
                             </div>
                             <input

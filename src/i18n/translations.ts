@@ -39,6 +39,9 @@ export const translations: Translations = {
     'sidebar.live_conversation': 'Live Conversation',
     'sidebar.local_finder': 'Local Finder',
     'sidebar.calendar_manager': 'Calendar Manager',
+    'sidebar.social_networks': 'Social Networks',
+    'sidebar.referrals': 'Referrals',
+    'sidebar.admin': 'Admin',
 
     // Dashboard
     'dashboard.title': 'Executive Overview',
@@ -73,6 +76,14 @@ export const translations: Translations = {
     'gen.save': 'Save',
     'gen.cancel': 'Cancel',
     'gen.active': 'Active',
+
+    // Settings Social
+    'settings.social.title': 'Social Connections',
+    'settings.social.desc': 'These links will be auto-filled when you generate HTML pages.',
+    'settings.social.btn_save': 'Save Connections',
+    'settings.social.contact': 'Contact (Link/Info)',
+    'settings.social.email': 'Public Email',
+    'settings.social.website': 'Website',
   },
   'pt-BR': {
     // Sidebar
@@ -105,6 +116,9 @@ export const translations: Translations = {
     'sidebar.live_conversation': 'Conversa ao Vivo',
     'sidebar.local_finder': 'Buscador Local',
     'sidebar.calendar_manager': 'Gerenciador de Calendário',
+    'sidebar.social_networks': 'Redes Sociais',
+    'sidebar.referrals': 'Indicações',
+    'sidebar.admin': 'Admin',
 
     // Dashboard
     'dashboard.title': 'Visão Executiva',
@@ -139,5 +153,13 @@ export const translations: Translations = {
     'gen.save': 'Salvar',
     'gen.cancel': 'Cancelar',
     'gen.active': 'Ativo',
+
+    // Settings Social
+    'settings.social.title': 'Conexões Sociais',
+    'settings.social.desc': 'Estes links serão preenchidos automaticamente quando você gerar páginas HTML.',
+    'settings.social.btn_save': 'Salvar Conexões',
+    'settings.social.contact': 'Contato (Link/Info)',
+    'settings.social.email': 'E-mail Público',
+    'settings.social.website': 'Website',
   }
 };

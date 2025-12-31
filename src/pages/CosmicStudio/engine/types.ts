@@ -6,6 +6,10 @@ export interface BaseLayer {
     name: string;
     visible: boolean;
     opacity: number; // 0-1
+    rotation?: number;
+    scale?: number;
+    width?: number; // Optional visual width
+    height?: number; // Optional visual height
 }
 
 export interface ImageLayer extends BaseLayer {
@@ -13,10 +17,6 @@ export interface ImageLayer extends BaseLayer {
     src: string;
     x: number;
     y: number;
-    width?: number;
-    height?: number;
-    rotation?: number;
-    scale?: number;
 }
 
 export interface TextLayer extends BaseLayer {

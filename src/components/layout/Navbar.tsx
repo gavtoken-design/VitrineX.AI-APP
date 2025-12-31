@@ -12,6 +12,8 @@ import { useNavigate } from '../../hooks/useNavigate';
 import { useAuth } from '../../contexts/AuthContext';
 import ClientGreeting from '../ui/ClientGreeting';
 
+import LibraryImportModal from '../features/LibraryImportModal';
+
 interface NavbarProps {
   onMenuClick: () => void;
 }
@@ -21,6 +23,7 @@ const Navbar: React.FC<NavbarProps> = memo(({ onMenuClick }) => {
   const { language, setLanguage } = useLanguage();
   const { user } = useAuth();
   const { navigateTo } = useNavigate();
+  const [showLibraryModal, setShowLibraryModal] = useState(false);
 
   return (
     <>
@@ -45,7 +48,7 @@ const Navbar: React.FC<NavbarProps> = memo(({ onMenuClick }) => {
               variant="ghost"
               size="sm"
               className="hidden lg:flex items-center gap-2 border-white/10 hover:bg-white/5 text-gray-300 hover:text-white rounded-full px-4"
-              onClick={() => navigateTo('ContentLibrary')}
+              onClick={() => setShowLibraryModal(true)}
             >
               <BookOpenIcon className="w-4 h-4" />
               <span>Biblioteca</span>
@@ -83,6 +86,12 @@ const Navbar: React.FC<NavbarProps> = memo(({ onMenuClick }) => {
           </div>
         </div>
       </nav>
+
+      <LibraryImportModal
+        isOpen={showLibraryModal}
+        onClose={() => setShowLibraryModal(false)}
+      // No onSelect prop => activates "Copy to Clipboard" mode automatically 
+      />
     </>
   );
 });

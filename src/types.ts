@@ -26,6 +26,9 @@ export interface UserProfile {
     address?: string;
     cnpj?: string;
     whatsapp?: string;
+    contactEmail?: string; // Public contact email
+    website?: string;
+    contact?: string; // Generic contact info or link
     instagram?: string; // e.g. @vitrinex
     tiktok?: string;
     twitter?: string;

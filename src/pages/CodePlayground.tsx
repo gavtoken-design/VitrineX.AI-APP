@@ -15,7 +15,7 @@ import { uploadFileToDrive } from '../services/integrations/googleDrive';
 import Modal from '../components/ui/Modal';
 
 const CodePlayground = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [contentText, setContentText] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [uploadedImages, setUploadedImages] = useState<{ name: string; data: string }[]>([]);
@@ -47,6 +47,23 @@ const CodePlayground = () => {
   const handleSocialChange = (field: string, value: string) => {
     setSocialLinks(prev => ({ ...prev, [field]: value }));
   };
+
+  // Auto-fill from Profile
+  React.useEffect(() => {
+    if (profile?.contactInfo) {
+      setSocialLinks(prev => ({
+        ...prev,
+        instagram: profile.contactInfo?.instagram || prev.instagram,
+        facebook: profile.contactInfo?.facebook || prev.facebook,
+        pinterest: profile.contactInfo?.pinterest || prev.pinterest,
+        twitter: profile.contactInfo?.twitter || prev.twitter,
+        tiktok: profile.contactInfo?.tiktok || prev.tiktok,
+        contact: profile.contactInfo?.contact || prev.contact, // Generic contact
+        email: profile.contactInfo?.contactEmail || profile.email || prev.email, // Prefer contactEmail, fallback to account email
+        website: profile.contactInfo?.website || prev.website
+      }));
+    }
+  }, [profile]);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -445,6 +462,10 @@ Retorne APENAS o código. Sem markdown, sem explicações.`;
                     <Button onClick={handlePublish} variant="secondary" size="sm" isLoading={loading} className="bg-green-500/10 text-green-400 border-green-500/20 hover:bg-green-500/20">
                       <GlobeAltIcon className="w-4 h-4 mr-2" />
                       Publicar
+                    </Button>
+                    <Button onClick={handleSaveToDrive} variant="secondary" size="sm" isLoading={loading} className="bg-blue-500/10 text-blue-400 border-blue-500/20 hover:bg-blue-500/20">
+                      <svg className="w-4 h-4 mr-2" viewBox="0 0 87.3 78" xmlns="http://www.w3.org/2000/svg"><path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da" /><path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="#00ac47" /><path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335" /><path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d" /><path d="m59.8 53h-27.5l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.5c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc" /><path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00" /></svg>
+                      Salvar no Drive
                     </Button>
                   </>
                 )}

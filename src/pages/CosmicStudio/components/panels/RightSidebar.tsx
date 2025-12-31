@@ -75,7 +75,7 @@ const RightSidebar: React.FC<RightSidebarProps> = ({ engine }) => {
                     onClick={() => setActiveTab('layers')}
                     className={`flex-1 py-3 text-xs font-medium flex justify-center items-center gap-2 hover:bg-white/5 transition-colors relative ${activeTab === 'layers' ? 'text-white' : 'text-gray-500'}`}
                 >
-                    <Layers size={14} /> Layers
+                    <Layers size={14} /> Camadas
                     {activeTab === 'layers' && <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-purple-500" />}
                 </button>
                 <button

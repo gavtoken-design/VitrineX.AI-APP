@@ -291,12 +291,12 @@ const Dashboard: React.FC = () => {
       <section id="dashboard-activity" className="mt-8">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-xl font-bold text-[var(--text-primary)]">{t('dashboard.recent_activity')}</h3>
-          <button
+          {/* <button
             onClick={() => navigateTo('CalendarManager')}
             className="text-blue-400 text-sm font-semibold hover:underline cursor-pointer bg-transparent border-none p-0"
           >
             {t('dashboard.view_all')}
-          </button>
+          </button> */}
         </div>
         <div className="space-y-3">
           {recentActivities.length > 0 ? (

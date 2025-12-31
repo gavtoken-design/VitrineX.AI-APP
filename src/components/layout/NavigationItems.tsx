@@ -68,16 +68,17 @@ export const useNavItems = () => {
     {
       section: 'sidebar.tools', items: [
         { name: "SmartScheduler" as ModuleName, label: 'sidebar.calendar', icon: 'calendarAlt' as IconName },
-        { name: "CalendarManager" as ModuleName, label: 'sidebar.calendar_manager', icon: 'calendar' as IconName },
+        // { name: "CalendarManager" as ModuleName, label: 'sidebar.calendar_manager', icon: 'calendar' as IconName }, // TEMPORARILY DISABLED
         { name: "CodePlayground" as ModuleName, label: 'sidebar.code_playground', icon: 'code' as IconName },
       ]
     },
     {
       section: 'sidebar.system', items: [
         { name: "ContentLibrary" as ModuleName, label: 'sidebar.library', icon: 'library' as IconName },
-        { name: "SocialNetworks" as ModuleName, label: 'Redes Sociais', icon: 'share' as IconName },
-        { name: "Indications" as ModuleName, label: 'Indicações', icon: 'gift' as IconName },
-        { id: "nav-settings", name: "Settings" as ModuleName, label: 'sidebar.config', icon: 'settings' as IconName }
+        { name: "SocialNetworks" as ModuleName, label: 'sidebar.social_networks', icon: 'share' as IconName },
+        { name: "Indications" as ModuleName, label: 'sidebar.referrals', icon: 'gift' as IconName },
+        { id: "nav-settings", name: "Settings" as ModuleName, label: 'sidebar.config', icon: 'settings' as IconName },
+        { name: "Admin" as ModuleName, label: 'sidebar.admin', icon: 'server' as IconName }
 
       ]
     }

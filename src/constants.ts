@@ -1,6 +1,6 @@
 // Nomes dos Modelos Gemini - Modelos Oficiais da API Google Gemini
-export const GEMINI_FLASH_MODEL = 'gemini-3-flash-preview';
-export const GEMINI_PRO_MODEL = 'gemini-3-pro-preview';
+export const GEMINI_FLASH_MODEL = 'gemini-2.0-flash';
+export const GEMINI_PRO_MODEL = 'gemini-2.0-flash'; // Usando 2.0 Flash por ser superior em coding atualmente
 
 // Modelos de Geração de Imagem - Gemini 3 Pro Image (Nano Banana Pro)
 export const IMAGEN_STANDARD_MODEL = 'imagen-3.0-generate-001'; // Fallback

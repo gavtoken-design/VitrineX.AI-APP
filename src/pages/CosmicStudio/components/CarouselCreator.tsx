@@ -258,7 +258,7 @@ const CarouselCreator: React.FC<CarouselCreatorProps> = ({ slides, onBack, setSl
       </div>
 
       {/* Main Split Interface */}
-      <div className="flex-1 bg-[#0a0a16] border-t border-white/5 p-8 grid grid-cols-1 lg:grid-cols-2 gap-12 overflow-y-auto custom-scrollbar pb-40">
+      <div className="flex-1 bg-[#0a0a16] border-t border-white/5 p-4 lg:p-8 grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-12 overflow-y-auto custom-scrollbar pb-40">
 
         {/* Left Column: Layouts */}
         <div className="space-y-6">

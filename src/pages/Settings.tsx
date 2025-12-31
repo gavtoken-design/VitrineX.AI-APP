@@ -22,7 +22,8 @@ import {
     GlobeAltIcon,
     SunIcon,
     MoonIcon,
-    CloudIcon
+    CloudIcon,
+    ShareIcon
 } from '@heroicons/react/24/outline';
 import { GoogleDriveConnect } from '../components/features/GoogleDriveConnect';
 
@@ -59,6 +60,16 @@ const Settings: React.FC = () => {
     const [cnpj, setCnpj] = useState('');
     const [address, setAddress] = useState('');
 
+    // Social Connections State
+    const [instagram, setInstagram] = useState('');
+    const [facebook, setFacebook] = useState('');
+    const [pinterest, setPinterest] = useState('');
+    const [twitter, setTwitter] = useState('');
+    const [tiktok, setTiktok] = useState('');
+    const [genericContact, setGenericContact] = useState('');
+    const [publicEmail, setPublicEmail] = useState('');
+    const [website, setWebsite] = useState('');
+
     useEffect(() => {
         if (user?.user_metadata?.full_name) {
             setFullName(user.user_metadata.full_name);
@@ -67,6 +78,16 @@ const Settings: React.FC = () => {
             setPhone(profile.contactInfo.phone || '');
             setCnpj(profile.contactInfo.cnpj || '');
             setAddress(profile.contactInfo.address || '');
+
+            // Load Social Connections
+            setInstagram(profile.contactInfo.instagram || '');
+            setFacebook(profile.contactInfo.facebook || '');
+            setPinterest(profile.contactInfo.pinterest || '');
+            setTwitter(profile.contactInfo.twitter || '');
+            setTiktok(profile.contactInfo.tiktok || '');
+            setGenericContact(profile.contactInfo.contact || '');
+            setPublicEmail(profile.contactInfo.contactEmail || '');
+            setWebsite(profile.contactInfo.website || '');
         }
     }, [user, profile]);
 
@@ -134,7 +155,16 @@ const Settings: React.FC = () => {
                 contactInfo: {
                     phone,
                     cnpj,
-                    address
+                    address,
+                    // Social Connections
+                    instagram,
+                    facebook,
+                    pinterest,
+                    twitter,
+                    tiktok,
+                    contact: genericContact,
+                    contactEmail: publicEmail,
+                    website
                 }
             });
 
@@ -381,6 +411,104 @@ const Settings: React.FC = () => {
                         <div className="mt-8">
                             <Button variant="primary" onClick={handleSaveProfile} isLoading={saving}>
                                 Salvar Alterações
+                            </Button>
+                        </div>
+                    </section>
+
+                    {/* Social Connections Section (New) */}
+                    <section id="social-section" className="glass-card p-8">
+                        <div className="flex items-center gap-3 mb-6">
+                            <ShareIcon className="w-6 h-6 text-primary" />
+                            <h2 className="text-xl font-bold text-[var(--text-primary)]">{t('settings.social.title')}</h2>
+                        </div>
+                        <p className="text-[var(--text-secondary)] text-sm mb-6">
+                            {t('settings.social.desc')}
+                        </p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Instagram</label>
+                                <input
+                                    type="text"
+                                    value={instagram}
+                                    onChange={(e) => setInstagram(e.target.value)}
+                                    placeholder="@seu_perfil"
+                                    className="w-full bg-[var(--background-input)] border border-[var(--border-default)] rounded-xl px-4 py-3 text-[var(--text-primary)] focus:outline-none focus:border-primary transition-colors"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Facebook</label>
+                                <input
+                                    type="text"
+                                    value={facebook}
+                                    onChange={(e) => setFacebook(e.target.value)}
+                                    placeholder="Facebook URL"
+                                    className="w-full bg-[var(--background-input)] border border-[var(--border-default)] rounded-xl px-4 py-3 text-[var(--text-primary)] focus:outline-none focus:border-primary transition-colors"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Pinterest</label>
+                                <input
+                                    type="text"
+                                    value={pinterest}
+                                    onChange={(e) => setPinterest(e.target.value)}
+                                    placeholder="Pinterest URL"
+                                    className="w-full bg-[var(--background-input)] border border-[var(--border-default)] rounded-xl px-4 py-3 text-[var(--text-primary)] focus:outline-none focus:border-primary transition-colors"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Twitter (X)</label>
+                                <input
+                                    type="text"
+                                    value={twitter}
+                                    onChange={(e) => setTwitter(e.target.value)}
+                                    placeholder="@seu_handle"
+                                    className="w-full bg-[var(--background-input)] border border-[var(--border-default)] rounded-xl px-4 py-3 text-[var(--text-primary)] focus:outline-none focus:border-primary transition-colors"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">TikTok</label>
+                                <input
+                                    type="text"
+                                    value={tiktok}
+                                    onChange={(e) => setTiktok(e.target.value)}
+                                    placeholder="@seu_tiktok"
+                                    className="w-full bg-[var(--background-input)] border border-[var(--border-default)] rounded-xl px-4 py-3 text-[var(--text-primary)] focus:outline-none focus:border-primary transition-colors"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">{t('settings.social.contact')}</label>
+                                <input
+                                    type="text"
+                                    value={genericContact}
+                                    onChange={(e) => setGenericContact(e.target.value)}
+                                    placeholder="Link de Contato ou Info"
+                                    className="w-full bg-[var(--background-input)] border border-[var(--border-default)] rounded-xl px-4 py-3 text-[var(--text-primary)] focus:outline-none focus:border-primary transition-colors"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">{t('settings.social.email')}</label>
+                                <input
+                                    type="email"
+                                    value={publicEmail}
+                                    onChange={(e) => setPublicEmail(e.target.value)}
+                                    placeholder="contato@empresa.com"
+                                    className="w-full bg-[var(--background-input)] border border-[var(--border-default)] rounded-xl px-4 py-3 text-[var(--text-primary)] focus:outline-none focus:border-primary transition-colors"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">{t('settings.social.website')}</label>
+                                <input
+                                    type="url"
+                                    value={website}
+                                    onChange={(e) => setWebsite(e.target.value)}
+                                    placeholder="https://suaempresa.com"
+                                    className="w-full bg-[var(--background-input)] border border-[var(--border-default)] rounded-xl px-4 py-3 text-[var(--text-primary)] focus:outline-none focus:border-primary transition-colors"
+                                />
+                            </div>
+                        </div>
+                        <div className="mt-8">
+                            <Button variant="primary" onClick={handleSaveProfile} isLoading={saving}>
+                                {t('settings.social.btn_save')}
                             </Button>
                         </div>
                     </section>

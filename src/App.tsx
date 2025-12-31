@@ -41,6 +41,7 @@ const MarketRadar = React.lazy(() => import('./pages/MarketRadar'));
 const SocialNetworks = React.lazy(() => import('./pages/SocialNetworks'));
 const IndicationsPage = React.lazy(() => import('./pages/IndicationsPage'));
 const CosmicStudio = React.lazy(() => import('./pages/CosmicStudio/CosmicStudio'));
+const AdminGate = React.lazy(() => import('./pages/Admin/AdminGate'));
 
 
 // Components
@@ -68,7 +69,8 @@ export const MODULE_NAMES = [
     'LandingPage',
     'CosmicStudio',
     'CosmicEditor',
-    'CosmicCarousel'
+    'CosmicCarousel',
+    'Admin'
 ] as const;
 
 export type ModuleName = typeof MODULE_NAMES[number];
@@ -186,7 +188,8 @@ const AppContent: React.FC = () => {
             LandingPage: <LandingPage />,
             CosmicStudio: <CosmicStudio />,
             CosmicEditor: <CosmicStudio initialView="editor" />,
-            CosmicCarousel: <CosmicStudio initialView="carousel" />
+            CosmicCarousel: <CosmicStudio initialView="carousel" />,
+            Admin: <AdminGate />
 
         };
 
@@ -252,7 +255,7 @@ const AppContent: React.FC = () => {
                                 {/* Global Spacer Section - Adds breathing room at the bottom of all pages */}
                                 <div className="mt-24 md:mt-40 h-40 md:h-64 flex flex-col items-center justify-center text-[var(--text-premium-muted)]/10 select-none pointer-events-none">
                                     <div className="w-16 md:w-24 h-1 bg-gradient-to-r from-transparent via-white/20 to-transparent rounded-full mb-6 opacity-50" />
-                                    <span className="text-[12px] tracking-[1em] font-black uppercase font-mono opacity-30">VitrineX.AI // END OF STREAM</span>
+                                    <span className="text-[12px] tracking-[1em] font-black uppercase font-mono opacity-30">VitrineX.AI // FIM DA TRANSMISSÃO</span>
                                 </div>
                             </div>
                         </main>
