@@ -39,6 +39,7 @@ export interface UserProfile {
   status?: 'active' | 'blocked'; // Added status for admin control
   apiKey?: string; // Persisted AI license key
   secureConfig?: Record<string, any>; // For future encrypted settings
+  avatar?: string; // URL da imagem de perfil
 }
 
 // Define Post interface

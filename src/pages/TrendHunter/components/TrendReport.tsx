@@ -21,7 +21,8 @@ import {
     handleDownloadTxt,
     handleSaveToDrive,
     handleExportPDF,
-    handleExportPPT
+    handleExportPPT,
+    handleExportPNG
 } from '../utils/exportUtils';
 import { useToast } from '../../../contexts/ToastContext';
 
@@ -321,6 +322,9 @@ const TrendReport: React.FC<TrendReportProps> = ({
                 </Button>
                 <Button onClick={() => handleExportPPT(result, query)} variant="ghost" size="sm" className="text-gray-400 hover:text-white hover:bg-white/5">
                     PPT
+                </Button>
+                <Button onClick={() => wrapAsync(() => handleExportPNG('trend-report-container', query), 'Erro ao exportar PNG')} variant="ghost" size="sm" className="text-gray-400 hover:text-white hover:bg-white/5">
+                    PNG
                 </Button>
                 <Button onClick={() => wrapAsync(onGenerateHTML, 'Erro ao gerar Landing Page')} variant="ghost" size="sm" className="text-gray-400 hover:text-white hover:bg-white/5">
                     Landing Page

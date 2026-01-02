@@ -14,6 +14,7 @@ export const translations: Translations = {
     // Sidebar
     'sidebar.overview': 'Overview',
     'sidebar.dashboard': 'Dashboard',
+    'sidebar.chat_vitrinex': 'Chat VitrineX',
     'sidebar.ai_assistant': 'AI Assistant',
     'sidebar.creation_suite': 'Creation Suite',
     'sidebar.content_gen': 'Content Gen',
@@ -42,6 +43,10 @@ export const translations: Translations = {
     'sidebar.social_networks': 'Social Networks',
     'sidebar.referrals': 'Referrals',
     'sidebar.admin': 'Admin',
+    'sidebar.current_status': 'Current Status',
+    'sidebar.opportunities': 'Opportunities',
+    'sidebar.strategies': 'Decision',
+    'sidebar.execution': 'Direction',
 
     // Dashboard
     'dashboard.title': 'Executive Overview',
@@ -89,6 +94,7 @@ export const translations: Translations = {
     // Sidebar
     'sidebar.overview': 'Visão Geral',
     'sidebar.dashboard': 'Painel de Controle',
+    'sidebar.chat_vitrinex': 'Chat VitrineX',
     'sidebar.ai_assistant': 'Assistente IA',
     'sidebar.creation_suite': 'Suíte Criativa',
     'sidebar.content_gen': 'Gerador de Conteúdo',
@@ -119,6 +125,10 @@ export const translations: Translations = {
     'sidebar.social_networks': 'Redes Sociais',
     'sidebar.referrals': 'Indicações',
     'sidebar.admin': 'Admin',
+    'sidebar.current_status': 'Situação Atual',
+    'sidebar.opportunities': 'Oportunidades',
+    'sidebar.strategies': 'Decisão',
+    'sidebar.execution': 'Direcionamento',
 
     // Dashboard
     'dashboard.title': 'Visão Executiva',

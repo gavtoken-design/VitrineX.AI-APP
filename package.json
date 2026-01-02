@@ -10,6 +10,7 @@
     "preview": "vite preview",
     "electron:dev": "tsc -p electron/tsconfig.json && electron .",
     "dist:electron": "tsc -p electron/tsconfig.json && electron-builder",
+    "build:extension": "vite build && copy public\\manifest.extension.json dist\\manifest.json",
     "deploy:cloudrun": "gcloud run deploy vitrinex-app --source . --port 8080 --allow-unauthenticated"
   },
   "dependencies": {

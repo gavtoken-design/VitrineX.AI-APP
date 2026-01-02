@@ -28,7 +28,7 @@ export const DEFAULT_THINKING_LEVEL = 'high';
 
 // Default values
 export const DEFAULT_ASPECT_RATIO = '16:9';
-export const DEFAULT_IMAGE_SIZE = '1K';
+export const DEFAULT_IMAGE_SIZE = '2K';
 export const DEFAULT_VIDEO_RESOLUTION = '720p';
 
 // Supported options for UI

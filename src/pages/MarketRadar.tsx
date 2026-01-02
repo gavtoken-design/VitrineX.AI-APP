@@ -8,12 +8,11 @@ import {
     GlobeAltIcon,
     FireIcon,
     ClockIcon,
-    ShareIcon,
     CloudArrowUpIcon,
     ArrowPathIcon,
     DocumentDuplicateIcon,
     SparklesIcon,
-    XMarkIcon
+    ShareIcon
 } from '@heroicons/react/24/outline';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '../contexts/ToastContext';
@@ -110,7 +109,16 @@ const MarketRadar: React.FC = () => {
     const [isDemoMode, setIsDemoMode] = useState(false);
     const [dailyTrends, setDailyTrends] = useState<string[]>([]);
     const [isCachedData, setIsCachedData] = useState(false);
-    const [aiVerdict, setAiVerdict] = useState<{ opportunity: string; angle: string; risk: string } | null>(null);
+    const [aiVerdict, setAiVerdict] = useState<{
+        opportunity: string;
+        angle: string;
+        risk: string;
+        iveScore: number;
+        iveAction: string;
+        classification: string;
+        timing: string;
+        riskMap: { saturation: string; drop: string; platform: string; hype: string };
+    } | null>(null);
     const [sentimentScore, setSentimentScore] = useState<number | null>(null);
     const [sentimentReasons, setSentimentReasons] = useState<string[]>([]);
     const [battleHistory, setBattleHistory] = useState<any[]>([]);
@@ -119,9 +127,12 @@ const MarketRadar: React.FC = () => {
     const { navigateTo } = useNavigate();
     const [showHistory, setShowHistory] = useState(false);
 
+    // History Key Versioning to prevent schema conflicts
+    const HISTORY_KEY = 'vitrinex_radar_history_v2';
+
     // Persist History
     useEffect(() => {
-        const saved = localStorage.getItem('vitrinex_radar_history');
+        const saved = localStorage.getItem(HISTORY_KEY);
         if (saved) {
             try {
                 setBattleHistory(JSON.parse(saved));
@@ -132,7 +143,7 @@ const MarketRadar: React.FC = () => {
     }, []);
 
     useEffect(() => {
-        localStorage.setItem('vitrinex_radar_history', JSON.stringify(battleHistory));
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(battleHistory));
     }, [battleHistory]);
 
     // --- RECHARTS REFACTORING: Extracting complex logic from JSX ---
@@ -274,16 +285,11 @@ const MarketRadar: React.FC = () => {
     }, [period]);
 
     const handleSearch = useCallback(async (termOverride?: string, forceRefresh = false) => {
-        // If termOverride is provided (e.g. initial load "Mercado"), use it.
-        // If not, use state query. If state query is empty, default to "Mercado" for fetching but don't change UI input if not needed.
         const effectiveTerm = termOverride || query || "Mercado";
-
-        // No restriction on empty term IF it defaults to Mercado internally
 
         setLoading(true);
         setIsDemoMode(false);
         try {
-            // Verificar Cache primeiro
             const cacheKeyMain = getCacheKey(effectiveTerm, period);
             const cachedMain = !forceRefresh ? getCachedData(cacheKeyMain) : null;
 
@@ -307,7 +313,6 @@ const MarketRadar: React.FC = () => {
 
             if (result) {
                 setData(result);
-                // Salvar no cache se: Foi uma busca nova (forceRefresh) OU não estava no cache
                 if (forceRefresh || !cachedMain) {
                     setCachedData(cacheKeyMain, result);
                 }
@@ -319,13 +324,11 @@ const MarketRadar: React.FC = () => {
                         setCompareData(compResult);
 
                         const cacheKeyComp = getCacheKey(compareQuery, period);
-                        // Se forceRefresh, sempre salvar. Se não, salvar apenas se não estiver no cache.
                         const isAlreadyCached = !forceRefresh && getCachedData(cacheKeyComp);
                         if (forceRefresh || !isAlreadyCached) {
                             setCachedData(cacheKeyComp, compResult);
                         }
                     } else {
-                        // Compare failed but main succeeded
                         addToast({ type: 'warning', message: 'Comparação indisponível (usando dados parciais).' });
                         setCompareData(null);
                     }
@@ -338,7 +341,6 @@ const MarketRadar: React.FC = () => {
 
         } catch (error) {
             console.error("Erro busca, usando mock:", error);
-            // Consistent Mock State
             setData(generateMockData(period, effectiveTerm));
             if (isComparing && compareQuery.trim()) {
                 setCompareData(generateMockData(period, compareQuery));
@@ -357,18 +359,17 @@ const MarketRadar: React.FC = () => {
         addToast({ type: 'info', message: 'Gerando relatório visual...' });
 
         try {
-            // Pequeno delay para garantir renderização
             await new Promise(resolve => setTimeout(resolve, 100));
 
             const canvas = await html2canvas(reportRef.current, {
-                backgroundColor: '#0f172a', // Cor de fundo do app
-                scale: window.innerWidth < 768 ? 1 : 2, // Reduzir escala em mobile para evitar travamentos
+                backgroundColor: '#0f172a',
+                scale: window.innerWidth < 768 ? 1 : 2,
                 logging: false,
                 useCORS: true
             });
 
             const link = document.createElement('a');
-            link.download = `market-radar-${query}.png`;
+            link.download = `market-radar-${query || 'relatorio'}.png`;
             link.href = canvas.toDataURL();
             link.click();
             addToast({ type: 'success', message: 'Relatório salvo com sucesso!' });
@@ -384,14 +385,14 @@ const MarketRadar: React.FC = () => {
         try {
             const canvas = await html2canvas(reportRef.current, {
                 backgroundColor: '#0f172a',
-                scale: window.innerWidth < 768 ? 1 : 2, // Escala adaptativa para performance
+                scale: window.innerWidth < 768 ? 1 : 2,
                 logging: false,
                 useCORS: true
             });
             canvas.toBlob(async (blob) => {
                 if (blob) {
                     const url = URL.createObjectURL(blob);
-                    await handleSaveToDrive(url, `market-radar-${query}-${Date.now()}.png`);
+                    await handleSaveToDrive(url, `market-radar-${query || 'relatorio'}-${Date.now()}.png`);
                     URL.revokeObjectURL(url);
                 }
             });
@@ -408,21 +409,57 @@ const MarketRadar: React.FC = () => {
             const effectiveQuery = query.trim() || "Mercado";
             const prompt = `Atue como CMO da VitrineX. Analise estas tendências de mercado: ${currentTrends}.
             O termo principal é "${effectiveQuery}"${isComparing ? ` e compare com "${compareQuery}"` : ''}.
-            Forneça o 'Veredito VitrineX' em JSON com as chaves:
+            
+            Realize uma análise estratégica profunda e retorne 'Veredito VitrineX' em JSON (apenas JSON puro, sem markdown) com as chaves:
+            
             - opportunity: (string) O que aproveitar agora (max 15 palavras).
             - angle: (string) Como abordar o cliente (max 15 palavras).
-            - risk: (string) O que evitar (max 15 palavras).
-            - sentiment: (number) De -1 (Negativo) a 1 (Positivo) sobre o mercado atual.
-            - reasons: (string[]) Lista de 3 motivos curtos para esse sentimento (ex: "Alta procura", "Preço instável", "Atrasos logísticos").
+            - risk: (string) O Risco Principal (max 15 palavras).
+            
+            1. Índice de Viabilidade Estratégica (IVE) (0-100):
+            - iveScore: (number) Nota baseada em crescimento, competição, longevidade e aderência.
+            - iveAction: "Apostar" | "Testar" | "Descartar" (escolha um com base no score).
+            
+            2. Classificação:
+            - classification: "Moda" | "Tendência Emergente" | "Tendência Consolidada" | "Mercado Saturado" | "Nicho Defensivo".
+            
+            3. Timing (Janela de Entrada):
+            - timing: "Cedo Demais" | "No Ponto Ideal" | "Tarde Demais".
+            
+            4. Mapa de Risco Estratégico (descrições curtas, max 10 palavras cada):
+            - riskMap: {
+                "saturation": "Risco de saturação...",
+                "drop": "Risco de queda rápida...",
+                "platform": "Risco de dependência...",
+                "hype": "Risco de hype artificial..."
+            }
+            
+            - sentiment: (number) De -1 (Negativo) a 1 (Positivo).
+            - reasons: (string[]) Lista de 3 motivos curtos.
+            
             Retorne APENAS o JSON puro.`;
 
             const response = await generateText(prompt, { model: GEMINI_FLASH_MODEL, responseMimeType: 'application/json' });
-            const json = JSON.parse(response.replace(/```json/g, '').replace(/```/g, '').trim());
+
+            // Robust JSON Parsing
+            let jsonStr = response.trim();
+            const firstBrace = jsonStr.indexOf('{');
+            const lastBrace = jsonStr.lastIndexOf('}');
+            if (firstBrace !== -1 && lastBrace !== -1) {
+                jsonStr = jsonStr.substring(firstBrace, lastBrace + 1);
+            }
+
+            const json = JSON.parse(jsonStr);
 
             const newVerdict = {
                 opportunity: json.opportunity,
                 angle: json.angle,
-                risk: json.risk
+                risk: json.risk,
+                iveScore: typeof json.iveScore === 'number' ? json.iveScore : 50,
+                iveAction: json.iveAction || "Testar",
+                classification: json.classification || "Em Análise",
+                timing: json.timing || "Neutro",
+                riskMap: json.riskMap || { saturation: "-", drop: "-", platform: "-", hype: "-" }
             };
 
             setAiVerdict(newVerdict);
@@ -482,8 +519,9 @@ const MarketRadar: React.FC = () => {
 
             if (aiVerdict) {
                 slide1.addText("Veredito Estratégico (IA)", { x: 0.5, y: 1.5, fontSize: 18, color: "3B82F6", bold: true });
-                slide1.addText(`OPORTUNIDADE: ${aiVerdict.opportunity}`, { x: 0.5, y: 2.0, w: 9, fontSize: 14, color: "cbd5e1" });
-                slide1.addText(`ÂNGULO: ${aiVerdict.angle}`, { x: 0.5, y: 3.0, w: '90%', fontSize: 14, color: "cbd5e1" });
+                slide1.addText(`IVE: ${aiVerdict.iveScore} - ${aiVerdict.iveAction}`, { x: 0.5, y: 2.0, fontSize: 16, color: "FFFFFF", bold: true });
+                slide1.addText(`Classificação: ${aiVerdict.classification} | Timing: ${aiVerdict.timing}`, { x: 0.5, y: 2.5, fontSize: 14, color: "cbd5e1" });
+                slide1.addText(`OPORTUNIDADE: ${aiVerdict.opportunity}`, { x: 0.5, y: 3.2, w: 9, fontSize: 14, color: "cbd5e1" });
                 slide1.addText(`RISCO: ${aiVerdict.risk}`, { x: 0.5, y: 4.0, w: '90%', fontSize: 14, color: "cbd5e1" });
             }
 
@@ -615,7 +653,7 @@ const MarketRadar: React.FC = () => {
                             onClearHistory={() => {
                                 if (window.confirm("Limpar todo o histórico?")) {
                                     setBattleHistory([]);
-                                    localStorage.removeItem('vitrinex_radar_history');
+                                    localStorage.removeItem(HISTORY_KEY);
                                 }
                             }}
                         />

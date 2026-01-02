@@ -1,0 +1,21 @@
+{
+    "manifest_version": 3,
+    "name": "VitrineX - AI Assistant",
+    "version": "1.1",
+    "description": "Seu assistente de codificação e automação VitrineX AI diretamente no navegador.",
+    "icons": {
+        "16": "logo.png",
+        "48": "logo.png",
+        "128": "logo.png"
+    },
+    "side_panel": {
+        "default_path": "index.html#/admin"
+    },
+    "permissions": [
+        "sidePanel"
+    ],
+    "host_permissions": [
+        "http://localhost:*/*",
+        "https://tess.pareto.io/*"
+    ]
+}

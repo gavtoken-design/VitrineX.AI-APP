@@ -115,7 +115,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     name: 'Jean Carlos',
                     email: email,
                     role: 'ADMIN' as any,
-                    avatar: ''
+                    avatar: '',
+                    plan: 'enterprise',
+                    businessProfile: {
+                        name: 'VitrineX',
+                        industry: 'Tech',
+                        targetAudience: 'General',
+                        visualStyle: 'Modern'
+                    }
                 });
             }
         } finally {
@@ -154,7 +161,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 name: mockUser.user_metadata.full_name,
                 email: email,
                 role: (isAdmin ? 'ADMIN' : 'VIEWER') as any,
-                avatar: ''
+                avatar: '',
+                plan: isAdmin ? 'enterprise' : 'free',
+                businessProfile: {
+                    name: 'Demo Business',
+                    industry: 'Retail',
+                    targetAudience: 'Everyone',
+                    visualStyle: 'Standard'
+                }
             });
 
             // Persist mock session
@@ -196,7 +210,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 name: 'Novo Usuário',
                 email: email,
                 role: (isAdmin ? 'ADMIN' : 'VIEWER') as any,
-                avatar: ''
+                avatar: '',
+                plan: 'free',
+                businessProfile: {
+                    name: 'New Business',
+                    industry: 'General',
+                    targetAudience: 'All',
+                    visualStyle: 'Basic'
+                }
             });
 
             localStorage.setItem('mock_session', 'true');

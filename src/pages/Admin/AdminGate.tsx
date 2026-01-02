@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LockClosedIcon, KeyIcon } from '@heroicons/react/24/outline';
 import Button from '../../components/ui/Button';
-import AdminChat from './AdminChat';
+
 
 const AdminGate: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -11,7 +11,7 @@ const AdminGate: React.FC = () => {
 
   // Hardcoded secure key for MVP as requested ("loguin de adm")
   // In production this should be env var or backend validated
-  const ADMIN_KEY = "VitrineX.AI2025";
+  const ADMIN_KEY = "37390";
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,7 +25,12 @@ const AdminGate: React.FC = () => {
   };
 
   if (isAuthenticated) {
-    return <AdminChat />;
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh] text-[var(--text-secondary)]">
+        <p>Módulo de Chat Administrativo desativado.</p>
+        <p className="text-sm mt-2">O agente foi migrado para o Chat VitrineX.</p>
+      </div>
+    );
   }
 
   return (

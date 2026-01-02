@@ -50,25 +50,26 @@ export const useNavItems = () => {
 
   return [
     {
-      section: 'sidebar.overview', items: [
+      section: 'sidebar.current_status', items: [
+        { id: "nav-dashboard", name: "Dashboard" as ModuleName, label: 'sidebar.dashboard', icon: 'dashboard' as IconName },
+      ]
+    },
+    {
+      section: 'sidebar.opportunities', items: [
+        { id: "nav-market-radar", name: "MarketRadar" as ModuleName, label: 'sidebar.market_radar', icon: 'analytics' as IconName },
         { id: "nav-trend-hunter", name: "TrendHunter" as ModuleName, label: 'sidebar.trends', icon: 'trends' as IconName },
-        { id: "nav-market-radar", name: "MarketRadar" as ModuleName, label: 'sidebar.market_radar', icon: 'analytics' as IconName }
       ]
     },
     {
-      section: 'sidebar.creation_suite', items: [
-        { id: "nav-content-gen", name: "ContentGenerator" as ModuleName, label: 'sidebar.content_gen', icon: 'contentGen' as IconName },
-
-        { name: "CosmicEditor" as ModuleName, label: 'sidebar.cosmic_editor', icon: 'cosmic' as IconName },
-        { name: "CosmicCarousel" as ModuleName, label: 'sidebar.cosmic_carousel', icon: 'carousel' as IconName },
-        { id: "nav-ad-studio", name: "AdStudio" as ModuleName, label: 'sidebar.ad_creator', icon: 'adStudio' as IconName },
+      section: 'sidebar.strategies', items: [
         { name: "CampaignBuilder" as ModuleName, label: 'sidebar.campaigns', icon: 'campaign' as IconName },
+        // { id: "nav-chat-vitrinex", name: "ChatVitrineX" as ModuleName, label: 'sidebar.chat_vitrinex', icon: 'chat' as IconName },
       ]
     },
     {
-      section: 'sidebar.tools', items: [
-        { name: "SmartScheduler" as ModuleName, label: 'sidebar.calendar', icon: 'calendarAlt' as IconName },
-        // { name: "CalendarManager" as ModuleName, label: 'sidebar.calendar_manager', icon: 'calendar' as IconName }, // TEMPORARILY DISABLED
+      section: 'sidebar.execution', items: [
+        { id: "nav-content-gen", name: "ContentGenerator" as ModuleName, label: 'sidebar.content_gen', icon: 'contentGen' as IconName },
+        { id: "nav-ad-studio", name: "AdStudio" as ModuleName, label: 'sidebar.ad_creator', icon: 'adStudio' as IconName },
         { name: "CodePlayground" as ModuleName, label: 'sidebar.code_playground', icon: 'code' as IconName },
       ]
     },
@@ -79,7 +80,6 @@ export const useNavItems = () => {
         { name: "Indications" as ModuleName, label: 'sidebar.referrals', icon: 'gift' as IconName },
         { id: "nav-settings", name: "Settings" as ModuleName, label: 'sidebar.config', icon: 'settings' as IconName },
         { name: "Admin" as ModuleName, label: 'sidebar.admin', icon: 'server' as IconName }
-
       ]
     }
   ];

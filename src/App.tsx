@@ -25,6 +25,7 @@ import MobileNavMenu from './components/layout/MobileNavMenu';
 
 // Pages (Lazy Load)
 const Dashboard = React.lazy(() => import('./pages/Dashboard'));
+const ChatVitrineX = React.lazy(() => import('./pages/ChatVitrineX'));
 const ContentGenerator = React.lazy(() => import('./pages/ContentGenerator'));
 const TrendHunter = React.lazy(() => import('./pages/TrendHunter'));
 
@@ -32,15 +33,15 @@ const SmartScheduler = React.lazy(() => import('./pages/SmartScheduler'));
 const ContentLibrary = React.lazy(() => import('./pages/ContentLibrary'));
 const AdStudio = React.lazy(() => import('./pages/AdStudio'));
 const CampaignBuilder = React.lazy(() => import('./pages/CampaignBuilder'));
-const CalendarManager = React.lazy(() => import('./pages/CalendarManager'));
-const CodePlayground = React.lazy(() => import('./pages/CodePlayground'));
+// const CalendarManager = React.lazy(() => import('./pages/CalendarManager'));
+// const CodePlayground = React.lazy(() => import('./pages/CodePlayground'));
 const AuthPage = React.lazy(() => import('./pages/AuthPage'));
 const Settings = React.lazy(() => import('./pages/Settings'));
 const LandingPage = React.lazy(() => import('./pages/LandingPage'));
 const MarketRadar = React.lazy(() => import('./pages/MarketRadar'));
 const SocialNetworks = React.lazy(() => import('./pages/SocialNetworks'));
 const IndicationsPage = React.lazy(() => import('./pages/IndicationsPage'));
-const CosmicStudio = React.lazy(() => import('./pages/CosmicStudio/CosmicStudio'));
+// const CosmicStudio = React.lazy(() => import('./pages/CosmicStudio/CosmicStudio'));
 const AdminGate = React.lazy(() => import('./pages/Admin/AdminGate'));
 
 
@@ -54,22 +55,23 @@ import GlobalFilters from './components/ui/GlobalFilters'; // Optimization
 // Module Type Definition
 export const MODULE_NAMES = [
     'Dashboard',
+    // 'ChatVitrineX',
     'ContentGenerator',
     'TrendHunter',
-    'SmartScheduler',
+    // 'SmartScheduler',
     'ContentLibrary',
     'AdStudio',
     'CampaignBuilder',
-    'CalendarManager',
-    'CodePlayground',
+    // 'CalendarManager',
+    // 'CodePlayground',
     'Settings',
     'MarketRadar',
     'SocialNetworks',
     'Indications',
     'LandingPage',
-    'CosmicStudio',
-    'CosmicEditor',
-    'CosmicCarousel',
+    // 'CosmicStudio',
+    // 'CosmicEditor',
+    // 'CosmicCarousel',
     'Admin'
 ] as const;
 
@@ -172,29 +174,38 @@ const AppContent: React.FC = () => {
     const renderModule = () => {
         const modules: Record<ModuleName, React.ReactNode> = {
             Dashboard: <Dashboard />,
+            // ChatVitrineX: <ChatVitrineX />,
             ContentGenerator: <ContentGenerator />,
             TrendHunter: <TrendHunter />,
 
-            SmartScheduler: <SmartScheduler />,
+            // SmartScheduler: <SmartScheduler />,
             ContentLibrary: <ContentLibrary />,
             AdStudio: <AdStudio />,
             CampaignBuilder: <CampaignBuilder />,
-            CalendarManager: <CalendarManager />,
-            CodePlayground: <CodePlayground />,
+            // CalendarManager: <CalendarManager />,
+            // CodePlayground: <CodePlayground />,
             Settings: <Settings />,
             MarketRadar: <MarketRadar />,
             SocialNetworks: <SocialNetworks />,
             Indications: <IndicationsPage />,
             LandingPage: <LandingPage />,
-            CosmicStudio: <CosmicStudio />,
-            CosmicEditor: <CosmicStudio initialView="editor" />,
-            CosmicCarousel: <CosmicStudio initialView="carousel" />,
+            // CosmicStudio: <CosmicStudio />,
+            // CosmicEditor: <CosmicStudio initialView="editor" />,
+            // CosmicCarousel: <CosmicStudio initialView="carousel" />,
             Admin: <AdminGate />
 
         };
 
         return modules[activeModule] ?? <Dashboard />;
     };
+
+    // Scroll to Top on Module Change
+    const mainContentRef = React.useRef<HTMLElement>(null);
+    useEffect(() => {
+        if (mainContentRef.current) {
+            mainContentRef.current.scrollTo({ top: 0, behavior: 'instant' });
+        }
+    }, [activeModule]);
 
     // NavigationContext.Provider DEVE envolver TUDO, inclusive loading e LandingPage
     return (
@@ -231,7 +242,10 @@ const AppContent: React.FC = () => {
                         </div>
 
                         {/* Module Content */}
-                        <main className="flex-1 overflow-y-auto overflow-x-hidden px-4 pb-40 pt-24 md:px-6 md:pb-48 md:pt-28 lg:px-8 lg:pb-32 lg:pt-32 scroll-smooth relative z-10">
+                        <main
+                            ref={mainContentRef}
+                            className="flex-1 overflow-y-auto overflow-x-hidden px-4 pb-40 pt-24 md:px-6 md:pb-48 md:pt-28 lg:px-8 lg:pb-32 lg:pt-32 scroll-smooth relative z-10"
+                        >
                             <div className="max-w-7xl mx-auto w-full">
                                 <AnimatePresence mode="wait">
                                     <motion.div

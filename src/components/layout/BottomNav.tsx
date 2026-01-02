@@ -12,18 +12,25 @@ type BottomNavProps = {
 
 const BottomNav = memo(({ activeModule, setActiveModule, onMoreClick }: BottomNavProps) => {
 
-    const navItems = [
-        { id: 'Dashboard', label: 'Início', icon: HomeIcon, solidIcon: HomeSolid },
-        { id: 'AdStudio', label: 'Ads', icon: PhotoIcon, solidIcon: PhotoSolid }, // Added for balance
-        {
-            id: 'CosmicStudio',
-            label: '',
-            isCentral: true,
-            imageSrc: '/vitrinex-icon.png'
-        },
-        { id: 'ContentLibrary', label: 'Galeria', icon: PhotoIcon, solidIcon: PhotoSolid },
-        { id: 'Menu', label: 'Menu', icon: Bars3Icon, solidIcon: Bars3Solid },
-    ];
+    const navItems: Array<{
+        id: string;
+        label: string;
+        icon?: React.ElementType;
+        solidIcon?: React.ElementType;
+        isCentral?: boolean;
+        imageSrc?: string;
+    }> = [
+            { id: 'Dashboard', label: 'Início', icon: HomeIcon, solidIcon: HomeSolid },
+            { id: 'AdStudio', label: 'Ads', icon: PhotoIcon, solidIcon: PhotoSolid }, // Added for balance
+            // {
+            //     id: 'CosmicStudio',
+            //     label: '',
+            //     isCentral: true,
+            //     imageSrc: '/vitrinex-icon.png'
+            // },
+            { id: 'ContentLibrary', label: 'Galeria', icon: PhotoIcon, solidIcon: PhotoSolid },
+            { id: 'Menu', label: 'Menu', icon: Bars3Icon, solidIcon: Bars3Solid },
+        ];
 
     return (
         <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 px-4 pb-4 pointer-events-none">

@@ -282,9 +282,9 @@ const Dashboard: React.FC = () => {
             {t('dashboard.btn_market')}
           </Button>
 
-          <Button onClick={() => navigateTo('SmartScheduler')} variant="ghost" size="lg" className="w-full justify-start border border-gray-200 dark:border-gray-700 hover:border-green-500/50 hover:bg-green-500/10 transition-all">
+          {/* <Button onClick={() => navigateTo('SmartScheduler')} variant="ghost" size="lg" className="w-full justify-start border border-gray-200 dark:border-gray-700 hover:border-green-500/50 hover:bg-green-500/10 transition-all">
             {t('dashboard.btn_schedule')}
-          </Button>
+          </Button> */}
         </div>
       </LiquidGlassCard>
 

@@ -96,7 +96,7 @@ const CampaignBuilder: React.FC = () => {
 
   const handleAddCalendar = useCallback(() => {
     if (generatedCampaign) {
-      navigateTo('SmartScheduler', { campaign: generatedCampaign });
+      // navigateTo('SmartScheduler', { campaign: generatedCampaign });
       addToast({ type: 'info', message: `Navegando para o calendário para agendar a campanha "${generatedCampaign.name}".` });
     } else {
       addToast({ type: 'warning', message: 'Nenhuma campanha gerada para adicionar ao calendário.' });
@@ -224,7 +224,7 @@ const CampaignBuilder: React.FC = () => {
 
           <div className="flex flex-col sm:flex-row gap-3">
             <Button onClick={handleDownloadMaterials} variant="primary" className="w-full sm:w-auto">Baixar Materiais</Button>
-            <Button onClick={handleAddCalendar} variant="secondary" className="w-full sm:w-auto">Adicionar ao Calendário</Button>
+            {/* <Button onClick={handleAddCalendar} variant="secondary" className="w-full sm:w-auto">Adicionar ao Calendário</Button> */}
           </div>
         </div>
       )}

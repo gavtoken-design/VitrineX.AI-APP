@@ -7,7 +7,8 @@ import { TrendResultStructured } from '../types';
 
 export const handleDownloadTxt = (result: TrendResultStructured, query: string, city: string) => {
     const textContent = generateReportText(result, query, city);
-    const blob = new Blob([textContent], { type: 'text/plain' });
+    // Add BOM for proper UTF-8 handling in Excel/Windows
+    const blob = new Blob(['\uFEFF' + textContent], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -25,7 +26,8 @@ export const handleCopyReport = (result: TrendResultStructured, query: string, c
 export const handleSaveToDrive = async (result: TrendResultStructured, query: string, city: string): Promise<void> => {
     const textContent = generateReportText(result, query, city);
 
-    const blob = new Blob([textContent], { type: 'text/plain' });
+    // Add BOM for proper UTF-8 handling
+    const blob = new Blob(['\uFEFF' + textContent], { type: 'text/plain;charset=utf-8' });
     const safeQuery = query.trim().replace(/\s+/g, '-') || 'trend-report';
 
     await uploadFileToDrive(blob, `TrendReport-${safeQuery}.txt`, 'text/plain');
@@ -36,7 +38,7 @@ export const handleExportPDF = async (elementId: string, query: string): Promise
     if (!element) throw new Error('Elemento do relatório não encontrado.');
 
     const canvas = await html2canvas(element, {
-        scale: 2,
+        scale: 4, // Increased scale for high-quality printing/viewing (High DPI)
         useCORS: true,
         onclone: (clonedDoc) => {
             const clonedElement = clonedDoc.getElementById(elementId);
@@ -65,8 +67,32 @@ export const handleExportPDF = async (elementId: string, query: string): Promise
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
 
-    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST'); // 'FAST' can help with performance, or leave undefined for default
+    // Note: To further improve quality, we could split long content into pages, but scale 4 gives crisp image.
     pdf.save(`TrendHunter-${query.replace(/\s+/g, '-')}.pdf`);
+};
+
+export const handleExportPNG = async (elementId: string, query: string): Promise<void> => {
+    const element = document.getElementById(elementId);
+    if (!element) throw new Error('Elemento do relatório não encontrado.');
+
+    const canvas = await html2canvas(element, {
+        scale: 4, // 4x scale for high quality PNG (Nano Banana Standard)
+        useCORS: true,
+        backgroundColor: '#111827', // Preserving dark mode bg or customize as needed
+        onclone: (clonedDoc) => {
+            const clonedElement = clonedDoc.getElementById(elementId);
+            if (clonedElement) {
+                // Adjust styles for export if necessary (e.g. remove shadows to safely transparent if needed, or keep as is)
+                clonedElement.style.padding = '20px';
+            }
+        }
+    });
+
+    const link = document.createElement('a');
+    link.download = `TrendHunter-${query.replace(/\s+/g, '-')}.png`;
+    link.href = canvas.toDataURL('image/png', 1.0); // 1.0 quality
+    link.click();
 };
 
 export const handleExportPPT = (result: TrendResultStructured, query: string) => {
@@ -74,10 +100,22 @@ export const handleExportPPT = (result: TrendResultStructured, query: string) =>
     const safeQuery = query.trim() || 'Tendência';
 
     // Slide 1: Capa
+    // Slide 1: Capa (Design melhorado)
     let slide = pres.addSlide();
     slide.background = { color: '111827' };
-    slide.addText(`Relatório de Tendência: ${safeQuery}`, { x: 1, y: 1.5, w: '80%', fontSize: 36, color: 'FFFFFF', bold: true });
-    slide.addText(`VitrineX AI - Data: ${new Date().toLocaleDateString()}`, { x: 1, y: 3, fontSize: 18, color: 'AAAAAA' });
+
+    // Adicionar um elemento de design "Neon" (Faixa colorida)
+    slide.addShape(pres.ShapeType.rect, { x: 0, y: 0, w: '100%', h: 0.15, fill: { color: '00E5FF' } });
+
+    slide.addText(`Relatório de Tendência: ${safeQuery}`, {
+        x: 0.5, y: 2.5, w: '90%', fontSize: 44, color: 'FFFFFF', bold: true, align: 'center', fontFace: 'Arial'
+    });
+    slide.addText(`VitrineX AI - Intelligence Report`, {
+        x: 0.5, y: 3.5, w: '90%', fontSize: 24, color: '00E5FF', align: 'center'
+    });
+    slide.addText(`Gerado em: ${new Date().toLocaleDateString()}`, {
+        x: 0.5, y: 5.0, fontSize: 14, color: '6B7280', align: 'center'
+    });
 
     // Slide 2: Resumo
     slide = pres.addSlide();

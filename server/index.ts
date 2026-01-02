@@ -80,5 +80,9 @@ app.post('/api/trends/interest', async (req, res) => {
     }
 });
 
+// --- AGENT API (Replaces N8N) ---
+import { agentRouter } from './services/agent_service';
+app.use('/api/agent', agentRouter);
+
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => console.log(`Learning API listening on port ${PORT}`));

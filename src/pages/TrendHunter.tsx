@@ -326,7 +326,7 @@ IMPORTANTE: Forneça insights práticos e prontos para uso. Retorne APENAS o JSO
       date: new Date().toISOString()
     };
     localStorage.setItem('vitrinex_scheduler_draft', JSON.stringify(scheduleData));
-    navigateTo('SmartScheduler');
+    // navigateTo('SmartScheduler');
     addToast({ type: 'success', message: 'Rascunho criado! Finalize no Agendador.' });
   }, [result, query, navigateTo, addToast]);
 
