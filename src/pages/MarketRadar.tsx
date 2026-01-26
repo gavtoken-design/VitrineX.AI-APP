@@ -8,11 +8,11 @@ import {
     GlobeAltIcon,
     FireIcon,
     ClockIcon,
+    ShareIcon,
     CloudArrowUpIcon,
     ArrowPathIcon,
     DocumentDuplicateIcon,
-    SparklesIcon,
-    ShareIcon
+    SparklesIcon
 } from '@heroicons/react/24/outline';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '../contexts/ToastContext';
@@ -23,12 +23,12 @@ import { fetchSerpApiTrends, GoogleTrendsResult } from '../services/integrations
 import Skeleton from '../components/ui/Skeleton';
 import HowToUse from '../components/ui/HowToUse';
 import { generateMockData, MOCK_DATA } from '../data/mocks/marketRadarData';
-// Chart.js is used for stability and performance. Recharts was removed due to build conflicts.
+// Recharts removed due to build incompatibility
+// import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useMediaActions } from '../hooks/useMediaActions';
 import { useNavigate } from '../hooks/useNavigate';
 import html2canvas from 'html2canvas';
 import pptxgen from 'pptxgenjs';
-import { jsPDF } from 'jspdf';
 import { generateText } from '../services/ai';
 import { GEMINI_FLASH_MODEL } from '../constants';
 
@@ -57,11 +57,6 @@ ChartJS.register(
     Legend,
     Filler
 );
-
-// Modular Components
-import { VerdictCards } from './MarketRadar/components/VerdictCards';
-import { SentimentGauge } from './MarketRadar/components/SentimentGauge';
-import { BattleHistory } from './MarketRadar/components/BattleHistory';
 
 // Cache Helpers
 const getCacheKey = (term: string, prd: string, geo: string = 'BR') => `radar_cache_${term}_${prd}_${geo}`;
@@ -97,150 +92,21 @@ const MarketRadar: React.FC = () => {
     const { addToast } = useToast();
     const { startTutorial } = useTutorial();
     const { handleSaveToDrive } = useMediaActions();
-
-    const [query, setQuery] = useState('');
+    const [query, setQuery] = useState('Marketing Digital');
     const [compareQuery, setCompareQuery] = useState('');
     const [isComparing, setIsComparing] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [period, setPeriod] = useState('today 1-m');
-
+    const [period, setPeriod] = useState('today 1-m'); // Default 30 days
     const [data, setData] = useState<GoogleTrendsResult | null>(null);
     const [compareData, setCompareData] = useState<GoogleTrendsResult | null>(null);
     const [isDemoMode, setIsDemoMode] = useState(false);
     const [dailyTrends, setDailyTrends] = useState<string[]>([]);
     const [isCachedData, setIsCachedData] = useState(false);
-    const [aiVerdict, setAiVerdict] = useState<{
-        opportunity: string;
-        angle: string;
-        risk: string;
-        iveScore: number;
-        iveAction: string;
-        classification: string;
-        timing: string;
-        riskMap: { saturation: string; drop: string; platform: string; hype: string };
-    } | null>(null);
+    const [aiVerdict, setAiVerdict] = useState<{ opportunity: string; angle: string; risk: string } | null>(null);
     const [sentimentScore, setSentimentScore] = useState<number | null>(null);
-    const [sentimentReasons, setSentimentReasons] = useState<string[]>([]);
-    const [battleHistory, setBattleHistory] = useState<any[]>([]);
     const [verdictLoading, setVerdictLoading] = useState(false);
     const reportRef = useRef<HTMLDivElement>(null);
     const { navigateTo } = useNavigate();
-    const [showHistory, setShowHistory] = useState(false);
-
-    // History Key Versioning to prevent schema conflicts
-    const HISTORY_KEY = 'vitrinex_radar_history_v2';
-
-    // Persist History
-    useEffect(() => {
-        const saved = localStorage.getItem(HISTORY_KEY);
-        if (saved) {
-            try {
-                setBattleHistory(JSON.parse(saved));
-            } catch (e) {
-                console.error("Erro ao carregar histórico", e);
-            }
-        }
-    }, []);
-
-    useEffect(() => {
-        localStorage.setItem(HISTORY_KEY, JSON.stringify(battleHistory));
-    }, [battleHistory]);
-
-    // --- RECHARTS REFACTORING: Extracting complex logic from JSX ---
-    const mainChartData = React.useMemo(() => {
-        if (!data?.interest_over_time?.timeline_data) return null;
-        return {
-            labels: data.interest_over_time.timeline_data.map(t => {
-                const date = new Date(t.date.split(' – ')[1] || t.date);
-                return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-            }),
-            datasets: [
-                {
-                    label: query,
-                    data: data.interest_over_time.timeline_data.map(t => t.values[0]?.value || 0),
-                    borderColor: '#3b82f6',
-                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                    fill: true,
-                    tension: 0.4,
-                    pointRadius: 0,
-                    pointHoverRadius: 6,
-                },
-                ...(isComparing && compareData?.interest_over_time?.timeline_data ? [{
-                    label: compareQuery,
-                    data: compareData.interest_over_time.timeline_data.map(t => t.values[0]?.value || 0),
-                    borderColor: '#a855f7',
-                    backgroundColor: 'rgba(168, 85, 247, 0.1)',
-                    fill: true,
-                    tension: 0.4,
-                    pointRadius: 0,
-                    pointHoverRadius: 6,
-                }] : [])
-            ]
-        };
-    }, [data, compareData, isComparing, query, compareQuery]);
-
-    const radarData1 = React.useMemo(() => {
-        const timeline = data?.interest_over_time?.timeline_data || [];
-        if (timeline.length === 0) return [0, 0, 0, 0, 0];
-        const vol = timeline.reduce((a, b) => a + (b.values[0]?.value || 0), 0) / timeline.length;
-        const split = Math.floor(timeline.length * 0.2);
-        const startAvg = timeline.slice(0, split).reduce((a, b) => a + (b.values[0]?.value || 0), 0) / (split || 1);
-        const endAvg = timeline.slice(-split).reduce((a, b) => a + (b.values[0]?.value || 0), 0) / (split || 1);
-        const growth = Math.min(100, Math.max(0, 50 + ((endAvg - startAvg) * 2)));
-
-        return [
-            Math.round(vol),
-            Math.round(growth),
-            Math.round(vol * 0.8),
-            Math.round(Math.random() * 40 + 60),
-            Math.round((vol + growth) / 2)
-        ];
-    }, [data]);
-
-    const radarData2 = React.useMemo(() => {
-        if (!isComparing || !compareData) return undefined;
-        const timeline = compareData.interest_over_time?.timeline_data || [];
-        if (timeline.length === 0) return [0, 0, 0, 0, 0];
-        const vol = timeline.reduce((a, b) => a + (b.values[0]?.value || 0), 0) / timeline.length;
-        const split = Math.floor(timeline.length * 0.2);
-        const startAvg = timeline.slice(0, split).reduce((a, b) => a + (b.values[0]?.value || 0), 0) / (split || 1);
-        const endAvg = timeline.slice(-split).reduce((a, b) => a + (b.values[0]?.value || 0), 0) / (split || 1);
-        const growth = Math.min(100, Math.max(0, 50 + ((endAvg - startAvg) * 2)));
-
-        return [
-            Math.round(vol),
-            Math.round(growth),
-            Math.round(vol * 0.8),
-            Math.round(Math.random() * 40 + 60),
-            Math.round((vol + growth) / 2)
-        ];
-    }, [compareData, isComparing]);
-
-    const dominancePercent = React.useMemo(() => {
-        if (!isComparing || !data || !compareData) return 50;
-        const v1 = data.interest_over_time?.timeline_data?.reduce((a, b) => a + (b.values[0]?.value || 0), 0) || 0;
-        const v2 = compareData?.interest_over_time?.timeline_data?.reduce((a, b) => a + (b.values[0]?.value || 0), 0) || 1;
-        return (v1 / (v1 + v2)) * 100;
-    }, [data, compareData, isComparing]);
-
-    const radarScore = React.useMemo(() => {
-        if (!data?.interest_over_time?.timeline_data) return 0;
-        const values = data.interest_over_time.timeline_data.map(d => d.values[0]?.value || 0);
-        if (values.length === 0) return 0;
-        const avg = values.reduce((a, b) => a + b, 0) / values.length;
-        const recent = values.slice(-3);
-        const recentAvg = recent.reduce((a, b) => a + b, 0) / recent.length;
-        const rawScore = Math.round((avg * 0.4) + (recentAvg * 0.6));
-        return Math.min(100, Math.max(0, rawScore));
-    }, [data]);
-
-    const radarLabel = React.useMemo(() => {
-        if (radarScore === 0) return "Sem Dados";
-        if (radarScore > 80) return "Mercado Explosivo";
-        if (radarScore > 60) return "Alta Demanda";
-        if (radarScore > 40) return "Demanda Estável";
-        return "Baixo Volume";
-    }, [radarScore]);
 
     const copyToClipboard = (text: string) => {
         navigator.clipboard.writeText(text);
@@ -272,9 +138,9 @@ const MarketRadar: React.FC = () => {
         ]);
     }, [startTutorial]);
 
-    // Carregar dados iniciais (Tendências Gerais)
+    // Carregar dados iniciais
     useEffect(() => {
-        handleSearch("Mercado"); // Search for "Mercado" logic internally to show general trends
+        handleSearch("Marketing Digital");
     }, []);
 
     // Re-search when period changes (if we already have a query loaded)
@@ -285,12 +151,17 @@ const MarketRadar: React.FC = () => {
     }, [period]);
 
     const handleSearch = useCallback(async (termOverride?: string, forceRefresh = false) => {
-        const effectiveTerm = termOverride || query || "Mercado";
+        const term = termOverride || query;
+        if (!term.trim()) {
+            addToast({ type: 'warning', message: 'Digite um termo para pesquisar.' });
+            return;
+        }
 
         setLoading(true);
         setIsDemoMode(false);
         try {
-            const cacheKeyMain = getCacheKey(effectiveTerm, period);
+            // Verificar Cache primeiro (se não estiver forçando atualização)
+            const cacheKeyMain = getCacheKey(term, period);
             const cachedMain = !forceRefresh ? getCachedData(cacheKeyMain) : null;
 
 
@@ -300,7 +171,7 @@ const MarketRadar: React.FC = () => {
                 setIsCachedData(false);
             }
 
-            const p1 = cachedMain ? Promise.resolve(cachedMain) : fetchSerpApiTrends(effectiveTerm, 'BR', period);
+            const p1 = cachedMain ? Promise.resolve(cachedMain) : fetchSerpApiTrends(term, 'BR', period);
             let p2 = Promise.resolve(null as GoogleTrendsResult | null);
 
             if (isComparing && compareQuery.trim()) {
@@ -313,6 +184,7 @@ const MarketRadar: React.FC = () => {
 
             if (result) {
                 setData(result);
+                // Salvar no cache se: Foi uma busca nova (forceRefresh) OU não estava no cache
                 if (forceRefresh || !cachedMain) {
                     setCachedData(cacheKeyMain, result);
                 }
@@ -324,11 +196,13 @@ const MarketRadar: React.FC = () => {
                         setCompareData(compResult);
 
                         const cacheKeyComp = getCacheKey(compareQuery, period);
+                        // Se forceRefresh, sempre salvar. Se não, salvar apenas se não estiver no cache.
                         const isAlreadyCached = !forceRefresh && getCachedData(cacheKeyComp);
                         if (forceRefresh || !isAlreadyCached) {
                             setCachedData(cacheKeyComp, compResult);
                         }
                     } else {
+                        // Compare failed but main succeeded
                         addToast({ type: 'warning', message: 'Comparação indisponível (usando dados parciais).' });
                         setCompareData(null);
                     }
@@ -341,9 +215,10 @@ const MarketRadar: React.FC = () => {
 
         } catch (error) {
             console.error("Erro busca, usando mock:", error);
-            setData(generateMockData(period, effectiveTerm));
+            // Consistent Mock State
+            setData(generateMockData(period));
             if (isComparing && compareQuery.trim()) {
-                setCompareData(generateMockData(period, compareQuery));
+                setCompareData(generateMockData(period));
             } else {
                 setCompareData(null);
             }
@@ -359,17 +234,18 @@ const MarketRadar: React.FC = () => {
         addToast({ type: 'info', message: 'Gerando relatório visual...' });
 
         try {
+            // Pequeno delay para garantir renderização
             await new Promise(resolve => setTimeout(resolve, 100));
 
             const canvas = await html2canvas(reportRef.current, {
-                backgroundColor: '#0f172a',
-                scale: window.innerWidth < 768 ? 1 : 2,
+                backgroundColor: '#0f172a', // Cor de fundo do app
+                scale: window.innerWidth < 768 ? 1 : 2, // Reduzir escala em mobile para evitar travamentos
                 logging: false,
                 useCORS: true
             });
 
             const link = document.createElement('a');
-            link.download = `market-radar-${query || 'relatorio'}.png`;
+            link.download = `market-radar-${query}.png`;
             link.href = canvas.toDataURL();
             link.click();
             addToast({ type: 'success', message: 'Relatório salvo com sucesso!' });
@@ -385,14 +261,14 @@ const MarketRadar: React.FC = () => {
         try {
             const canvas = await html2canvas(reportRef.current, {
                 backgroundColor: '#0f172a',
-                scale: window.innerWidth < 768 ? 1 : 2,
+                scale: window.innerWidth < 768 ? 1 : 2, // Escala adaptativa para performance
                 logging: false,
                 useCORS: true
             });
             canvas.toBlob(async (blob) => {
                 if (blob) {
                     const url = URL.createObjectURL(blob);
-                    await handleSaveToDrive(url, `market-radar-${query || 'relatorio'}-${Date.now()}.png`);
+                    await handleSaveToDrive(url, `market-radar-${query}-${Date.now()}.png`);
                     URL.revokeObjectURL(url);
                 }
             });
@@ -406,79 +282,24 @@ const MarketRadar: React.FC = () => {
         setVerdictLoading(true);
         try {
             const currentTrends = (data.related_queries?.rising || []).slice(0, 10).map(q => q.query).join(', ');
-            const effectiveQuery = query.trim() || "Mercado";
             const prompt = `Atue como CMO da VitrineX. Analise estas tendências de mercado: ${currentTrends}.
-            O termo principal é "${effectiveQuery}"${isComparing ? ` e compare com "${compareQuery}"` : ''}.
-            
-            Realize uma análise estratégica profunda e retorne 'Veredito VitrineX' em JSON (apenas JSON puro, sem markdown) com as chaves:
-            
+            O termo principal é "${query}".
+            Forneça o 'Veredito VitrineX' em JSON com as chaves:
             - opportunity: (string) O que aproveitar agora (max 15 palavras).
             - angle: (string) Como abordar o cliente (max 15 palavras).
-            - risk: (string) O Risco Principal (max 15 palavras).
-            
-            1. Índice de Viabilidade Estratégica (IVE) (0-100):
-            - iveScore: (number) Nota baseada em crescimento, competição, longevidade e aderência.
-            - iveAction: "Apostar" | "Testar" | "Descartar" (escolha um com base no score).
-            
-            2. Classificação:
-            - classification: "Moda" | "Tendência Emergente" | "Tendência Consolidada" | "Mercado Saturado" | "Nicho Defensivo".
-            
-            3. Timing (Janela de Entrada):
-            - timing: "Cedo Demais" | "No Ponto Ideal" | "Tarde Demais".
-            
-            4. Mapa de Risco Estratégico (descrições curtas, max 10 palavras cada):
-            - riskMap: {
-                "saturation": "Risco de saturação...",
-                "drop": "Risco de queda rápida...",
-                "platform": "Risco de dependência...",
-                "hype": "Risco de hype artificial..."
-            }
-            
-            - sentiment: (number) De -1 (Negativo) a 1 (Positivo).
-            - reasons: (string[]) Lista de 3 motivos curtos.
-            
+            - risk: (string) O que evitar (max 15 palavras).
+            - sentiment: (number) De -1 (Negativo) a 1 (Positivo) sobre o mercado atual.
             Retorne APENAS o JSON puro.`;
 
             const response = await generateText(prompt, { model: GEMINI_FLASH_MODEL, responseMimeType: 'application/json' });
+            const json = JSON.parse(response.replace(/```json/g, '').replace(/```/g, '').trim());
 
-            // Robust JSON Parsing
-            let jsonStr = response.trim();
-            const firstBrace = jsonStr.indexOf('{');
-            const lastBrace = jsonStr.lastIndexOf('}');
-            if (firstBrace !== -1 && lastBrace !== -1) {
-                jsonStr = jsonStr.substring(firstBrace, lastBrace + 1);
-            }
-
-            const json = JSON.parse(jsonStr);
-
-            const newVerdict = {
+            setAiVerdict({
                 opportunity: json.opportunity,
                 angle: json.angle,
-                risk: json.risk,
-                iveScore: typeof json.iveScore === 'number' ? json.iveScore : 50,
-                iveAction: json.iveAction || "Testar",
-                classification: json.classification || "Em Análise",
-                timing: json.timing || "Neutro",
-                riskMap: json.riskMap || { saturation: "-", drop: "-", platform: "-", hype: "-" }
-            };
-
-            setAiVerdict(newVerdict);
+                risk: json.risk
+            });
             setSentimentScore(json.sentiment);
-            setSentimentReasons(json.reasons || []);
-
-            // Save to history
-            const historyItem = {
-                id: Date.now(),
-                query,
-                compareQuery: isComparing ? compareQuery : null,
-                timestamp: new Date().toISOString(),
-                verdict: newVerdict,
-                sentiment: json.sentiment,
-                reasons: json.reasons || []
-            };
-
-            setBattleHistory(prev => [historyItem, ...prev].slice(0, 10)); // Keep last 10
-
             addToast({ type: 'success', message: 'Estratégia gerada com sucesso!' });
         } catch (e) {
             console.error(e);
@@ -488,93 +309,24 @@ const MarketRadar: React.FC = () => {
         }
     };
 
-    const handleGenerateContent = (context: string, topic: string) => {
-        try {
-            const pendingContext = {
-                topic: topic,
-                insight: context,
-                contentIdea: `Crie um conteúdo sobre ${topic} com o seguinte insight de mercado: ${context}`,
-                timestamp: Date.now()
-            };
-            localStorage.setItem('vitrinex_pending_context', JSON.stringify(pendingContext));
-            navigateTo('ContentGenerator');
-            addToast({ type: 'success', message: 'Contexto enviado para o Gerador!' });
-        } catch (e) {
-            console.error(e);
-            addToast({ type: 'error', message: 'Erro ao preparar contexto.' });
+    const handleExportPPT = () => {
+        const pres = new pptxgen();
+        const slide = pres.addSlide();
+
+        slide.background = { color: "0F172A" };
+        slide.addText(`Market Radar: ${query}`, { x: 0.5, y: 0.5, fontSize: 24, color: "FFFFFF", bold: true });
+
+        if (aiVerdict) {
+            slide.addText("Veredito IA", { x: 0.5, y: 1.5, fontSize: 18, color: "3B82F6" });
+            slide.addText(`Oportunidade: ${aiVerdict.opportunity}`, { x: 0.5, y: 2.0, fontSize: 14, color: "cbd5e1" });
+            slide.addText(`Risco: ${aiVerdict.risk}`, { x: 0.5, y: 2.5, fontSize: 14, color: "cbd5e1" });
         }
-    };
 
-    const handleExportPPT = async () => {
-        if (!reportRef.current) return;
-        addToast({ type: 'info', message: 'Gerando apresentação PPTX...' });
+        // Simples placeholder para o gráfico, em produção usaria html2canvas image data
+        slide.addText("Gráfico de Tendências gerado no App VitrineX", { x: 0.5, y: 4.0, fontSize: 12, color: "64748b", italic: true });
 
-        try {
-            const pres = new pptxgen();
-
-            // Slide 1: Título e Veredito
-            const slide1 = pres.addSlide();
-            slide1.background = { color: "0F172A" };
-            slide1.addText(`Relatório de Mercado: ${query}`, { x: 0.5, y: 0.5, fontSize: 24, color: "FFFFFF", bold: true });
-
-            if (aiVerdict) {
-                slide1.addText("Veredito Estratégico (IA)", { x: 0.5, y: 1.5, fontSize: 18, color: "3B82F6", bold: true });
-                slide1.addText(`IVE: ${aiVerdict.iveScore} - ${aiVerdict.iveAction}`, { x: 0.5, y: 2.0, fontSize: 16, color: "FFFFFF", bold: true });
-                slide1.addText(`Classificação: ${aiVerdict.classification} | Timing: ${aiVerdict.timing}`, { x: 0.5, y: 2.5, fontSize: 14, color: "cbd5e1" });
-                slide1.addText(`OPORTUNIDADE: ${aiVerdict.opportunity}`, { x: 0.5, y: 3.2, w: 9, fontSize: 14, color: "cbd5e1" });
-                slide1.addText(`RISCO: ${aiVerdict.risk}`, { x: 0.5, y: 4.0, w: '90%', fontSize: 14, color: "cbd5e1" });
-            }
-
-            // Slide 2: Visual do Dashboard (Screenshot)
-            const slide2 = pres.addSlide();
-            slide2.background = { color: "0F172A" };
-
-            // Capturar o elemento do dashboard
-            await new Promise(resolve => setTimeout(resolve, 100)); // Delay para garantir render
-            const canvas = await html2canvas(reportRef.current, {
-                backgroundColor: '#0f172a',
-                scale: 2,
-                logging: false,
-                useCORS: true
-            });
-            const imgData = canvas.toDataURL('image/png');
-
-            slide2.addImage({ data: imgData, x: 0.2, y: 0.2, w: 9.6, h: 5.2, sizing: { type: 'contain', w: 9.6, h: 5.2 } });
-
-            pres.writeFile({ fileName: `Radar-${query}.pptx` });
-            addToast({ type: 'success', message: 'Apresentação PPTX gerada!' });
-        } catch (error) {
-            console.error(error);
-            addToast({ type: 'error', message: 'Erro ao gerar PPTX.' });
-        }
-    };
-
-    const handleExportPDF = async () => {
-        if (!reportRef.current) return;
-        addToast({ type: 'info', message: 'Gerando PDF...' });
-
-        try {
-            await new Promise(resolve => setTimeout(resolve, 100));
-
-            const canvas = await html2canvas(reportRef.current, {
-                backgroundColor: '#0f172a',
-                scale: 2,
-                logging: false,
-                useCORS: true
-            });
-
-            const imgData = canvas.toDataURL('image/png');
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-
-            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-            pdf.save(`MarketRadar-${query}.pdf`);
-            addToast({ type: 'success', message: 'PDF salvo com sucesso!' });
-        } catch (error) {
-            console.error(error);
-            addToast({ type: 'error', message: 'Erro ao gerar PDF.' });
-        }
+        pres.writeFile({ fileName: `Radar-${query}.pptx` });
+        addToast({ type: 'success', message: 'PPTX gerado!' });
     };
 
     const periods = [
@@ -591,7 +343,7 @@ const MarketRadar: React.FC = () => {
                 <div className="absolute bottom-[-10%] right-[-10%] w-[40vw] h-[40vw] bg-indigo-600/10 blur-[150px] rounded-full mix-blend-screen opacity-20" />
             </div>
 
-            <div className="relative z-10 container mx-auto px-4 py-8 lg:py-12 pb-24 md:pb-12 max-w-7xl">
+            <div className="relative z-10 container mx-auto px-4 py-8 lg:py-12 max-w-7xl">
                 {/* Header */}
                 <header className="mb-12 text-center space-y-4">
                     <motion.div
@@ -619,47 +371,10 @@ const MarketRadar: React.FC = () => {
                     <Button onClick={handleExportImage} variant="ghost" size="sm" className="hidden md:flex items-center gap-2 text-gray-400 hover:text-white border border-white/5 hover:bg-white/5" aria-label="Baixar Relatório em PNG">
                         <ArrowDownTrayIcon className="w-4 h-4" /> PNG
                     </Button>
-                    <Button onClick={handleExportPDF} variant="ghost" size="sm" className="hidden md:flex items-center gap-2 text-gray-400 hover:text-white border border-white/5 hover:bg-white/5" aria-label="Baixar Relatório em PDF">
-                        <DocumentDuplicateIcon className="w-4 h-4" /> PDF
-                    </Button>
                     <Button onClick={handleSaveToDriveAction} variant="ghost" size="sm" className="hidden md:flex items-center gap-2 text-gray-400 hover:text-white border border-white/5 hover:bg-white/5" aria-label="Salvar Relatório no Drive">
                         <CloudArrowUpIcon className="w-4 h-4" /> Salvar no Drive
                     </Button>
-                    <Button onClick={() => setShowHistory(!showHistory)} variant="ghost" size="sm" className="flex items-center gap-2 text-gray-400 hover:text-white border border-white/5 hover:bg-white/5" aria-label="Histórico de Batalhas">
-                        <ClockIcon className="w-4 h-4" /> Histórico
-                    </Button>
                 </div>
-
-                {/* --- MEMÓRIA DE BATALHAS (Modular) --- */}
-                <AnimatePresence>
-                    {showHistory && (
-                        <BattleHistory
-                            showHistory={showHistory}
-                            battleHistory={battleHistory}
-                            onApplyHistory={(item) => {
-                                setQuery(item.query);
-                                if (item.compareQuery) {
-                                    setCompareQuery(item.compareQuery);
-                                    setIsComparing(true);
-                                } else {
-                                    setIsComparing(false);
-                                }
-                                setAiVerdict(item.verdict);
-                                setSentimentScore(item.sentiment);
-                                setSentimentReasons(item.reasons);
-                                handleSearch(item.query);
-                                setShowHistory(false);
-                            }}
-                            onClearHistory={() => {
-                                if (window.confirm("Limpar todo o histórico?")) {
-                                    setBattleHistory([]);
-                                    localStorage.removeItem(HISTORY_KEY);
-                                }
-                            }}
-                        />
-                    )}
-                </AnimatePresence>
-
 
                 {isDemoMode && (
                     <motion.div
@@ -865,10 +580,45 @@ const MarketRadar: React.FC = () => {
                                 )}
                             </div>
 
-                            <AnimatePresence>
-                                <VerdictCards aiVerdict={aiVerdict} onCopy={copyToClipboard} />
-                            </AnimatePresence>
-                            <SentimentGauge sentimentScore={sentimentScore} sentimentReasons={sentimentReasons} />
+                            {aiVerdict && (
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                                    <LiquidGlassCard glowIntensity="lg" className="border-yellow-500/30 relative overflow-hidden group">
+                                        <div className="absolute top-0 right-0 w-24 h-24 bg-yellow-500/10 blur-[40px] rounded-full group-hover:bg-yellow-500/20 transition-all" />
+                                        <h3 className="text-sm font-bold text-yellow-500 uppercase tracking-widest mb-2 flex items-center gap-2">
+                                            <SparklesIcon className="w-4 h-4" /> Oportunidade
+                                        </h3>
+                                        <p className="text-lg text-white font-medium leading-relaxed">
+                                            {aiVerdict.opportunity}
+                                        </p>
+                                    </LiquidGlassCard>
+
+                                    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 relative overflow-hidden">
+                                        <h3 className="text-sm font-bold text-blue-400 uppercase tracking-widest mb-2">Ângulo Sugerido</h3>
+                                        <p className="text-gray-300">{aiVerdict.angle}</p>
+                                    </div>
+
+                                    <div className="bg-red-500/5 border border-red-500/20 rounded-2xl p-6 relative overflow-hidden">
+                                        <h3 className="text-sm font-bold text-red-400 uppercase tracking-widest mb-2">Risco</h3>
+                                        <p className="text-gray-300">{aiVerdict.risk}</p>
+                                    </div>
+
+                                    {/* Sentiment Gauge Integration */}
+                                    <div className="md:col-span-3 mt-2 flex items-center justify-center p-4 bg-black/20 rounded-xl border border-white/5 gap-4">
+                                        <span className="text-xs font-bold text-gray-500 uppercase">Sentimento do Mercado:</span>
+                                        <div className="flex-1 h-2 bg-gray-800 rounded-full overflow-hidden relative max-w-md">
+                                            <div
+                                                className={`h-full transition-all duration-1000 ${sentimentScore && sentimentScore > 0 ? 'bg-green-500' : 'bg-red-500'}`}
+                                                style={{ width: `${Math.abs((sentimentScore || 0) * 100)}%`, marginLeft: sentimentScore && sentimentScore < 0 ? 'auto' : '0' }}
+                                            />
+                                            {/* Center marker */}
+                                            <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-white/20" />
+                                        </div>
+                                        <span className={`text-sm font-bold ${sentimentScore && sentimentScore > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                            {sentimentScore ? (sentimentScore > 0 ? 'Positivo' : 'Negativo') : 'Neutro'}
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {/* 📈 Chart Panel */}
@@ -898,11 +648,38 @@ const MarketRadar: React.FC = () => {
                                 <div className="h-[350px] w-full relative">
                                     <div className="relative h-full w-full">
                                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
-                                            {/* Main Chart (Line) */}
+                                            {/* Main Chart (Line or Radar) */}
                                             <div className="lg:col-span-2 h-[300px] lg:h-full">
-                                                {mainChartData && (
+                                                {data?.interest_over_time?.timeline_data && (
                                                     <Line
-                                                        data={mainChartData}
+                                                        data={{
+                                                            labels: data.interest_over_time?.timeline_data?.map(t => {
+                                                                const date = new Date(t.date.split(' – ')[1] || t.date);
+                                                                return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+                                                            }) || [],
+                                                            datasets: [
+                                                                {
+                                                                    label: query,
+                                                                    data: data.interest_over_time?.timeline_data?.map(t => t.values[0]?.value || 0) || [],
+                                                                    borderColor: '#3b82f6',
+                                                                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                                                    fill: true,
+                                                                    tension: 0.4,
+                                                                    pointRadius: 0,
+                                                                    pointHoverRadius: 6,
+                                                                },
+                                                                ...(isComparing && compareData?.interest_over_time?.timeline_data ? [{
+                                                                    label: compareQuery,
+                                                                    data: compareData.interest_over_time.timeline_data.map(t => t.values[0]?.value || 0),
+                                                                    borderColor: '#a855f7',
+                                                                    backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                                                                    fill: true,
+                                                                    tension: 0.4,
+                                                                    pointRadius: 0,
+                                                                    pointHoverRadius: 6,
+                                                                }] : [])
+                                                            ]
+                                                        }}
                                                         options={{
                                                             responsive: true,
                                                             maintainAspectRatio: false,
@@ -939,9 +716,44 @@ const MarketRadar: React.FC = () => {
                                                 <div className="h-[200px] w-full">
                                                     <RadarChart
                                                         label1={query}
-                                                        data1={radarData1}
+                                                        data1={(() => {
+                                                            const timeline = data.interest_over_time?.timeline_data || [];
+                                                            if (timeline.length === 0) return [0, 0, 0, 0, 0];
+                                                            const vol = timeline.reduce((a, b) => a + (b.values[0]?.value || 0), 0) / timeline.length;
+
+                                                            const split = Math.floor(timeline.length * 0.2);
+                                                            const startAvg = timeline.slice(0, split).reduce((a, b) => a + (b.values[0]?.value || 0), 0) / (split || 1);
+                                                            const endAvg = timeline.slice(-split).reduce((a, b) => a + (b.values[0]?.value || 0), 0) / (split || 1);
+                                                            const growth = Math.min(100, Math.max(0, 50 + ((endAvg - startAvg) * 2)));
+
+                                                            return [
+                                                                Math.round(vol),
+                                                                Math.round(growth),
+                                                                Math.round(vol * 0.8),
+                                                                Math.round(Math.random() * 40 + 60),
+                                                                Math.round((vol + growth) / 2)
+                                                            ];
+                                                        })()}
+
                                                         label2={isComparing ? compareQuery : undefined}
-                                                        data2={radarData2}
+                                                        data2={isComparing && compareData ? (() => {
+                                                            const timeline = compareData.interest_over_time?.timeline_data || [];
+                                                            if (timeline.length === 0) return [0, 0, 0, 0, 0];
+                                                            const vol = timeline.reduce((a, b) => a + (b.values[0]?.value || 0), 0) / timeline.length;
+
+                                                            const split = Math.floor(timeline.length * 0.2);
+                                                            const startAvg = timeline.slice(0, split).reduce((a, b) => a + (b.values[0]?.value || 0), 0) / (split || 1);
+                                                            const endAvg = timeline.slice(-split).reduce((a, b) => a + (b.values[0]?.value || 0), 0) / (split || 1);
+                                                            const growth = Math.min(100, Math.max(0, 50 + ((endAvg - startAvg) * 2)));
+
+                                                            return [
+                                                                Math.round(vol),
+                                                                Math.round(growth),
+                                                                Math.round(vol * 0.8),
+                                                                Math.round(Math.random() * 40 + 60),
+                                                                Math.round((vol + growth) / 2)
+                                                            ];
+                                                        })() : undefined}
                                                     />
                                                 </div>
 
@@ -954,10 +766,15 @@ const MarketRadar: React.FC = () => {
                                                             <span className="font-bold text-purple-400">{compareQuery}</span>
                                                         </div>
                                                         <div className="h-1.5 w-full bg-gray-700 rounded-full overflow-hidden flex">
-                                                            <motion.div
-                                                                initial={{ width: '50%' }}
-                                                                animate={{ width: `${dominancePercent}%` }}
+                                                            <div
                                                                 className="h-full bg-blue-500"
+                                                                style={{
+                                                                    width: `${(() => {
+                                                                        const v1 = data.interest_over_time?.timeline_data?.reduce((a, b) => a + (b.values[0]?.value || 0), 0) || 0;
+                                                                        const v2 = compareData?.interest_over_time?.timeline_data?.reduce((a, b) => a + (b.values[0]?.value || 0), 0) || 1;
+                                                                        return (v1 / (v1 + v2)) * 100;
+                                                                    })()}%`
+                                                                }}
                                                             />
                                                             <div className="h-full bg-purple-500 flex-1" />
                                                         </div>
@@ -1007,7 +824,8 @@ const MarketRadar: React.FC = () => {
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        handleGenerateContent(`Tendência em alta: ${q.query} (${q.value}). Crie algo sobre isso.`, q.query);
+                                                        navigateTo('ContentGenerator', { prompt: `Crie um conteúdo épico sobre ${q.query}` });
+                                                        addToast({ type: 'info', message: 'Direcionando para o Gerador de Conteúdo...' });
                                                     }}
                                                     className="p-2 bg-white/5 hover:bg-primary/20 text-gray-400 hover:text-primary rounded-lg transition-all border border-transparent hover:border-primary/30"
                                                     title="Gerar Conteúdo com esta Tendência"
@@ -1035,21 +853,54 @@ const MarketRadar: React.FC = () => {
                                             stroke="currentColor"
                                             strokeWidth="12"
                                             fill="transparent"
-                                            strokeDasharray={`${(radarScore / 100) * 440} 440`}
+                                            strokeDasharray={`${(() => {
+                                                if (!data?.interest_over_time?.timeline_data) return 0;
+                                                const values = data.interest_over_time.timeline_data.map(d => d.values[0]?.value || 0);
+                                                if (values.length === 0) return 0;
+                                                // Mesma lógica do score numérico
+                                                const avg = values.reduce((a, b) => a + b, 0) / values.length;
+                                                const recent = values.slice(-3);
+                                                const recentAvg = recent.reduce((a, b) => a + b, 0) / recent.length;
+                                                const score = Math.min(100, Math.max(0, Math.round((avg * 0.4) + (recentAvg * 0.6))));
+                                                return (score / 100) * 440;
+                                            })()} 440`}
                                             strokeLinecap="round"
                                             className="text-blue-500 filter drop-shadow-[0_0_10px_rgba(59,130,246,0.5)]"
-                                            style={{ transition: 'stroke-dasharray 1s ease-in-out' }}
                                         />
                                     </svg>
                                     <div className="absolute inset-0 flex flex-col items-center justify-center">
                                         <span className="text-5xl font-black text-white tracking-tighter">
-                                            {radarScore}
+                                            {(() => {
+                                                // Cálculo Dinâmico do Score
+                                                if (!data?.interest_over_time?.timeline_data) return 0;
+                                                const values = data.interest_over_time.timeline_data.map(d => d.values[0]?.value || 0);
+                                                if (values.length === 0) return 0;
+                                                // Média simples por enquanto implica "aquecimento"
+                                                const avg = values.reduce((a, b) => a + b, 0) / values.length;
+                                                // Dar mais peso aos valores recentes?
+                                                const recent = values.slice(-3);
+                                                const recentAvg = recent.reduce((a, b) => a + b, 0) / recent.length;
+                                                // Score = mistura da média com o momento recente
+                                                const rawScore = Math.round((avg * 0.4) + (recentAvg * 0.6));
+                                                return Math.min(100, Math.max(0, rawScore));
+                                            })()}
                                         </span>
                                         <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest mt-1">Radar Score</span>
                                     </div>
                                 </div>
                                 <h4 className="text-white font-bold text-lg mb-2">
-                                    {radarLabel}
+                                    {(() => {
+                                        // Rótulo Dinâmico
+                                        if (!data?.interest_over_time?.timeline_data) return "Sem Dados";
+                                        const values = data.interest_over_time.timeline_data.map(d => d.values[0]?.value || 0);
+                                        const recent = values.slice(-3);
+                                        const recentAvg = recent.reduce((a, b) => a + b, 0) / recent.length;
+
+                                        if (recentAvg > 80) return "Mercado Explosivo";
+                                        if (recentAvg > 60) return "Alta Demanda";
+                                        if (recentAvg > 40) return "Demanda Estável";
+                                        return "Baixo Volume";
+                                    })()}
                                 </h4>
                                 <p className="text-xs text-gray-400 leading-relaxed max-w-[200px]">
                                     O volume de buscas para este termo apresenta crescimento consistente.
@@ -1117,25 +968,27 @@ const MarketRadar: React.FC = () => {
                     </div>
                 )}
                 {/* Marquee Footer */}
-                {dailyTrends.length > 0 && (
-                    <div className="fixed bottom-20 md:bottom-0 left-0 right-0 h-8 bg-blue-900/40 backdrop-blur-md border-t border-blue-500/20 flex items-center overflow-hidden z-40 pointer-events-none">
-                        <div className="animate-marquee whitespace-nowrap flex items-center gap-8">
-                            {dailyTrends.map((trend, i) => (
-                                <span key={i} className="text-xs font-bold text-blue-200 uppercase tracking-widest flex items-center gap-2">
-                                    <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse" />
-                                    {trend}
-                                </span>
-                            ))}
-                            {/* Duplicate for seamless loop */}
-                            {dailyTrends.map((trend, i) => (
-                                <span key={`dup-${i}`} className="text-xs font-bold text-blue-200 uppercase tracking-widest flex items-center gap-2">
-                                    <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse" />
-                                    {trend}
-                                </span>
-                            ))}
+                {
+                    dailyTrends.length > 0 && (
+                        <div className="fixed bottom-0 left-0 right-0 h-8 bg-blue-900/40 backdrop-blur-md border-t border-blue-500/20 flex items-center overflow-hidden z-50 pointer-events-none">
+                            <div className="animate-marquee whitespace-nowrap flex items-center gap-8">
+                                {dailyTrends.map((trend, i) => (
+                                    <span key={i} className="text-xs font-bold text-blue-200 uppercase tracking-widest flex items-center gap-2">
+                                        <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse" />
+                                        {trend}
+                                    </span>
+                                ))}
+                                {/* Duplicate for seamless loop */}
+                                {dailyTrends.map((trend, i) => (
+                                    <span key={`dup-${i}`} className="text-xs font-bold text-blue-200 uppercase tracking-widest flex items-center gap-2">
+                                        <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse" />
+                                        {trend}
+                                    </span>
+                                ))}
+                            </div>
                         </div>
-                    </div>
-                )}
+                    )
+                }
             </div>
         </div>
     );

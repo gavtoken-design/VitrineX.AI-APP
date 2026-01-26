@@ -13,7 +13,7 @@ interface SaveFileResponse {
 const WINDOW_CONFIG = {
   width: 1280,
   height: 800,
-  icon: path.join(__dirname, '../public/icon.png')
+  icon: path.join(__dirname, '../public/favicon.ico')
 };
 
 const isDev = !app.isPackaged;
