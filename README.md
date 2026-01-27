@@ -1,106 +1,108 @@
 <div align="center">
 
-# ✨ VitrineX AI
-### O Futuro do Marketing Automatizado com Inteligência Artificial
+<img src="https://i.imgur.com/8QzXyXp.png" alt="VitrineX AI Logo" width="120" />
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg?style=for-the-badge&color=0ea5e9)
-![Status](https://img.shields.io/badge/status-production_ready-success.svg?style=for-the-badge&color=22c55e)
-![Tech](https://img.shields.io/badge/tech-React_|_Vite_|_Tailwind-purple.svg?style=for-the-badge)
-![AI Power](https://img.shields.io/badge/AI-Gemini_2.0_Flash-orange.svg?style=for-the-badge)
+# ✨ VITRINEX AI
+### **A Singularidade do Marketing Digital.**
+Onde o **Design Líquido** encontra a **Inteligência Artificial Generativa**.
+
+![Version](https://img.shields.io/badge/v3.0-LIVE-0ea5e9?style=for-the-badge)
+![Status](https://img.shields.io/badge/SYSTEM-OPERATIONAL-22c55e?style=for-the-badge)
+![AI Core](https://img.shields.io/badge/CORE-GEMINI_2.0_FLASH-orange?style=for-the-badge)
 
 <br />
 
-> *"Não apenas uma ferramenta, mas seu time de marketing inteiro em uma única plataforma. Crie, Agende e Domine."*
+> *"O mercado não espera. Por que sua ferramenta deveria?*
+> *Descubra o poder de ter uma agência inteira rodando em milissegundos."*
+
+[🎥 **Ver Demo**](#) &nbsp;&nbsp;|&nbsp;&nbsp; [🚀 **Acessar Agora**](#) &nbsp;&nbsp;|&nbsp;&nbsp; [💬 **Comunidade**](#)
 
 </div>
 
 <br />
 
-## 🚀 Sobre o Projeto
+## 🔮 O Que é o VitrineX?
 
-**VitrineX AI** é uma plataforma revolucionária de automação de marketing que funde **Design Líquido (Glassmorphism)** com o poder bruto da **IA Generativa**. 
+Imagine se o **Jarvis do Homem de Ferro** decidisse trabalhar com Marketing Digital. Isso é o VitrineX.
 
-Projetado para empreendedores e criadores que exigem excelência visual e eficiência extrema, o VitrineX transforma ideias abstratas em campanhas prontas para publicação em segundos.
+Não é apenas um gerador de posts. É um **Ecossistema de Inteligência Competitiva** que monitora o *Zeitgeist* (espírito do tempo) cultural, identifica tendências antes que elas viralizem e cria campanhas visuais estonteantes para capturar essa demanda.
 
----
-
-## 💎 Destaques Visuais & UX
-
-A experiência do usuário foi forjada com os mais modernos padrões de design:
-
-*   **💧 Liquid UI & Glassmorphism**: Interfaces que flutuam e reagem ao toque. Efeitos de vidro fosco, bordas brilhantes e profundidade 3D.
-*   **✨ Animações Fluidas**: Transições suaves, micro-interações e feedback visual instantâneo.
-*   **🌌 Modo Dark Nativo**: Um tema espacial profundo com estrelas cadentes e auroras, otimizado para longas sessões de trabalho.
-*   **⚡ Performance**: Otimizado com Vite para carregamento instantâneo e *Chunk Splitting* inteligente.
+Tudo isso envelopado em uma interface **Liquid Glass** que redefine o que um software web pode ser.
 
 ---
 
-## 🛠️ Funcionalidades Poderosas
+## ⚡ Por Que Isso é Diferente?
 
-### 📝 Content Generator (Gerador de Conteúdo)
-Crie posts para Instagram, LinkedIn e Twitter com **IA Contextual**.
--   Geração de Legendas Persuasivas.
--   Sugestão de Hashtags Virais.
--   Criação de Roteiros para Reels/TikTok.
+A maioria das ferramentas são estáticas. O VitrineX é **vivo**.
 
-### 🎨 Ad Studio (Estúdio de Anúncios)
-Desenvolva criativos de alta conversão.
--   Foco em AIDA (Atenção, Interesse, Desejo, Ação).
--   Integração com **Imagen 3.0** para geração de imagens publicitárias.
+### 🧠 **Cérebro Ativo (Gemini 2.0)**
+Ele não apenas "escreve". Ele entende **nuances culturais**, ironia, gatilhos mentais e psicologia de vendas.
 
-### 📈 Trend Hunter (Caçador de Tendências)
-Não adivinhe, saiba.
--   Analisa o mercado em tempo real.
--   Identifica tópicos quentes no seu nicho antes da concorrência.
+### 👁️ **Radar de Mercado (Market Intelligence)**
+Enquanto seus concorrentes chutam o que postar, o módulo **Market Radar** escaneia dados reais para dizer *exatamente* o que sua audiência quer consumir agora.
 
-### 📅 Smart Scheduler (Agendamento Inteligente)
--   Calendário visual "Drag & Drop".
--   Sugestão dos melhores horários baseada em IA.
+### 🎨 **Flash UI & Design System**
+Esqueça formulários chatos. Nossa interface **responde, brilha e flui**.
+- **Vidro Fosco Dinâmico** (Glassmorphism Realtime)
+- **Animações a 60fps** (Framer Motion)
+- **UX Imersiva** que torna o trabalho viciante.
 
 ---
 
-## 💻 Stack Tecnológico
+## 🛠️ O Arsenal (Features)
 
-Construído com o que há de mais moderno no ecossistema web:
-
-### Fron-end
--   **React 18** + **TypeScript**: Robustez e tipagem estática.
--   **Vite**: Build tool de próxima geração.
--   **Tailwind CSS**: Estilização utilitária avançada.
--   **Framer Motion**: Animações complexas e gestos.
-
-### Inteligência Artificial
--   **Google Gemini 2.0 Flash**: Motor de texto de ultra-baixa latência.
--   **Google Imagen 3.0**: Geração de imagens fotorealistas.
-
-### Backend & Dados
--   **Supabase**: Banco de dados Realtime e Autenticação.
--   **LocalStorage Fallback**: Funciona mesmo com conexão instável.
+| Módulo | Função Secreta | Status |
+| :--- | :--- | :--- |
+| **📢 Content Generator** | Criação de viralidade com 1 clique (Instagram/TikTok) | ✅ Ativo |
+| **📡 Market Radar** | Espionagem de tendências e análise competitiva | ✅ Ativo |
+| **🎨 Flash Designer** | Geração de UI Components via Prompt | ⚠️ Beta |
+| **🚀 Campaign Builder** | Estratégias 360º com cálculo de ROI automático | ✅ Ativo |
+| **📍 AdStudio** | Criativos publicitários focados em conversão | ✅ Ativo |
 
 ---
 
-## 🚀 Como Começar
+## 💻 Sob o Capô (Tech Stack)
+
+Para os Curiosos e Engenheiros:
+
+*   **Core**: React 19 + TypeScript (Stability First)
+*   **Build**: Vite (Lightning Fast HMR)
+*   **Styling**: TailwindCSS + Custom CSS Variables (Design Tokens)
+*   **Motion**: Framer Motion (Physics-based animations)
+*   **AI Bridge**: Google GenAI SDK (Gemini 2.0 + Imagen 3)
+*   **Desktop**: Electron (Native Experience)
+
+---
+
+## 🚀 Como Rodar Essa Máquina
+
+Quer testar o poder localmente? Siga o protocolo:
 
 ```bash
-# Clone o repositório
+# 1. Clone o repositório
 git clone https://github.com/seu-usuario/vitrinex-ai.git
 
-# Entre na pasta
+# 2. Entre na base de operações
 cd vitrinex-ai
 
-# Instale as dependências
+# 3. Instale os módulos nucleares
 npm install
 
-# Inicie o servidor de desenvolvimento
+# 4. Inicie o reator
 npm run dev
+# Ou para a versão Desktop:
+npm run electron:dev
 ```
 
 ---
 
 <div align="center">
 
-Desenvolvido com 💙 e ⚡ por **VitrineX Tech**
+**Preparado para o futuro?**
+Nós já estamos lá.
 
-![Footer](https://capsule-render.vercel.app/api?type=waving&color=gradient&height=100&section=footer)
+Desenvolvido pela **VitrineX Tech**
+
+![Footer](https://capsule-render.vercel.app/api?type=waving&color=gradient&height=80&section=footer)
 
 </div>

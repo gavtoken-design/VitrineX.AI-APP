@@ -18,7 +18,8 @@ export default function SocialNetworks() {
         instagram: false,
         linkedin: false,
         twitter: false,
-        tiktok: false
+        tiktok: false,
+        pinterest: false
     });
 
     const [loadingNetwork, setLoadingNetwork] = useState<string | null>(null);
@@ -32,7 +33,8 @@ export default function SocialNetworks() {
             instagram: socialAuthService.isConnected('instagram'),
             linkedin: socialAuthService.isConnected('linkedin'),
             twitter: socialAuthService.isConnected('twitter'),
-            tiktok: socialAuthService.isConnected('tiktok')
+            tiktok: socialAuthService.isConnected('tiktok'),
+            pinterest: socialAuthService.isConnected('pinterest')
         });
     }, []);
 
@@ -214,6 +216,19 @@ export default function SocialNetworks() {
                     icon={
                         <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.9-.32-1.92-.23-2.74.35-.78.58-1.22 1.54-1.2 2.51.01 1.05.61 2.11 1.56 2.53.51.21 1.07.28 1.61.27.76-.01 1.51-.25 2.11-.75.66-.58.98-1.48.97-2.35-.02-5.33-.01-10.66-.02-16z" />
+                        </svg>
+                    }
+                />
+
+                <SocialCard
+                    id="pinterest-card"
+                    name="Pinterest"
+                    network="pinterest"
+                    colorClass="bg-[#E60023]"
+                    description="Conecte para sincronizar seus Pins e painéis."
+                    icon={
+                        <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.162-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.099.12.112.225.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.399.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.951-7.252 4.173 0 7.41 2.967 7.41 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.354-.629-2.758-1.379l-.749 2.848c-.269 1.045-1.004 2.352-1.498 3.146 1.123.345 2.306.535 3.55.535 6.607 0 11.985-5.365 11.985-11.987C23.97 5.367 18.62 0 12.017 0z" />
                         </svg>
                     }
                 />

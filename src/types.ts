@@ -40,6 +40,7 @@ export interface UserProfile {
   apiKey?: string; // Persisted AI license key
   secureConfig?: Record<string, any>; // For future encrypted settings
   avatar?: string; // URL da imagem de perfil
+  credits: number; // Saldo de créditos do usuário
 }
 
 // Define Post interface

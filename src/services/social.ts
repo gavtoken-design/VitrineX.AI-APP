@@ -60,3 +60,81 @@ export async function publishInstagramMedia(userId: string, accessToken: string,
     });
     return resp.data;
 }
+
+
+/** Open Pinterest share dialog (Legacy/Manual) */
+export function shareToPinterest(imageUrl: string, description: string) {
+    const pinterestLink = `https://www.pinterest.com/pin/create/button/?url=${encodeURIComponent(window.location.href)}&media=${encodeURIComponent(imageUrl)}&description=${encodeURIComponent(description)}`;
+    window.open(pinterestLink, '_blank', 'width=600,height=500');
+}
+
+// ---------- Pinterest API v5 Integration ----------
+
+const PINTEREST_API_BASE = "https://api.pinterest.com/v5";
+
+/**
+ * Troca o Authorization Code pelo Access Token.
+ * NOTA: Em produção, isso deve ser feito no BACKEND para não expor o Client Secret.
+ */
+export async function exchangePinterestCodeForToken(code: string, clientId: string, clientSecret: string, redirectUri: string) {
+    // Pinterest exige cabeçalho Authorization: Basic base64(clientId:clientSecret)
+    const authHeader = btoa(`${clientId}:${clientSecret}`);
+
+    // Body params
+    const params = new URLSearchParams();
+    params.append("grant_type", "authorization_code");
+    params.append("code", code);
+    params.append("redirect_uri", redirectUri);
+
+    const resp = await axios.post(`${PINTEREST_API_BASE}/oauth/token`, params, {
+        headers: {
+            "Authorization": `Basic ${authHeader}`,
+            "Content-Type": "application/x-www-form-urlencoded"
+        }
+    });
+    return resp.data; // Retorna { access_token, refresh_token, scope, ... }
+}
+
+/**
+ * Lista os Boards do usuário.
+ */
+export async function getPinterestBoards(accessToken: string) {
+    const resp = await axios.get(`${PINTEREST_API_BASE}/boards`, {
+        headers: {
+            "Authorization": `Bearer ${accessToken}`,
+            "Content-Type": "application/json"
+        },
+        params: {
+            page_size: 100
+        }
+    });
+    // Estrutura de resposta: { items: [ { id, name, ... } ], bookmark: "..." }
+    return resp.data.items;
+}
+
+/**
+ * Cria um Pin em um Board específico.
+ */
+export async function createPinterestPin(accessToken: string, boardId: string, imageUrl: string, title: string, description: string, link: string = "") {
+    const payload: any = {
+        board_id: boardId,
+        media_source: {
+            source_type: "image_url",
+            url: imageUrl
+        },
+        title: title.substring(0, 100), // Limite do Pinterest
+        description: description.substring(0, 500) // Limite do Pinterest
+    };
+
+    if (link) {
+        payload.link = link;
+    }
+
+    const resp = await axios.post(`${PINTEREST_API_BASE}/pins`, payload, {
+        headers: {
+            "Authorization": `Bearer ${accessToken}`,
+            "Content-Type": "application/json"
+        }
+    });
+    return resp.data;
+}

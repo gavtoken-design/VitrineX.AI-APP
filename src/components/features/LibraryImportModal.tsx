@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { XMarkIcon, MagnifyingGlassIcon, ClipboardDocumentIcon, PhotoIcon, DocumentTextIcon, CheckIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import { getLibraryItems } from '../../services/core/db';
-import { SEASONAL_TEMPLATES } from '../../constants';
+import { SEASONAL_TEMPLATES } from '../../data/templates';
 import { LibraryItem } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';

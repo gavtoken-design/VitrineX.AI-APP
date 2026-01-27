@@ -1,0 +1,28 @@
+:root {
+  /* Espaçamentos */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+
+  /* Tipografia */
+  --font-base: 16px;
+  --font-lg: 20px;
+
+  /* Cores - Dark Mode */
+  --color-primary: #3b82f6;
+  /* Blue 500 equivalent */
+  --color-bg: #0f172a;
+  /* Slate 900 */
+  --color-surface: #1e293b;
+  /* Slate 800 */
+  --color-text: #f3f4f6;
+  /* Gray 100 */
+  --color-text-muted: #9ca3af;
+  /* Gray 400 */
+  --color-border: #334155;
+  /* Slate 700 */
+
+  /* Toque */
+  --touch-min: 44px;
+}

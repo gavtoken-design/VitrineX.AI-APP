@@ -9,29 +9,33 @@ O sistema possui **5 páginas desativadas** que existem fisicamente no diretóri
 
 ## 📋 Páginas Completamente Inativas
 
-### 1. **AudioTools.tsx**
+### 1. **AudioTools.tsx** (Ferramentas de Áudio)
+- **O que é:** Interface que permitia manipular áudio, como converter texto em fala e vice-versa.
 - **Status:** Desativada
-- **Motivo:** Funcionalidade movida para o componente `VoiceoverControl`. STT (Speech-to-Text) foi removido para simplificar.
+- **Motivo da Desativação:** A funcionalidade de "Fala" (TTS) foi movida para dentro do módulo de criação de conteúdo (`VoiceoverControl`), onde faz mais sentido contextualmente. A parte de reconhecimento de voz (STT) foi removida por baixa precisão e pouco uso.
 - **Ação Recomendada:** ✅ Pode ser deletada com segurança.
 
 ### 2. **CalendarManager.tsx**
-- **Status:** Desativada
+- **Status:** DELETADA
 - **Motivo:** Funcionalidade consolidada no módulo `SmartScheduler`.
+- **Ação Realizada:** ✅ Arquivo excluído em 26/01/2026.
+
+### 3. **CodePlayground.tsx** (Área de Testes de Código)
+- **O que é:** Um editor simples dentro do app para testar snippets de código HTML/JS/CSS.
+- **Status:** Desativada
+- **Motivo da Desativação:** O VitrineX é focado em Marketing e Criação de Conteúdo para usuários não-técnicos. Ter um editor de código confundia a proposta de valor e o público-alvo.
 - **Ação Recomendada:** ✅ Pode ser deletada com segurança.
 
-### 3. **CodePlayground.tsx**
+### 4. **LiveConversation.tsx** (Conversa em Tempo Real)
+- **O que é:** Tentativa de criar uma sala de chat ou suporte ao vivo.
 - **Status:** Desativada
-- **Motivo:** Removida a pedido do usuário (sem documentação adicional).
+- **Motivo da Desativação:** Foi um arquivo criado inicialmente para testes de Websocket, mas nunca evoluiu para uma feature completa. O Chatbot atual já supre a necessidade de interação conversacional.
 - **Ação Recomendada:** ✅ Pode ser deletada com segurança.
 
-### 4. **LiveConversation.tsx**
+### 5. **LocalFinder.tsx** (Busca Local / Mapas)
+- **O que é:** Integração com Google Maps para encontrar negócios locais.
 - **Status:** Desativada
-- **Motivo:** Arquivo criado por engano, não está em uso.
-- **Ação Recomendada:** ✅ Pode ser deletada com segurança.
-
-### 5. **LocalFinder.tsx**
-- **Status:** Desativada
-- **Motivo:** Funcionalidade removida. Google Maps Grounding foi consolidado em outros módulos.
+- **Motivo da Desativação:** A funcionalidade de "Grounding com Google Maps" foi incorporada diretamente no `TrendHunter` e `ContentGenerator`, tornando uma página dedicada desnecessária e redundante.
 - **Ação Recomendada:** ✅ Pode ser deletada com segurança.
 
 ---

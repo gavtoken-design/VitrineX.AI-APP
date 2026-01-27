@@ -69,7 +69,10 @@ export const useNavItems = () => {
     {
       section: 'sidebar.execution', items: [
         { id: "nav-content-gen", name: "ContentGenerator" as ModuleName, label: 'sidebar.content_gen', icon: 'contentGen' as IconName },
+        // { id: "nav-smart-scheduler", name: "SmartScheduler" as ModuleName, label: 'sidebar.smart_scheduler', icon: 'calendar' as IconName },
         { id: "nav-ad-studio", name: "AdStudio" as ModuleName, label: 'sidebar.ad_creator', icon: 'adStudio' as IconName },
+        // { name: "CalendarManager" as ModuleName, label: 'sidebar.calendar_manager', icon: 'calendar' as IconName },
+        { name: "AnimationShowcase" as ModuleName, label: 'Vitrine de Animações', icon: 'animation' as IconName },
         { name: "CodePlayground" as ModuleName, label: 'sidebar.code_playground', icon: 'code' as IconName },
       ]
     },

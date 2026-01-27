@@ -1,4 +1,4 @@
-// Datas Comemorativas Brasileiras 2024-2025
+// Datas Comemorativas Brasileiras 2025-2026
 // Para uso no SmartScheduler e outras funcionalidades de marketing
 
 export interface CommemorativeDate {
@@ -11,27 +11,7 @@ export interface CommemorativeDate {
     color?: string; // Cor de destaque no calendário
 }
 
-export const COMMEMORATIVE_DATES_2024_2025: CommemorativeDate[] = [
-    // Dezembro 2024
-    {
-        id: 'christmas-2024',
-        name: 'Natal',
-        date: '2024-12-25',
-        emoji: '🎄',
-        category: 'religious',
-        marketingTip: 'Promoções de fim de ano, presentes, decoração',
-        color: '#DC2626'
-    },
-    {
-        id: 'new-year-eve-2024',
-        name: 'Réveillon',
-        date: '2024-12-31',
-        emoji: '🥂',
-        category: 'cultural',
-        marketingTip: 'Festas, looks, metas para o ano novo',
-        color: '#F59E0B'
-    },
-
+export const COMMEMORATIVE_DATES_2025_2026: CommemorativeDate[] = [
     // Janeiro 2025
     {
         id: 'new-year-2025',
@@ -187,6 +167,26 @@ export const COMMEMORATIVE_DATES_2024_2025: CommemorativeDate[] = [
         category: 'cultural',
         marketingTip: 'Festas, looks, metas para o ano novo',
         color: '#F59E0B'
+    },
+
+    // Janeiro 2026
+    {
+        id: 'new-year-2026',
+        name: 'Ano Novo',
+        date: '2026-01-01',
+        emoji: '🎆',
+        category: 'cultural',
+        marketingTip: 'Resoluções, novos começos, renovação',
+        color: '#F59E0B'
+    },
+    {
+        id: 'valentines-2026',
+        name: 'Dia dos Namorados (Internacional)',
+        date: '2026-02-14',
+        emoji: '💝',
+        category: 'commercial',
+        marketingTip: 'Presentes românticos, jantares, experiências',
+        color: '#EC4899'
     }
 ];
 
@@ -195,7 +195,7 @@ export const getCommemorateDatesForMonth = (year: number, month: number): Commem
     const monthStr = month.toString().padStart(2, '0');
     const yearMonthPrefix = `${year}-${monthStr}`;
 
-    return COMMEMORATIVE_DATES_2024_2025.filter(date =>
+    return COMMEMORATIVE_DATES_2025_2026.filter(date =>
         date.date.startsWith(yearMonthPrefix)
     );
 };
@@ -205,7 +205,7 @@ export const getUpcomingCommemorateDates = (limit: number = 5): CommemorativeDat
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    return COMMEMORATIVE_DATES_2024_2025
+    return COMMEMORATIVE_DATES_2025_2026
         .filter(date => new Date(date.date) >= today)
         .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
         .slice(0, limit);

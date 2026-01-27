@@ -84,13 +84,13 @@ const MobileNavMenu: React.FC<MobileNavMenuProps> = ({ isOpen, onClose, activeMo
                   <span className="text-[10px] font-black uppercase tracking-widest text-gray-300">Importar</span>
                 </button>
                 <button
-                  onClick={() => alert("Funcionalidade em desenvolvimento")}
+                  onClick={() => { setActiveModule('CampaignBuilder'); onClose(); }}
                   className="flex flex-col items-center justify-center p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 transition-all active:scale-95 group"
                 >
                   <div className="p-2 rounded-full bg-pink-500/10 mb-2 group-hover:scale-110 transition-transform">
                     <UserGroupIcon className="w-6 h-6 text-pink-400" />
                   </div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-gray-300">Persona</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-gray-300">Estratégia</span>
                 </button>
               </div>
 
@@ -128,7 +128,7 @@ const MobileNavMenu: React.FC<MobileNavMenuProps> = ({ isOpen, onClose, activeMo
 
               <div className="mt-4 flex items-center justify-center gap-2 opacity-30 text-[9px] font-bold uppercase tracking-widest text-gray-500">
                 <span className="w-1 h-1 rounded-full bg-gray-500" />
-                VitrineX v4.0.1 Premium
+                VitrineX v4.2.0 Stable
                 <span className="w-1 h-1 rounded-full bg-gray-500" />
               </div>
             </div>

@@ -122,7 +122,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         industry: 'Tech',
                         targetAudience: 'General',
                         visualStyle: 'Modern'
-                    }
+                    },
+                    credits: 9999
                 });
             }
         } finally {
@@ -168,7 +169,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     industry: 'Retail',
                     targetAudience: 'Everyone',
                     visualStyle: 'Standard'
-                }
+                },
+                credits: isAdmin ? 9999 : 50
             });
 
             // Persist mock session
@@ -217,7 +219,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     industry: 'General',
                     targetAudience: 'All',
                     visualStyle: 'Basic'
-                }
+                },
+                credits: 15
             });
 
             localStorage.setItem('mock_session', 'true');

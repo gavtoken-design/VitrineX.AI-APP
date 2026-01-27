@@ -5,37 +5,48 @@ import {
     MagnifyingGlassIcon,
     ClipboardDocumentIcon,
     MapPinIcon,
-    GlobeAltIcon
+    GlobeAltIcon,
+    BuildingOfficeIcon
 } from '@heroicons/react/24/outline';
 import Button from '../../../components/ui/Button';
 import { OBJECTIVES } from '../types';
+import { LocationOption } from '../../../data/locations';
 
 interface SearchPanelProps {
     query: string;
     setQuery: (val: string) => void;
-    city: string;
-    setCity: (val: string) => void;
+    locations: LocationOption[];
+    selectedLocation: LocationOption;
+    setSelectedLocation: (val: LocationOption) => void;
     objective: string;
     setObjective: (val: string) => void;
     locationStatus: 'pending' | 'success' | 'denied';
     loading: boolean;
     hasResult: boolean;
     onSearch: () => void;
+    onLocalOrganizationSearch: () => void;
     onClear: () => void;
     onPaste: () => void;
 }
 
 const SearchPanel: React.FC<SearchPanelProps> = ({
     query, setQuery,
-    city, setCity,
+    locations, selectedLocation, setSelectedLocation,
     objective, setObjective,
     locationStatus,
     loading,
     hasResult,
     onSearch,
+    onLocalOrganizationSearch,
     onClear,
     onPaste
 }) => {
+    // Check if selected location is "local" (not Global or whole Brazil without specific state)
+    // Actually relying on type: 'state' or 'city' is better.
+    // Default 'BR' is safe? Let's check logic.
+    // If user wants "ORGANIZAÇÃO" for local trends.
+    const isLocal = selectedLocation.id !== 'Global' && selectedLocation.id !== 'BR';
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -73,23 +84,28 @@ const SearchPanel: React.FC<SearchPanelProps> = ({
                             </div>
                         </div>
 
-                        {/* Location Input */}
+                        {/* Location Input (Selector) */}
                         <div className="md:col-span-4 space-y-3">
                             <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">Localização</label>
                             <div className="relative bg-black/50 border border-white/10 rounded-2xl flex items-center overflow-hidden focus-within:border-primary/50 transition-colors h-[72px]">
-                                <MapPinIcon className="w-6 h-6 text-gray-500 ml-4" />
-                                <input
-                                    type="text"
-                                    className="w-full bg-transparent border-none text-base px-4 py-5 text-white placeholder-gray-600 focus:ring-0"
-                                    value={city}
-                                    onChange={(e) => setCity(e.target.value)}
-                                    placeholder="Global..."
-                                />
-                                {locationStatus === 'success' && !city && (
-                                    <div className="absolute right-3 flex items-center gap-1 text-green-400 text-[10px] font-bold bg-green-900/30 px-2 py-1 rounded-full border border-green-500/20">
-                                        <GlobeAltIcon className="w-3 h-3" /> GPS
-                                    </div>
-                                )}
+                                <MapPinIcon className="w-6 h-6 text-gray-500 ml-4 absolute left-0 pointer-events-none" />
+                                <select
+                                    value={selectedLocation.id}
+                                    onChange={(e) => {
+                                        const loc = locations.find(l => l.id === e.target.value);
+                                        if (loc) setSelectedLocation(loc);
+                                    }}
+                                    className="w-full bg-transparent border-none text-base pl-12 pr-4 py-5 text-gray-200 focus:ring-0 appearance-none cursor-pointer [&>option]:bg-gray-900"
+                                >
+                                    {locations.map(loc => (
+                                        <option key={loc.id} value={loc.id}>
+                                            {loc.name}
+                                        </option>
+                                    ))}
+                                </select>
+                                <div className="absolute right-4 pointer-events-none">
+                                    <GlobeAltIcon className="w-4 h-4 text-gray-500" />
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -115,7 +131,19 @@ const SearchPanel: React.FC<SearchPanelProps> = ({
                     </div>
 
                     {/* Action Footer */}
-                    <div className="mt-10 pt-8 border-t border-white/5 flex justify-end gap-4">
+                    <div className="mt-10 pt-8 border-t border-white/5 flex justify-end gap-4 flex-wrap">
+                        {isLocal && (
+                            <Button
+                                onClick={onLocalOrganizationSearch}
+                                isLoading={loading}
+                                variant="secondary"
+                                className="px-6 py-6 h-auto text-sm font-bold uppercase tracking-widest border-indigo-500/30 text-indigo-300 hover:bg-indigo-500/10"
+                            >
+                                <BuildingOfficeIcon className="w-5 h-5 mr-2" />
+                                Organização
+                            </Button>
+                        )}
+
                         {(query || hasResult) && (
                             <Button onClick={onClear} variant="ghost" className="text-gray-400 hover:text-white hover:bg-white/5">
                                 Limpar

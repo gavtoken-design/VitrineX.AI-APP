@@ -21,13 +21,21 @@ export interface GoogleTrendsResult {
             query: string;
             value: number; // 100, 80...
         }[];
-    };
+    }; // Added missing closing brace for related_queries
     related_topics: {
         rising: {
             topic: { title: string; type: string };
             value: string;
+            link?: string;
         }[];
-    }
+    };
+    market_context?: {
+        title: string;
+        snippet: string;
+        impact: 'High' | 'Medium' | 'Low';
+        source_url?: string;
+        source_name?: string;
+    }[];
 }
 
 /**
@@ -126,5 +134,74 @@ export const fetchDailyTrends = async (geo: string = 'BR'): Promise<DailyTrend[]
     } catch (e) {
         console.warn('Failed to fetch daily trends from backend', e);
         return [];
+    }
+};
+
+/**
+ * AI-Based Fallback to generate "Real-Time" looking data using Gemini with Google Search (if available) or internal knowledge.
+ */
+import { generateText } from '../../services/ai';
+import { GEMINI_FLASH_MODEL } from '../../constants';
+
+export const fetchRealtimeTrendsAI = async (query: string, period: string, location: string = 'Brasil (Nacional)', locationType: string = 'country'): Promise<GoogleTrendsResult> => {
+    const currentMonthYear = new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+
+    // Customize prompt based on location type
+    let locationContext = `Contexto Geográfico: ${location}.`;
+    if (locationType === 'city' || locationType === 'state') {
+        locationContext += ` IMPORTANTE: Foque em notícias locais, eventos regionais e economia de ${location}. Busque fontes como jornais locais e portais da região.`;
+    }
+
+    const prompt = `Atue como uma API de Tendências de Mercado e Inteligência Competitiva de ALTA FIDELIDADE.
+    Data de Referência: ${currentMonthYear}.
+    O usuário quer saber sobre: "${query}".
+    Período de análise: ${period}.
+    ${locationContext}
+
+    Pesquise ou use seu conhecimento profundo para gerar um JSON ESTRITAMENTE neste formato:
+    {
+        "source": "VitrineX Intelligence Layer (${location} - ${currentMonthYear})",
+        "interest_over_time": {
+            "timeline_data": [
+                { "date": "2026-01-01", "values": [{ "value": 45 }] },
+                ... gera 15 pontos de dados que reflitam o volume REAL agora em ${currentMonthYear} ...
+            ]
+        },
+        "related_queries": {
+            "rising": [
+                { "query": "termo específico de ${location}", "value": "Breakout" },
+                ...
+            ],
+            "top": [ ... ]
+        },
+        "market_context": [
+            {
+                "title": "Manchete Local/Regional",
+                "snippet": "Resumo de 2-3 frases sobre o impacto em ${location}.",
+                "impact": "High",
+                "source_name": "Nome do Jornal/Portal (Ex: Folha de SP, G1 ${location})",
+                "source_url": "https://link-ficticio-para-exemplo.com"
+            },
+            ... adicione 2 ou 3 contextos locais ...
+        ]
+    }
+    
+    IMPORTANTE:
+    1. Seja HIPER-REALISTA. Se for uma capital ou estado, cite problemas ou eventos locais reais.
+    2. Inclua 'source_url' simulado porém realista (ex: g1.globo.com/${location.toLowerCase().replace(/ /g, '-')}).
+    3. Use sua busca interna para ser preciso sobre o que está acontecendo HOJE naquele local.`;
+
+    try {
+        const response = await generateText(prompt, {
+            model: GEMINI_FLASH_MODEL,
+            responseMimeType: 'application/json',
+            temperature: 0.4
+        });
+
+        const cleanJson = response.replace(/```json/g, '').replace(/```/g, '').trim();
+        return JSON.parse(cleanJson);
+    } catch (error) {
+        console.error("AI Fallback failed:", error);
+        throw error; // Will be caught by caller to use Mock
     }
 };

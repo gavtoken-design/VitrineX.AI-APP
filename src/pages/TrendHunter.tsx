@@ -16,6 +16,7 @@ import { useTutorial, TutorialStep } from '../contexts/TutorialContext';
 import Skeleton from '../components/ui/Skeleton';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fetchSerpApiTrends, formatTrendsDataForAI, fetchDailyTrends, DailyTrend, GoogleTrendsResult } from '../services/integrations/serpApi';
+import { LOCATIONS, LocationOption } from '../data/locations';
 
 // Sub-components
 import SearchPanel from './TrendHunter/components/SearchPanel';
@@ -63,7 +64,7 @@ const TrendHunterSkeleton = () => (
 
 const TrendHunter = () => {
   const [query, setQuery] = useState('');
-  const [city, setCity] = useState('');
+  const [selectedLocation, setSelectedLocation] = useState<LocationOption>(LOCATIONS.find(l => l.id === 'BR') || LOCATIONS[0]);
   const [objective, setObjective] = useState('all');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -101,24 +102,16 @@ const TrendHunter = () => {
     loadProfile();
   }, [userId]);
 
-  // Geolocalização
+  // Geolocalização (Opcional/Pending status apenas para compatibilidade visual)
   const requestLocation = useCallback(() => {
-    if (city) return; // Se a cidade já foi definida manualmente, não tenta pegar gps
-    setLocationStatus('pending');
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        () => setLocationStatus('success'),
-        () => setLocationStatus('denied'),
-        { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 }
-      );
-    } else {
-      setLocationStatus('denied');
-    }
-  }, [city]);
+    // No manual logic needed as we use Selector
+    setLocationStatus('success');
+  }, []);
 
   useEffect(() => {
     requestLocation();
     const loadTrends = async () => {
+      // Could filter daily trends by location if API supported it
       const trends = await fetchDailyTrends('BR');
       if (trends && trends.length > 0) {
         setDailyTrends(trends.slice(0, 6)); // Top 6
@@ -148,21 +141,22 @@ const TrendHunter = () => {
   }, [completedModules, startTutorial]);
 
   // BUSCA DE TENDÊNCIAS COM RESULTADO ESTRUTURADO
-  const handleSearchTrends = useCallback(async () => {
-    if (!query.trim()) {
+  const handleSearchTrends = useCallback(async (overrideQuery?: string) => {
+    const targetQuery = overrideQuery || query;
+    if (!targetQuery.trim()) {
       addToast({ type: 'warning', message: 'Por favor, insira uma palavra-chave.' });
       return;
     }
 
     const objectiveLabel = OBJECTIVES.find(o => o.id === objective)?.label || 'Todos os objetivos';
-    const cacheKey = `trend_${query.trim()}_${city}_${objective}`;
+    const cacheKey = `trend_${targetQuery.trim()}_${selectedLocation.id}_${objective}`;
 
     // 1. Check Cache
     const cached = sessionStorage.getItem(cacheKey);
     if (cached) {
       const parsedCache = JSON.parse(cached);
       setResult(parsedCache);
-      setRawQuery(query.trim());
+      setRawQuery(targetQuery.trim());
       addToast({ type: 'success', message: 'Resultado carregado do histórico recente!' });
       return;
     }
@@ -170,12 +164,12 @@ const TrendHunter = () => {
     setLoading(true);
     setError(null);
     setResult(null);
-    setRawQuery(query.trim());
+    setRawQuery(targetQuery.trim());
 
     // 2. Fetch Real-Time Data (SerpApi)
     let serpContext = '';
     try {
-      const data = await fetchSerpApiTrends(query.trim(), 'BR');
+      const data = await fetchSerpApiTrends(targetQuery.trim(), 'BR'); // Generic BR search or specific geocode if available
       if (data) {
         setSerpData(data);
         serpContext = formatTrendsDataForAI(data);
@@ -185,9 +179,10 @@ const TrendHunter = () => {
       console.warn('SerpApi skipped', e);
     }
 
+    const currentDate = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
     const prompt = `ATUE COMO UM EXPERT EM DATA SCIENCE E TREND FORECASTING.
-Analise a tendência ATUAL (foco nas últimas 24h a 7 dias) para a keyword "${query.trim()}" no local "${city || 'Brasil'}".
-Cruze dados simulados de volume de busca do Google Trends, engajamento no TikTok Creative Center e Pinterest Predicts.
+Analise a tendência ATUAL (HOJE: ${currentDate}, foco nas últimas 24h a 7 dias) para a keyword "${targetQuery.trim()}" no local "${selectedLocation.name} (${selectedLocation.type})".
+Cruze dados simulados de volume de busca do Google Trends, engajamento no TikTok Creative Center e Pinterest Predicts de 2026.
 
 ${serpContext ? `USE OBRIGATORIAMENTE OS DADOS REAIS DO GOOGLE ABAIXO NA SUA ANÁLISE:\n${serpContext}\n` : ''}
 
@@ -201,9 +196,9 @@ Considere o perfil do negócio:
 Retorne um JSON estruturado com EXATAMENTE estes campos:
 {
   "score": [número de 0 a 100 indicando viralidade/relevância],
-  "resumo": "[resumo executivo de 2-3 parágrafos focando em oportunidades reais]",
-  "motivadores": ["lista de 5 termos ou gatilhos que estão impulsionando as buscas"],
-  "leituraCenario": "[análise estratégica sobre o timing do mercado]",
+  "resumo": "[resumo executivo de 2-3 parágrafos focando em oportunidades reais em ${selectedLocation.name}]",
+  "motivadores": ["lista de 5 termos ou gatilhos que estão impulsionando as buscas locais"],
+  "leituraCenario": "[análise estratégica sobre o timing do mercado local]",
   "buscasSemelhantes": ["lista de 6 termos relacionados que também estão em alta"],
   "interpretacaoBuscas": "[o que esses termos revelam sobre a intenção do comprador]",
   "sugestaoConteudo": {
@@ -265,12 +260,12 @@ IMPORTANTE: Forneça insights práticos e prontos para uso. Retorne APENAS o JSO
         // Fallback
         parsed = {
           score: 85,
-          resumo: `Identificamos um alto volume de interesse potencial para "${query}". O mercado demonstra sinais de aquecimento.`,
+          resumo: `Identificamos um alto volume de interesse potencial para "${targetQuery}". O mercado demonstra sinais de aquecimento em ${selectedLocation.name}.`,
           motivadores: ["Curiosidade", "Necessidade de Solução", "Tendência de Crescimento", "Engajamento Social", "Busca por Inovação"],
           leituraCenario: "O cenário atual favorece a entrada de novos conteúdos.",
-          buscasSemelhantes: [query, `${query} tutorial`, `${query} dicas`],
+          buscasSemelhantes: [targetQuery, `${targetQuery} tutorial`, `${targetQuery} dicas`],
           interpretacaoBuscas: "Usuários buscam soluções práticas.",
-          sugestaoConteudo: { oque: `Guia sobre ${query}.`, formato: "Carrossel" },
+          sugestaoConteudo: { oque: `Guia sobre ${targetQuery}.`, formato: "Carrossel" },
           sugestaoProduto: { tipo: "E-book", temas: ["Fundamentos", "Prática", "Estudos"] },
           sugestaoCampanha: { estrategia: "Conteúdo educativo.", cta: "Saiba Mais" },
           conclusao: { avaliacao: "Alta Oportunidade", idealPara: ["Criadores", "Educadores"], melhorEstrategia: "Produzir conteúdo." }
@@ -285,14 +280,14 @@ IMPORTANTE: Forneça insights práticos e prontos para uso. Retorne APENAS o JSO
       const trendToSave: Trend = {
         id: `trend-${Date.now()}`,
         userId,
-        query: query.trim(),
+        query: targetQuery.trim(),
         score: parsed.score,
         data: parsed.resumo,
         sources: [],
         createdAt: new Date().toISOString()
       };
       await saveTrend(trendToSave);
-      addToast({ type: 'success', message: `Análise de "${query}" concluída!` });
+      addToast({ type: 'success', message: `Análise de "${targetQuery}" concluída!` });
 
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : String(err);
@@ -301,7 +296,27 @@ IMPORTANTE: Forneça insights práticos e prontos para uso. Retorne APENAS o JSO
     } finally {
       setLoading(false);
     }
-  }, [query, city, objective, userProfile, userId, addToast]);
+  }, [query, selectedLocation, objective, userProfile, userId, addToast]);
+
+  const handleLocalOrganizationSearch = useCallback(() => {
+    setQuery('Organização');
+    handleSearchTrends('Organização');
+  }, [handleSearchTrends]);
+
+  const handleCreateCampaign = useCallback(() => {
+    if (!result) return;
+    const campaignContext = {
+      source: 'TrendHunter',
+      title: query,
+      topic: query,
+      strategy: result.sugestaoCampanha.estrategia,
+      cta: result.sugestaoCampanha.cta,
+      insight: result.resumo
+    };
+    localStorage.setItem('vitrinex_pending_campaign_context', JSON.stringify(campaignContext));
+    navigateTo('CampaignBuilder');
+    addToast({ type: 'info', message: 'Dados da campanha enviados para o Criador!' });
+  }, [result, query, navigateTo, addToast]);
 
   const handleCreateContent = useCallback(() => {
     if (!result) return;
@@ -332,7 +347,7 @@ IMPORTANTE: Forneça insights práticos e prontos para uso. Retorne APENAS o JSO
 
   const handleClear = useCallback(() => {
     setQuery('');
-    setCity('');
+    // setSelectedLocation(LOCATIONS[0]); // Don't reset location, keep user preference
     setResult(null);
     setSerpData(null);
     setError(null);
@@ -509,14 +524,16 @@ ${result.resumo}
           <SearchPanel
             query={query}
             setQuery={setQuery}
-            city={city}
-            setCity={setCity}
+            locations={LOCATIONS}
+            selectedLocation={selectedLocation}
+            setSelectedLocation={setSelectedLocation}
             objective={objective}
             setObjective={setObjective}
             locationStatus={locationStatus}
             loading={loading}
             hasResult={!!result}
-            onSearch={handleSearchTrends}
+            onSearch={() => handleSearchTrends()}
+            onLocalOrganizationSearch={handleLocalOrganizationSearch}
             onClear={handleClear}
             onPaste={handlePaste}
           />
@@ -525,7 +542,7 @@ ${result.resumo}
         <div id="daily-trends-section">
           <DailyTrends
             trends={dailyTrends}
-            onSelectTrend={(val) => { setQuery(val); handleSearchTrends(); }}
+            onSelectTrend={(val) => { setQuery(val); handleSearchTrends(val); }}
             loading={loading}
             hasResult={!!result}
           />
@@ -538,16 +555,18 @@ ${result.resumo}
             <TrendReport
               result={result}
               query={rawQuery}
-              city={city}
+              city={selectedLocation.name}
               objective={objective}
               serpData={serpData}
               onCreateContent={handleCreateContent}
+              onCreateCampaign={handleCreateCampaign}
               onSchedule={handleSchedule}
               onGenerateHTML={async () => setShowConfigModal(true)}
               onSaveToLibrary={handleSaveToLibrary}
             />
           )}
         </AnimatePresence>
+
 
         <LandingPageConfigModal
           isOpen={showConfigModal}

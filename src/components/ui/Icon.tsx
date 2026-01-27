@@ -46,7 +46,8 @@ import {
   CalendarIcon,
   ViewColumnsIcon,
   LinkIcon,
-  GiftIcon
+  GiftIcon,
+  FilmIcon
 } from '@heroicons/react/24/outline';
 
 // Registro central de ícones. 
@@ -60,6 +61,7 @@ export const iconRegistry = {
   creativeStudio: CameraIcon,
   campaign: SparklesIcon,
   trends: MagnifyingGlassCircleIcon,
+  analytics: ChartBarIcon,
   library: ArchiveBoxIcon,
   calendar: CalendarDaysIcon,
   chat: ChatBubbleLeftRightIcon,
@@ -102,7 +104,8 @@ export const iconRegistry = {
   calendarAlt: CalendarIcon,
   carousel: ViewColumnsIcon,
   link: LinkIcon,
-  gift: GiftIcon
+  gift: GiftIcon,
+  animation: FilmIcon
 };
 
 export type IconName = keyof typeof iconRegistry;

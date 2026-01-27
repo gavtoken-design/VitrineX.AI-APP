@@ -1,0 +1,4 @@
+src/pages/CodePlayground.tsx(405,18): error TS2741: Property 'id' is missing in type '{ label: string; value: string; onChange: (e: ChangeEvent<HTMLInputElement>) => void; className: string; }' but required in type 'InputProps'.
+src/pages/CodePlayground.tsx(406,18): error TS2741: Property 'id' is missing in type '{ label: string; value: string; onChange: (e: ChangeEvent<HTMLInputElement>) => void; className: string; }' but required in type 'InputProps'.
+src/pages/CodePlayground.tsx(407,18): error TS2741: Property 'id' is missing in type '{ label: string; value: string; onChange: (e: ChangeEvent<HTMLInputElement>) => void; className: string; }' but required in type 'InputProps'.
+src/pages/CodePlayground.tsx(502,22): error TS2741: Property 'id' is missing in type '{ value: string; onChange: (e: ChangeEvent<HTMLTextAreaElement>) => void; placeholder: string; rows: number; className: string; }' but required in type 'TextareaProps'.

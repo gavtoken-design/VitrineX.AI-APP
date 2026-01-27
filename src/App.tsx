@@ -33,14 +33,13 @@ const SmartScheduler = React.lazy(() => import('./pages/SmartScheduler'));
 const ContentLibrary = React.lazy(() => import('./pages/ContentLibrary'));
 const AdStudio = React.lazy(() => import('./pages/AdStudio'));
 const CampaignBuilder = React.lazy(() => import('./pages/CampaignBuilder'));
-// const CalendarManager = React.lazy(() => import('./pages/CalendarManager'));
-// const CodePlayground = React.lazy(() => import('./pages/CodePlayground'));
 const AuthPage = React.lazy(() => import('./pages/AuthPage'));
 const Settings = React.lazy(() => import('./pages/Settings'));
 const LandingPage = React.lazy(() => import('./pages/LandingPage'));
 const MarketRadar = React.lazy(() => import('./pages/MarketRadar'));
 const SocialNetworks = React.lazy(() => import('./pages/SocialNetworks'));
 const IndicationsPage = React.lazy(() => import('./pages/IndicationsPage'));
+const AnimationShowcase = React.lazy(() => import('./pages/AnimationShowcase'));
 // const CosmicStudio = React.lazy(() => import('./pages/CosmicStudio/CosmicStudio'));
 const AdminGate = React.lazy(() => import('./pages/Admin/AdminGate'));
 
@@ -58,16 +57,15 @@ export const MODULE_NAMES = [
     // 'ChatVitrineX',
     'ContentGenerator',
     'TrendHunter',
-    // 'SmartScheduler',
+    'SmartScheduler',
     'ContentLibrary',
     'AdStudio',
     'CampaignBuilder',
-    // 'CalendarManager',
-    // 'CodePlayground',
     'Settings',
     'MarketRadar',
     'SocialNetworks',
     'Indications',
+    'AnimationShowcase',
     'LandingPage',
     // 'CosmicStudio',
     // 'CosmicEditor',
@@ -178,16 +176,15 @@ const AppContent: React.FC = () => {
             ContentGenerator: <ContentGenerator />,
             TrendHunter: <TrendHunter />,
 
-            // SmartScheduler: <SmartScheduler />,
+            SmartScheduler: <SmartScheduler />,
             ContentLibrary: <ContentLibrary />,
             AdStudio: <AdStudio />,
             CampaignBuilder: <CampaignBuilder />,
-            // CalendarManager: <CalendarManager />,
-            // CodePlayground: <CodePlayground />,
             Settings: <Settings />,
             MarketRadar: <MarketRadar />,
             SocialNetworks: <SocialNetworks />,
             Indications: <IndicationsPage />,
+            AnimationShowcase: <AnimationShowcase />,
             LandingPage: <LandingPage />,
             // CosmicStudio: <CosmicStudio />,
             // CosmicEditor: <CosmicStudio initialView="editor" />,

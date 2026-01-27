@@ -1,7 +1,5 @@
 import { GoogleTrendsResult } from '../../services/integrations/serpApi';
 
-// ... (imports remain)
-
 export const generateMockData = (period: string = 'today 1-m', term: string = 'Mercado'): GoogleTrendsResult => {
     // If term is generic, use a special seed or set of related queries
     const isGeneral = term === 'Mercado' || term === 'Tendências Gerais' || term === '';
@@ -95,3 +93,33 @@ export const generateMockData = (period: string = 'today 1-m', term: string = 'M
 };
 
 export const MOCK_DATA = generateMockData('today 1-m', 'Mercado');
+
+export const generateMockVerdict = (term: string) => {
+    // Deterministic random based on term
+    const hash = term.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const score = 30 + (hash % 65); // Score between 30 and 95
+
+    let decision: 'Explorar Agora' | 'Testar com Cautela' | 'Ignorar/Descartar';
+    let justification: string;
+
+    if (score >= 80) {
+        decision = 'Explorar Agora';
+        justification = 'Alta demanda detectada e baixa saturação de competidores qualificados.';
+    } else if (score >= 50) {
+        decision = 'Testar com Cautela';
+        justification = 'O mercado mostra interesse, mas os custos de aquisição podem oscilar.';
+    } else {
+        decision = 'Ignorar/Descartar';
+        justification = 'Volume de busca em declínio ou concorrência desproporcional ao retorno.';
+    }
+
+    return {
+        opportunity: `Aproveitar o crescimento orgânico de "${term}" para capturar leads topo de funil.`,
+        angle: `Posicionar como a solução premium e definitiva para ${term}.`,
+        risk: `Possível entrada de grandes players nas próximas semanas.`,
+        decision,
+        score,
+        justification,
+        sentiment: score > 60 ? 0.8 : -0.2
+    };
+};

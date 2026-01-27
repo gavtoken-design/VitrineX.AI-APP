@@ -17,6 +17,9 @@ interface VerdictCardsProps {
         opportunity: string;
         angle: string;
         risk: string;
+        decision?: 'Explorar Agora' | 'Testar com Cautela' | 'Ignorar/Descartar';
+        score?: number;
+        justification?: string;
         iveScore?: number;
         iveAction?: string;
         classification?: string;
@@ -29,46 +32,46 @@ interface VerdictCardsProps {
 export const VerdictCards: React.FC<VerdictCardsProps> = ({ aiVerdict, onCopy }) => {
     if (!aiVerdict) return null;
 
-    const getScoreColor = (score?: number) => {
-        if (score === undefined) return 'text-gray-400';
-        if (score >= 80) return 'text-green-400';
-        if (score >= 60) return 'text-yellow-400';
-        return 'text-red-400';
-    };
-
-    const getActionColor = (action?: string) => {
-        switch (action?.toLowerCase()) {
-            case 'apostar': return 'bg-green-500/20 text-green-400 border-green-500/30';
-            case 'testar': return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
-            case 'descartar': return 'bg-red-500/20 text-red-400 border-red-500/30';
-            default: return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
+    const getDecisionColor = (decision?: string) => {
+        switch (decision) {
+            case 'Explorar Agora': return 'from-green-500/20 to-green-500/5 border-green-500/30 text-green-400';
+            case 'Testar com Cautela': return 'from-yellow-500/20 to-yellow-500/5 border-yellow-500/30 text-yellow-400';
+            case 'Ignorar/Descartar': return 'from-red-500/20 to-red-500/5 border-red-500/30 text-red-400';
+            default: return 'from-gray-500/20 to-gray-500/5 border-gray-500/30 text-gray-400';
         }
     };
 
     return (
         <div className="space-y-6 mb-12">
 
-            {/* 1. IVE & Classification Header */}
+            {/* 1. Strategic Decision & Classification Header */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-                {/* IVE Score Card */}
+                {/* Decision Card */}
                 <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     className="lg:col-span-4"
                 >
-                    <LiquidGlassCard className="h-full border border-white/10 relative overflow-hidden group">
-                        <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <LiquidGlassCard className={`h-full border relative overflow-hidden group bg-gradient-to-br ${getDecisionColor(aiVerdict.decision)}`}>
+                        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay" />
                         <div className="p-8 flex flex-col items-center justify-center text-center h-full relative z-10">
-                            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Índice de Viabilidade (IVE)</h3>
+                            <h3 className="text-xs font-bold uppercase tracking-widest mb-4 opacity-80">Veredito da IA</h3>
 
-                            <div className={`text-6xl font-black mb-2 ${getScoreColor(aiVerdict.iveScore)} drop-shadow-lg`}>
-                                {aiVerdict.iveScore}
+                            <div className="text-5xl font-black mb-4 drop-shadow-2xl tracking-tighter">
+                                {aiVerdict.score ?? 'N/A'}
+                                <span className="text-lg align-top opacity-50 ml-1">/100</span>
                             </div>
 
-                            <div className={`px-6 py-2 rounded-full border text-sm font-bold uppercase tracking-wider ${getActionColor(aiVerdict.iveAction)}`}>
-                                {aiVerdict.iveAction}
+                            <div className="px-4 py-2 rounded-xl bg-black/20 backdrop-blur-md border border-white/10 mb-4">
+                                <span className="text-lg font-bold uppercase tracking-wide">
+                                    {aiVerdict.decision || 'Analisando...'}
+                                </span>
                             </div>
+
+                            <p className="text-xs font-medium opacity-75 max-w-[200px] leading-relaxed">
+                                {aiVerdict.justification}
+                            </p>
                         </div>
                     </LiquidGlassCard>
                 </motion.div>

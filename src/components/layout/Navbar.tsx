@@ -5,7 +5,7 @@ import Logo from '../ui/Logo';
 import Button from '../ui/Button';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { SunIcon, MoonIcon, GlobeAltIcon, Bars3Icon, UserGroupIcon, ArrowDownTrayIcon, BookOpenIcon } from '@heroicons/react/24/outline';
+import { SunIcon, MoonIcon, GlobeAltIcon, Bars3Icon, UserGroupIcon, ArrowDownTrayIcon, BookOpenIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import NotificationDropdown from '../features/NotificationDropdown';
 import { useNavigate } from '../../hooks/useNavigate';
 
@@ -21,7 +21,7 @@ interface NavbarProps {
 const Navbar: React.FC<NavbarProps> = memo(({ onMenuClick }) => {
   const { theme, toggleTheme } = useTheme();
   const { language, setLanguage } = useLanguage();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { navigateTo } = useNavigate();
   const [showLibraryModal, setShowLibraryModal] = useState(false);
 
@@ -53,6 +53,13 @@ const Navbar: React.FC<NavbarProps> = memo(({ onMenuClick }) => {
               <BookOpenIcon className="w-4 h-4" />
               <span>Biblioteca</span>
             </Button>
+
+            {/* Credits Display */}
+            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-amber-500/10 to-yellow-500/10 border border-amber-500/20 text-amber-200 shadow-[0_0_10px_rgba(251,191,36,0.1)]">
+              <SparklesIcon className="w-4 h-4 text-amber-400" />
+              <span className="text-xs font-bold">{profile?.credits ?? 0}</span>
+              <span className="text-[10px] text-amber-200/60 uppercase tracking-widest font-semibold ml-1">Créditos</span>
+            </div>
 
             <NotificationDropdown />
 

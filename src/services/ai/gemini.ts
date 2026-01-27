@@ -1,6 +1,6 @@
 import { GoogleGenAI } from '@google/genai';
 import { GEMINI_FLASH_MODEL, HARDCODED_API_KEY } from '../../constants';
-import { SecureStorage } from '../../utils/secureStorage';
+import { SecureStorage } from '../../lib/secureStorage';
 import { getUserProfile } from '../core/db';
 
 export const getApiKey = async (userId?: string): Promise<string> => {

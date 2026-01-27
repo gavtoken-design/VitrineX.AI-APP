@@ -37,6 +37,7 @@ import { CODE_TEMPLATES, ANIMATION_PROMPTS } from '../constants';
 import { VISUAL_TEMPLATES } from '../templates';
 import Modal from '../components/ui/Modal';
 import { motion, AnimatePresence } from 'framer-motion';
+import { SaveToDriveButton } from '../components/features/SaveToDriveButton';
 
 const ContentLibrary: React.FC = () => {
   const [libraryItems, setLibraryItems] = useState<LibraryItem[]>([]);
@@ -376,6 +377,14 @@ const ContentLibrary: React.FC = () => {
                     >
                       Baixar
                     </button>
+                    {(item.type === 'image') && (
+                      <div className="transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 delay-75">
+                        <SaveToDriveButton
+                          fileUrl={item.file_url}
+                          fileName={item.name}
+                        />
+                      </div>
+                    )}
                     {activeTab !== 'code_templates' && (
                       <button
                         onClick={(e) => {
@@ -425,6 +434,13 @@ const ContentLibrary: React.FC = () => {
               )}
             </div>
             <div className="flex justify-end gap-2">
+              {viewItem.type === 'image' && (
+                <SaveToDriveButton
+                  fileUrl={viewItem.file_url}
+                  fileName={viewItem.name}
+                  variant="full"
+                />
+              )}
               <Button onClick={() => handleDownload(viewItem.file_url, viewItem.name)} variant="primary" size="sm">Download</Button>
             </div>
           </div>

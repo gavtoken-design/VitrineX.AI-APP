@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import { isSupabaseConfigured } from '../lib/supabase';
+import { translateError } from '../lib/errorTranslator';
 import {
     EnvelopeIcon,
     LockClosedIcon,
@@ -41,13 +42,7 @@ export const AuthPage: React.FC = () => {
             }
         } catch (err: any) {
             console.error("Auth Error:", err);
-            let errorMessage = err.message || 'Erro ao processar sua solicitação';
-
-            // Tratamento amigável para erro comum de configuração
-            if (errorMessage.includes('signups are disabled')) {
-                errorMessage = 'O cadastro por e-mail está desativado no Supabase. Vá em Authentication > Providers > Email e habilite-o.';
-            }
-
+            const errorMessage = translateError(err);
             setError(errorMessage);
         } finally {
             setLoading(false);

@@ -36,6 +36,7 @@ interface TrendReportProps {
     onSchedule: () => void;
     onGenerateHTML: () => Promise<void>;
     onSaveToLibrary: () => Promise<void>;
+    onCreateCampaign: () => void;
 }
 
 const TrendReport: React.FC<TrendReportProps> = ({
@@ -47,7 +48,8 @@ const TrendReport: React.FC<TrendReportProps> = ({
     onCreateContent,
     onSchedule,
     onGenerateHTML,
-    onSaveToLibrary
+    onSaveToLibrary,
+    onCreateCampaign
 }) => {
     const { addToast } = useToast();
     const [exportLoading, setExportLoading] = useState(false);
@@ -265,10 +267,13 @@ const TrendReport: React.FC<TrendReportProps> = ({
                         <button onClick={() => handleCopySection(`${result.sugestaoCampanha.estrategia}\nCTA: ${result.sugestaoCampanha.cta}`, 'Estratégia de Tráfego')} className="p-1.5 hover:bg-white/10 rounded-lg text-orange-400/50 hover:text-orange-400 transition-colors opacity-0 group-hover:opacity-100" title="Copiar Estratégia"> <ClipboardDocumentIcon className="w-4 h-4" /> </button>
                     </div>
                     <p className="text-gray-300 text-sm mb-6 leading-relaxed whitespace-pre-line font-light min-h-[60px] max-h-[100px] overflow-y-auto custom-scrollbar custom-scrollbar-light">{result.sugestaoCampanha.estrategia}</p>
-                    <div className="mt-auto bg-black/30 rounded-xl p-4 border border-white/10 text-center">
+                    <div className="mt-auto bg-black/30 rounded-xl p-4 border border-white/10 text-center mb-4">
                         <p className="text-[10px] font-mono text-gray-500 uppercase mb-2">Sugestão de CTA</p>
                         <p className="text-orange-100 font-bold text-sm">"{result.sugestaoCampanha.cta}"</p>
                     </div>
+                    <Button onClick={onCreateCampaign} variant="outline" className="w-full border-orange-500/20 text-orange-400 hover:bg-orange-500/10 hover:border-orange-500/40 text-xs">
+                        <RocketLaunchIcon className="w-3.5 h-3.5 mr-2" /> Criar Campanha
+                    </Button>
                 </div>
 
                 {/* Veredito Final (Full Width) */}

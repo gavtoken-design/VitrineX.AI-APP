@@ -21,6 +21,8 @@ const isDev = !app.isPackaged;
 function createWindow(): void {
   const win = new BrowserWindow({
     ...WINDOW_CONFIG,
+    autoHideMenuBar: true,
+    title: "VitrineX.AI",
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
@@ -28,16 +30,27 @@ function createWindow(): void {
     },
   });
 
-  if (isDev) {
-    const devUrl = 'http://localhost:8080';
-    win.loadURL(devUrl).catch((err: unknown) => {
-      console.log('Erro ao carregar URL de dev:', err);
+  if (process.env.VITE_DEV_SERVER_URL) {
+    win.loadURL(process.env.VITE_DEV_SERVER_URL);
+  } else if (isDev) {
+    // Fallback para hardcoded port se env var não existir (comum em setups manuais)
+    win.loadURL('http://localhost:8080').catch(() => {
+      console.log('Failed to load localhost:8080. Is Vite running?');
     });
-    win.webContents.openDevTools();
   } else {
-    win.loadFile(path.join(__dirname, '../dist/index.html')).catch((err: unknown) => {
-      console.log('Erro ao carregar arquivo local:', err);
-    });
+    // Produção: Verifica se o arquivo existe antes de carregar
+    const distIndex = path.join(__dirname, '../dist/index.html');
+    if (fs.existsSync(distIndex)) {
+      win.loadFile(distIndex);
+    } else {
+      // Fallback: Tentativa para estrutura de build dist-electron isolada
+      const altDistIndex = path.join(__dirname, '../../dist/index.html');
+      if (fs.existsSync(altDistIndex)) {
+        win.loadFile(altDistIndex);
+      } else {
+        console.error('CRITICAL: Could not find index.html in:', distIndex, 'or', altDistIndex);
+      }
+    }
   }
 }
 

@@ -1,0 +1,692 @@
+
+/* index.css - Immersive "Radical" Redesign */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap');
+
+:root {
+    --app-bg: #09090b; /* Deep dark background */
+    --stage-bg: #18181b; 
+    --text-primary: #ffffff;
+    --text-secondary: #a1a1aa;
+    --accent-color: #ffffff;
+    --accent-bg: #27272a;
+    
+    --input-bg: rgba(24, 24, 27, 0.8); /* Semi-transparent dark for floating input */
+    --border-color: #27272a;
+    --glass-border: rgba(255, 255, 255, 0.1);
+
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+/* Global styles removed for integration */
+.flash-ui-root {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    background-color: var(--app-bg);
+    overflow: hidden;
+}
+
+/* === Immersive App Container === */
+.immersive-app {
+    flex: 1;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    perspective: 1500px;
+    overflow: hidden;
+}
+
+/* === Creator Credit === */
+.creator-credit {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    z-index: 101; /* Above input and cards, but below drawer (200) */
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    text-decoration: none;
+    font-weight: 500;
+    opacity: 0.5;
+    transition: all 0.2s ease;
+    padding: 6px 12px;
+    border-radius: 99px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid transparent;
+    backdrop-filter: blur(4px);
+}
+
+.creator-credit:hover {
+    opacity: 1;
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+    transform: translateY(1px);
+}
+
+/* === Stage (The Deck) === */
+.stage-container {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* === Start Screen Ambient Effects === */
+.empty-state {
+    position: absolute;
+    inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    text-align: center;
+    color: var(--text-secondary);
+    opacity: 1;
+    transform: scale(1);
+    /* Transition opacity/transform first, then toggle visibility so it's gone */
+    transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), 
+                transform 0.8s cubic-bezier(0.4, 0, 0.2, 1),
+                visibility 0s linear 0.8s;
+    z-index: 0;
+    animation: ambientFadeIn 1.5s ease-out forwards;
+    padding: 20px;
+}
+
+@keyframes ambientFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.empty-state.fade-out {
+    opacity: 0;
+    transform: scale(1.1);
+    visibility: hidden;
+    pointer-events: none;
+    /* Reset transition delay for visibility so it hides AFTER fade */
+}
+
+.empty-content {
+    position: relative; z-index: 1;
+    display: flex; flex-direction: column; align-items: center; gap: 24px;
+    width: 100%;
+}
+
+.empty-content h1 { 
+    color: var(--text-primary); 
+    font-weight: 800; 
+    letter-spacing: -0.05em; 
+    font-size: 6rem;
+    margin: 0;
+    background: linear-gradient(to bottom right, #fff, #aaa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    opacity: 0;
+    animation: dramaticEntrance 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation-delay: 0.2s;
+    text-shadow: 0 10px 30px rgba(255,255,255,0.1);
+    line-height: 1;
+}
+
+.empty-content p {
+    font-size: 1.4rem;
+    max-width: 600px;
+    line-height: 1.4;
+    margin: 0;
+    opacity: 0;
+    color: var(--text-secondary);
+    animation: dramaticEntrance 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation-delay: 0.5s;
+}
+
+/* Feature List (Functions Description) */
+.features-list {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: -8px;
+    opacity: 0;
+    animation: dramaticEntrance 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation-delay: 0.65s;
+}
+
+.features-list span {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 6px 14px;
+    border-radius: 99px;
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.surprise-button {
+    margin-top: 10px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 99px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 8px;
+    opacity: 0;
+    animation: dramaticEntrance 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation-delay: 0.8s;
+    transition: all 0.3s ease;
+}
+.surprise-button:hover {
+    background: rgba(255,255,255,0.2);
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(255,255,255,0.2);
+}
+
+@keyframes dramaticEntrance {
+    0% {
+        opacity: 0;
+        filter: blur(20px);
+        transform: translateY(40px) scale(0.95);
+    }
+    100% {
+        opacity: 1;
+        filter: blur(0);
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* === Session Group & Grid === */
+.session-group {
+    position: absolute;
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    transition: 
+        transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1), 
+        opacity 0.7s ease,
+        filter 0.7s ease;
+    transform-style: preserve-3d;
+}
+
+.session-group.active-session {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+    z-index: 10;
+    pointer-events: auto;
+}
+
+.session-group.past-session {
+    transform: translateX(-120%) translateZ(-300px);
+    opacity: 0;
+    z-index: 5;
+    pointer-events: none;
+}
+
+.session-group.future-session {
+    transform: translateX(120%) translateZ(-300px);
+    opacity: 0;
+    z-index: 5;
+    pointer-events: none;
+}
+
+.artifact-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 24px;
+    width: 95%; max-width: 1600px;
+    height: 70vh;
+    perspective: 1000px;
+    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Mode: Focus (Grid behaves differently) */
+.stage-container.mode-focus .artifact-grid {
+    pointer-events: none; /* Let clicks pass through empty space */
+}
+
+/* === Artifact Card === */
+.artifact-card {
+    position: relative;
+    background: #111;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    cursor: pointer;
+    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+    transform-origin: center center;
+    pointer-events: auto; /* Re-enable pointer events for the cards */
+}
+
+/* Header in Split Mode */
+.artifact-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color);
+    background: rgba(0,0,0,0.2);
+    display: flex; justify-content: center;
+    font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase;
+    color: var(--text-secondary);
+    transition: opacity 0.3s;
+}
+.artifact-style-tag {
+    background: rgba(255,255,255,0.05);
+    padding: 4px 8px; border-radius: 4px;
+}
+
+.artifact-card:hover {
+    border-color: rgba(255,255,255,0.3);
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px -10px rgba(0,0,0,0.7);
+}
+
+.artifact-card-inner {
+    flex: 1; position: relative; background: #fff;
+    width: 100%; height: 100%;
+}
+
+.artifact-iframe {
+    width: 100%; height: 100%; border: none; display: block;
+    pointer-events: none; /* Interact only in Focus mode */
+}
+
+/* === Focus Mode Styles === */
+.stage-container.mode-focus .artifact-card {
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.8);
+}
+
+.stage-container.mode-focus .artifact-card.focused {
+    position: fixed; /* Break out of grid */
+    top: 50%; left: 50%;
+    width: 90vw; max-width: 1200px;
+    height: 85vh;
+    transform: translate(-50%, -50%);
+    z-index: 100;
+    opacity: 1;
+    pointer-events: auto;
+    box-shadow: 0 50px 100px -20px rgba(0,0,0,0.8);
+    border-color: rgba(255,255,255,0.1);
+    cursor: default;
+}
+
+/* CRITICAL FIX for mobile fixed-positioning drift: Remove perspective/transform from parents when in focus mode */
+.stage-container.mode-focus {
+    perspective: none !important;
+}
+.stage-container.mode-focus .session-group.active-session {
+    transform: none !important;
+    transform-style: flat !important;
+}
+.stage-container.mode-focus .artifact-grid {
+    transform: none !important;
+    perspective: none !important;
+}
+
+.stage-container.mode-focus .artifact-card.focused .artifact-header {
+    display: none; /* Hide header in full screen mode for immersion */
+}
+
+.stage-container.mode-focus .artifact-card.focused .artifact-iframe {
+    pointer-events: auto; /* Enable interaction */
+}
+
+/* === Generating State === */
+.artifact-card.generating {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 20px rgba(255,255,255,0.1);
+}
+
+.generating-overlay {
+    position: absolute; inset: 0;
+    z-index: 20;
+    background: rgba(0,0,0,0.9);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+.code-stream-preview {
+    margin: 0; padding: 20px;
+    color: #4ade80;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 11px;
+    line-height: 1.4;
+    white-space: pre-wrap; word-break: break-all;
+    overflow: hidden;
+    mask-image: linear-gradient(to bottom, transparent, black 20%);
+    opacity: 0.9;
+}
+
+/* === Floating Input === */
+.floating-input-container {
+    position: absolute;
+    bottom: 30px;
+    width: 100%;
+    display: flex; justify-content: center;
+    z-index: 100;
+    padding: 0 20px; box-sizing: border-box;
+    pointer-events: none;
+}
+
+.input-wrapper {
+    pointer-events: auto;
+    width: 100%; max-width: 600px;
+    background: var(--input-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    padding: 8px 8px 8px 24px;
+    display: flex; align-items: center;
+    gap: 12px;
+    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.input-wrapper:focus-within {
+    border-color: rgba(255,255,255,0.3);
+    box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5);
+    transform: translateY(-2px);
+}
+
+.animated-placeholder {
+    position: absolute;
+    left: 24px;
+    color: var(--text-secondary);
+    opacity: 0.7;
+    pointer-events: none;
+    animation: placeholderSlideUp 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    white-space: nowrap;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    right: 60px; 
+}
+
+.placeholder-text { text-overflow: ellipsis; overflow: hidden; }
+.tab-hint {
+    font-size: 0.7rem; text-transform: uppercase;
+    background: rgba(255,255,255,0.1); padding: 2px 6px;
+    border-radius: 4px; font-weight: 600; opacity: 0.6;
+}
+
+@keyframes placeholderSlideUp {
+    0% { opacity: 0; transform: translateY(10px); filter: blur(5px); }
+    100% { opacity: 0.7; transform: translateY(0); filter: blur(0); }
+}
+
+/* Shimmer Loading */
+.input-wrapper.loading { border-color: transparent; box-shadow: 0 0 25px -5px rgba(255, 255, 255, 0.3); }
+.input-wrapper.loading::before {
+    content: ''; 
+    position: absolute; 
+    top: 0; 
+    left: -100%; 
+    width: 100%; 
+    height: 100%;
+    /* Creates a soft band of light */
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    animation: shimmerMove 2s infinite linear; 
+    pointer-events: none;
+}
+@keyframes shimmerMove { 
+    0% { transform: translateX(0); } 
+    100% { transform: translateX(200%); } 
+}
+
+.input-wrapper input {
+    flex: 1; background: transparent; border: none; outline: none;
+    color: var(--text-primary); font-size: 1rem; font-family: var(--font-sans);
+}
+.input-wrapper input::placeholder { color: transparent; } 
+
+/* Styles for loading prompt text */
+.input-generating-label {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Space text left, spinner right */
+    gap: 12px;
+    color: var(--text-secondary);
+    overflow: hidden;
+    padding-right: 8px; /* Extra breathing room for the spinner */
+}
+
+.generating-prompt-text {
+    font-size: 0.95rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    opacity: 0.8;
+    animation: pulseText 1.5s infinite alternate ease-in-out;
+}
+
+.input-generating-label .spin-icon { 
+    animation: spin 1s linear infinite; 
+    font-size: 1.2rem; 
+    flex-shrink: 0;
+}
+
+@keyframes pulseText { from { opacity: 0.4; transform: translateX(0); } to { opacity: 1; transform: translateX(2px); } }
+
+.send-button {
+    width: 40px; height: 40px;
+    border-radius: 50%; border: none;
+    background: var(--accent-color); color: #000;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: transform 0.2s ease; flex-shrink: 0;
+    z-index: 2;
+}
+.send-button:hover:not(:disabled) { transform: scale(1.05); }
+.send-button:disabled { background: var(--accent-bg); color: var(--text-secondary); cursor: not-allowed; opacity: 0.5; }
+
+/* === Action Bar === */
+.action-bar {
+    position: absolute;
+    bottom: 100px;
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+    opacity: 0; transform: translateY(20px);
+    transition: all 0.4s ease-out 0.2s;
+    z-index: 90; pointer-events: none;
+}
+.action-bar.visible { opacity: 1; transform: translateY(0); }
+.active-prompt-label {
+    color: var(--text-secondary); font-size: 0.9rem;
+    background: rgba(0,0,0,0.5); padding: 6px 12px; border-radius: 20px;
+    max-width: 80vw; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    backdrop-filter: blur(8px); pointer-events: auto;
+}
+.action-buttons { display: flex; gap: 12px; pointer-events: auto; }
+.action-buttons button {
+    background: var(--input-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 8px 16px; border-radius: 999px;
+    font-size: 0.85rem; font-weight: 500;
+    display: flex; align-items: center; gap: 8px;
+    cursor: pointer; transition: all 0.2s ease;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+.action-buttons button:hover {
+    background: rgba(255,255,255,0.15);
+    border-color: rgba(255,255,255,0.3);
+    transform: translateY(-2px);
+}
+
+/* === Navigation Handles === */
+.nav-handle {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    background: transparent; border: none; color: var(--text-secondary);
+    padding: 20px; cursor: pointer; z-index: 80;
+    opacity: 0; transition: opacity 0.3s ease, color 0.2s ease;
+}
+.immersive-app:hover .nav-handle { opacity: 0.5; }
+.nav-handle:hover { opacity: 1 !important; color: var(--text-primary); }
+.nav-handle.left { left: 10px; }
+.nav-handle.right { right: 10px; }
+
+/* === Drawer (Common) === */
+.drawer-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.3); backdrop-filter: blur(4px);
+    z-index: 200; display: flex; justify-content: flex-end;
+}
+.drawer-content {
+    width: 100%; max-width: 420px;
+    background: rgba(9, 9, 11, 0.85);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border-left: 1px solid var(--glass-border);
+    display: flex; flex-direction: column;
+    animation: slideInRight 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+    box-shadow: -20px 0 50px rgba(0,0,0,0.5);
+}
+@keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
+
+.drawer-header {
+    padding: 24px; display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid var(--glass-border);
+}
+.drawer-header h2 { 
+    margin: 0; font-size: 1.25rem; font-weight: 600; letter-spacing: -0.02em; color: var(--text-primary); 
+}
+.close-button {
+    background: rgba(255,255,255,0.1); border: none; color: var(--text-secondary); 
+    width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; line-height: 1; cursor: pointer; transition: all 0.2s;
+}
+.close-button:hover { background: rgba(255,255,255,0.2); color: var(--text-primary); }
+.drawer-body { flex: 1; overflow-y: auto; padding: 24px; }
+.sexy-grid { display: flex; flex-direction: column; gap: 24px; }
+.sexy-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    position: relative;
+}
+.sexy-card:hover {
+    transform: translateY(-4px) scale(1.01);
+    border-color: rgba(255,255,255,0.25);
+    box-shadow: 0 15px 30px -10px rgba(0,0,0,0.5);
+}
+.sexy-preview {
+    height: 220px; background: #000; position: relative;
+    overflow: hidden;
+}
+.sexy-preview iframe {
+    width: 400%; height: 400%; border: none; pointer-events: none;
+    transform: scale(0.25);
+    transform-origin: top left;
+}
+.sexy-label {
+    padding: 16px;
+    text-align: center; font-weight: 500; color: var(--text-primary);
+    background: rgba(0,0,0,0.2);
+    border-top: 1px solid var(--glass-border);
+    font-size: 0.95rem;
+}
+.sexy-card:hover .sexy-label {
+    color: #fff;
+    background: rgba(255,255,255,0.05);
+}
+.code-block {
+    background: rgba(0,0,0,0.3); padding: 20px; border-radius: 12px; 
+    overflow-x: hidden; font-family: 'Roboto Mono', monospace; font-size: 0.85rem; 
+    color: #e5e5e5; border: 1px solid var(--glass-border); margin: 0;
+    white-space: pre-wrap; word-break: break-word;
+}
+.loading-state {
+    color: var(--text-secondary); display: flex; align-items: center; gap: 12px; 
+    justify-content: center; padding: 60px 0; font-size: 1.1rem;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Responsive Grid for smaller screens */
+@media (max-width: 1024px) {
+    /* Hide creator credit when generation has started on mobile */
+    .creator-credit.hide-on-mobile {
+        display: none !important;
+    }
+
+    .artifact-grid {
+        grid-template-columns: 1fr;
+        height: 100%;
+        max-height: 100vh;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        padding: 40px 20px 160px 20px;
+        width: 100%;
+        box-sizing: border-box;
+        gap: 20px;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Disable scrolling of the grid completely when an item is focused to fix overscroll drift */
+    .stage-container.mode-focus .artifact-grid {
+        overflow-y: hidden !important;
+        pointer-events: none;
+        height: 100vh;
+    }
+    
+    .artifact-card {
+        min-height: 350px;
+        flex-shrink: 0;
+    }
+
+    .empty-content h1 {
+        font-size: 3.5rem;
+    }
+
+    /* Adjust focused state for mobile to avoid cutoffs and center more cleanly */
+    .stage-container.mode-focus .artifact-card.focused {
+        width: 92vw;
+        height: 65vh; 
+        top: 40%;
+        left: 50%;
+        transform: translate(-50%, -40%) !important; /* Force centering despite any parent shifts */
+    }
+
+    .action-bar {
+        bottom: 90px;
+        width: 100%;
+        gap: 8px;
+    }
+    
+    .action-buttons {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .floating-input-container {
+        padding: 0 10px;
+        bottom: 20px;
+    }
+
+    /* Scaling previews in side drawer on mobile */
+    .sexy-preview {
+        height: 160px;
+    }
+    .sexy-preview iframe {
+        width: 1000px;
+        height: 640px;
+        transform: scale(0.16); 
+    }
+}

@@ -14,7 +14,7 @@ const SUGGESTIONS: Partial<Record<ModuleName, string>> = {
     TrendHunter: "descubra o que está em alta agora e crie conteúdo relevante.",
     AdStudio: "crie anúncios que convertem usando nossas templates de alta performance.",
     CampaignBuilder: "organize suas ideias em campanhas estruturadas para maximizar o impacto.",
-    CalendarManager: "visualize seu planejamento mensal e mantenha a consistência.",
+    // CalendarManager: "visualize seu planejamento mensal e mantenha a consistência.",
     ContentLibrary: "reaproveite seus melhores conteúdos salvos na biblioteca."
 };
 

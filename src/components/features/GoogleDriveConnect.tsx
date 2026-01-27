@@ -46,7 +46,7 @@ export const GoogleDriveConnect: React.FC = () => {
                 ) : !isConnected ? (
                     <div className="mt-4 bg-slate-50 dark:bg-slate-900/50 rounded-lg p-6 text-center border border-dashed border-slate-300 dark:border-slate-600">
                         <p className="text-sm text-slate-600 dark:text-slate-300 mb-4 max-w-sm mx-auto">
-                            Conecte sua conta para habilitar backups automáticos e exportação direta de PDFs e relatórios.
+                            Conecte sua conta para habilitar backups automáticos, exportação de PDFs e salvar imagens da biblioteca.
                         </p>
                         <button
                             onClick={connect}
@@ -99,6 +99,6 @@ export const GoogleDriveConnect: React.FC = () => {
                     </div>
                 )}
             </div>
-        </div>
+        </div >
     );
 };

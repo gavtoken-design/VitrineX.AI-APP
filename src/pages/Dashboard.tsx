@@ -21,6 +21,7 @@ import {
   SparklesIcon
 } from '@heroicons/react/24/outline';
 import { LiquidGlassCard } from '../components/ui/LiquidGlassCard';
+import { translateError } from '../lib/errorTranslator';
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
@@ -163,11 +164,10 @@ const Dashboard: React.FC = () => {
         message: `O motor de criação está pronto para uso.`
       });
     } catch (e) {
-      const err = e as Error;
       addToast({
         type: 'error',
         title: 'Falha na Conexão',
-        message: err.message
+        message: translateError(e)
       });
     } finally {
       setTestingApi(false);
@@ -189,7 +189,7 @@ const Dashboard: React.FC = () => {
           </div>
 
           <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white via-white to-white/50 filter drop-shadow-2xl">
-            {t('dashboard.title')} <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">Center</span>
+            {t('dashboard.title')}
           </h1>
 
           <div className="flex items-center gap-4 flex-wrap">
@@ -211,7 +211,7 @@ const Dashboard: React.FC = () => {
         <div className="bg-red-50 dark:bg-red-900/10 border-l-4 border-error p-4 rounded-r shadow-sm mb-6" role="alert">
           <p className="font-bold text-error">{t('gen.error')}</p>
           <p className="text-sm text-red-700 dark:text-red-300">
-            {error instanceof Error ? error.message : 'Failed to load dashboard data.'}
+            {error instanceof Error ? translateError(error) : 'Falha ao carregar dados do painel.'}
           </p>
         </div>
       ) : (

@@ -1,5 +1,5 @@
 
-import { SecureStorage } from '../../utils/secureStorage';
+import { SecureStorage } from '../../lib/secureStorage';
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY || '';
@@ -146,6 +146,31 @@ export const uploadFileToDrive = async (file: Blob, name: string, mimeType: stri
     }
 
     return await response.json();
+};
+
+/**
+ * Helper para fazer upload de um arquivo a partir de uma URL (Supabase ou DataURL).
+ */
+export const uploadUrlToDrive = async (fileUrl: string, name: string): Promise<any> => {
+    try {
+        const response = await fetch(fileUrl);
+        const blob = await response.blob();
+
+        // Determinar o mimetype correto se possível, ou usar o do blob
+        const mimeType = blob.type || 'application/octet-stream';
+
+        // Garantir que o nome tenha extensão se possível
+        let finalName = name;
+        if (!finalName.includes('.')) {
+            const ext = mimeType.split('/')[1] || 'bin';
+            finalName = `${name}.${ext}`;
+        }
+
+        return await uploadFileToDrive(blob, finalName, mimeType);
+    } catch (error) {
+        console.error('Erro ao preparar arquivo para upload no Drive:', error);
+        throw new Error('Falha ao baixar arquivo original para envio ao Drive.');
+    }
 };
 
 export const isDriveConnected = async (): Promise<boolean> => {

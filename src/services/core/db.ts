@@ -31,7 +31,8 @@ export const getUserProfile = async (userId: string): Promise<UserProfile | null
                 industry: 'Varejo',
                 targetAudience: 'Jovens adultos',
                 visualStyle: 'Moderno'
-            }
+            },
+            credits: 1000
         } as UserProfile;
     }
 

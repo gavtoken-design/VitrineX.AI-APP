@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { connectGoogleDrive, isDriveConnected, getStoredToken } from '../services/integrations/googleDrive';
-import { SecureStorage } from '../utils/secureStorage';
+import { SecureStorage } from '../lib/secureStorage';
 
 interface UserProfile {
     name: string;

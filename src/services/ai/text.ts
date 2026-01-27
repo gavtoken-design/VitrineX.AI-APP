@@ -338,24 +338,39 @@ export const searchTrends = async (query: string, language: string = 'en-US', us
 };
 
 export const campaignBuilder = async (campaignPrompt: string, userId: string = 'anonymous'): Promise<{ campaign: Campaign }> => {
-    const planPrompt = `Crie um plano de campanha de marketing 360 completo:
+    const planPrompt = `Atue como um CMO (Diretor de Marketing) de classe mundial especialista em Growth Hacking e Copywriting.
     
-    Contexto: ${campaignPrompt}
+    OBJETIVO: Criar uma campanha de marketing de ALTO IMPACTO e CONVERSÃO para: "${campaignPrompt}".
     
-    Retorne um JSON estruturado com:
-    1. name: Nome da campanha
-    2. description: Descrição geral
-    3. timeline: Cronograma sugerido (ex: 2 semanas, frequências)
-    4. hashtags: Array de hashtags recomendadas por rede
-    5. strategy: Texto detalhando apps em tendência e formatos (Reels, TikTok, etc.)
-    6. posts: Array de objetos { content_text: "...", date: "..." }
-    7. ads: Array de objetos { platform: "...", headline: "...", copy: "..." }
+    A campanha deve fugir do óbvio. Não use conselhos genéricos. Entregue uma estratégia validada.
     
-    Retorne APENAS o JSON puro.`;
+    Retorne ESTRITAMENTE um JSON com esta estrutura:
+    {
+      "name": "Nome Magnético da Campanha",
+      "description": "O Conceito Central (Big Idea) e a tese de por que isso vai vender/engajar.",
+      "timeline": "Cronograma tático (ex: 3 dias de Aquecimento + 4 dias de Lançamento + Remarketing)",
+      "hashtags": ["tags_de_nicho", "tags_virais"],
+      "strategy": "Análise Estratégica: Defina o Funil de Vendas, o Tom de Voz (Brand Persona) e os Gatilhos Mentais que serão ativados.",
+      "posts": [
+        { "content_text": "Roteiro detalhado para REELS/TIKTOK (comece com um gancho visual, desenvolva a história, e termine com CTA clara).", "date": "Fase 1 - Dia 1" },
+        { "content_text": "Legenda para CARROSSEL educacional que quebra objeções do cliente...", "date": "Fase 2 - Dia 3" },
+        { "content_text": "Tweet/Threads provocativo para gerar polêmica/discussão...", "date": "Fase 2 - Dia 3" }
+      ],
+      "ads": [
+        { "platform": "Instagram Stories", "headline": "Texto Sobreposto no Vídeo (Gancho)", "copy": "Script falado para o Story (foco em urgência/escassez)..." },
+        { "platform": "Meta Ads (Feed)", "headline": "Título da oferta (Headline)", "copy": "Legenda do anúncio usando framework PAS (Problema-Agitação-Solução)..." }
+      ]
+    }
+    
+    IMPORTANTE:
+    1. Seja ESPECÍFICO no conteúdo. Diga exatamente o que falar/fazer.
+    2. Use psicologia do consumidor (Gatilhos mentais).
+    3. Retorne APENAS o JSON puro.`;
 
     const planJsonStr = await generateText(planPrompt, {
         model: GEMINI_PRO_MODEL,
-        responseMimeType: 'application/json'
+        responseMimeType: 'application/json',
+        temperature: 0.7 // Pouco mais criativo
     });
 
     let plan;
@@ -363,11 +378,12 @@ export const campaignBuilder = async (campaignPrompt: string, userId: string = '
         const cleanedJson = planJsonStr.replace(/```json\n?|\n?```/g, '').trim();
         plan = JSON.parse(cleanedJson);
     } catch (e) {
+        console.error("Erro ao fazer parse da campanha:", e);
         plan = {
-            name: "Campanha " + Date.now(),
-            description: "Campanha gerada automaticamente",
-            timeline: "2 semanas",
-            strategy: "Focar em vídeos curtos e engajamento orgânico.",
+            name: "Erro na Geração",
+            description: "Não foi possível gerar a estratégia detalhada. Tente novamente com mais detalhes.",
+            timeline: "Revisar",
+            strategy: "Erro técnico na IA.",
             hashtags: [],
             posts: [],
             ads: []
@@ -377,11 +393,11 @@ export const campaignBuilder = async (campaignPrompt: string, userId: string = '
     return {
         campaign: {
             id: `c-${Date.now()}`,
-            name: plan.name || plan.campaignName || "Nova Campanha",
+            name: plan.name || "Campanha Estratégica",
             type: 'general',
-            description: plan.description,
-            strategy: plan.strategy,
-            hashtags: plan.hashtags,
+            description: plan.description || "Descrição indisponível",
+            strategy: plan.strategy || "Estratégia indisponível",
+            hashtags: Array.isArray(plan.hashtags) ? plan.hashtags : (typeof plan.hashtags === 'string' ? plan.hashtags.split(/[\s,]+/).filter(h => h) : []),
             posts: (plan.posts || []).map((p: any, i: number) => ({
                 ...p,
                 id: `post-${Date.now()}-${i}`,
