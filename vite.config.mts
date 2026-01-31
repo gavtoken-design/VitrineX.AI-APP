@@ -66,14 +66,22 @@ export default defineConfig({
         drop_debugger: true,
       },
     },
-    chunkSizeWarningLimit: 500, // Reduzido de 1000 para 500
+    chunkSizeWarningLimit: 1500,
     rollupOptions: {
       input: {
         main: path.resolve(__dirname, 'index.html'),
       },
       output: {
-        // Removido manualChunks customizado - causa problemas de ordem de carregamento
-        // Deixando Vite/Rollup fazer o splitting automaticamente
+        // Força React e suas dependências críticas em um único chunk que carrega primeiro
+        manualChunks: {
+          'react-vendor': [
+            'react',
+            'react-dom',
+            'react/jsx-runtime',
+            'react-dom/client',
+            'scheduler',
+          ],
+        },
         // Nomes de arquivo com hash para cache
         entryFileNames: 'assets/[name].[hash].js',
         chunkFileNames: 'assets/[name].[hash].js',
@@ -82,7 +90,7 @@ export default defineConfig({
     },
     // Otimizações adicionais
     cssCodeSplit: true,
-    sourcemap: true, // Habilitar sourcemaps para debug
+    sourcemap: false, // Desabilitar sourcemaps para produção
   },
   // Otimizações de dependências
   optimizeDeps: {
