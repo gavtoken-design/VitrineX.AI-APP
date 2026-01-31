@@ -38,6 +38,9 @@ import { VISUAL_TEMPLATES } from '../templates';
 import Modal from '../components/ui/Modal';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SaveToDriveButton } from '../components/features/SaveToDriveButton';
+import { EXTERNAL_RESOURCES, CORE_TEMPLATES } from '../data/resourceLibrary';
+import { GOOGLE_API_RESOURCES } from '../data/google-api/resources';
+import { GlobeAltIcon as GlobeIcon, LinkIcon, ServerIcon as ServerIcon } from '@heroicons/react/24/outline';
 
 const ContentLibrary: React.FC = () => {
   const [libraryItems, setLibraryItems] = useState<LibraryItem[]>([]);
@@ -251,7 +254,49 @@ const ContentLibrary: React.FC = () => {
             thumbnail_url: '',
             createdAt: new Date().toISOString()
           } as unknown as LibraryItem)).filter(i => i.name.toLowerCase().includes(searchTerm.toLowerCase()))
-          : filteredItems;
+
+          : activeTab === 'resources'
+            ? EXTERNAL_RESOURCES.map(t => ({
+              id: t.id,
+              name: t.title,
+              type: 'link' as any,
+              file_url: t.url,
+              userId: 'system',
+              tags: [...t.tags, 'resource', t.category],
+              thumbnail_url: '', // We can use icon component in render
+              createdAt: new Date().toISOString(),
+              description: t.description,
+              icon: t.icon
+            } as unknown as LibraryItem)).filter(i => i.name.toLowerCase().includes(searchTerm.toLowerCase()))
+
+            : activeTab === 'growth_templates'
+              ? CORE_TEMPLATES.map(t => ({
+                id: t.id,
+                name: t.title,
+                type: 'text' as const,
+                file_url: t.content,
+                userId: 'system',
+                tags: [...t.tags, 'template', 'growth'],
+                thumbnail_url: '',
+                createdAt: new Date().toISOString(),
+                description: t.description
+              } as unknown as LibraryItem)).filter(i => i.name.toLowerCase().includes(searchTerm.toLowerCase()))
+
+              : activeTab === 'google_api'
+                ? GOOGLE_API_RESOURCES.map(t => ({
+                  id: t.id,
+                  name: t.title,
+                  type: 'link' as any,
+                  file_url: t.url,
+                  userId: 'system',
+                  tags: [...t.tags, 'google', 'api'],
+                  thumbnail_url: '',
+                  createdAt: new Date().toISOString(),
+                  description: t.description,
+                  icon: t.icon
+                } as unknown as LibraryItem)).filter(i => i.name.toLowerCase().includes(searchTerm.toLowerCase()))
+
+                : filteredItems;
   }, [activeTab, searchTerm, filteredItems]);
 
   return (
@@ -309,6 +354,9 @@ const ContentLibrary: React.FC = () => {
             <FilterTab id="code_templates" label="Templates Dev" icon={CommandLineIcon} activeId={activeTab} onClick={setActiveTab} />
             <FilterTab id="visual_templates" label="Templates UI" icon={ViewColumnsIcon} activeId={activeTab} onClick={setActiveTab} />
             <FilterTab id="avatar" label="Avatares" icon={UserCircleIcon} activeId={activeTab} onClick={setActiveTab} />
+            <FilterTab id="resources" label="Referências" icon={GlobeIcon} activeId={activeTab} onClick={setActiveTab} />
+            <FilterTab id="google_api" label="Google API" icon={ServerIcon} activeId={activeTab} onClick={setActiveTab} />
+            <FilterTab id="growth_templates" label="Growth & Copy" icon={RocketLaunchIcon} activeId={activeTab} onClick={setActiveTab} />
           </div>
         </div>
       </div>
@@ -356,27 +404,42 @@ const ContentLibrary: React.FC = () => {
                       {item.type === 'prompt' && !item.tags?.includes('animation') && <SparklesIcon className="w-16 h-16 text-gray-700 group-hover:text-amber-500 transition-colors" />}
                       {item.type === 'code' && <CodeBracketIcon className="w-16 h-16 text-gray-700 group-hover:text-emerald-500 transition-colors" />}
                       {(item.type as any) === 'visual_template' && <ViewColumnsIcon className="w-16 h-16 text-gray-700 group-hover:text-pink-500 transition-colors" />}
-                      <span className="text-[10px] uppercase font-black tracking-widest text-gray-600 group-hover:text-white transition-colors">{item.tags?.includes('avatar') ? 'Avatar' : item.tags?.includes('animation') ? 'Animação' : (item.type as any) === 'visual_template' ? 'Modelo Visual' : item.type}</span>
+                      {(item.type as any) === 'link' && <LinkIcon className="w-16 h-16 text-gray-700 group-hover:text-cyan-500 transition-colors" />}
+                      <span className="text-[10px] uppercase font-black tracking-widest text-gray-600 group-hover:text-white transition-colors">
+                        {item.tags?.includes('avatar') ? 'Avatar'
+                          : item.tags?.includes('animation') ? 'Animação'
+                            : (item.type as any) === 'visual_template' ? 'Modelo Visual'
+                              : (item.type as any) === 'link' ? 'Link Externo'
+                                : item.type}
+                      </span>
                     </div>
                   )}
 
                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-3 backdrop-blur-sm">
                     <button
-                      onClick={() => setViewItem(item)}
+                      onClick={() => {
+                        if ((item.type as any) === 'link') {
+                          window.open(item.file_url, '_blank');
+                        } else {
+                          setViewItem(item);
+                        }
+                      }}
                       className="px-4 py-2 bg-white text-black rounded-full text-xs font-bold uppercase tracking-wider transform translate-y-4 group-hover:translate-y-0 transition-all duration-300"
                     >
-                      Visualizar
+                      {activeTab === 'resources' ? 'Abrir Link' : 'Visualizar'}
                     </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDownload(item.file_url, item.name);
-                      }}
-                      className="px-4 py-2 bg-primary/20 text-primary hover:bg-primary hover:text-white border border-primary/30 rounded-full text-xs font-bold uppercase tracking-wider transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 delay-50"
-                      title="Baixar Arquivo"
-                    >
-                      Baixar
-                    </button>
+                    {(activeTab !== 'resources' && activeTab !== 'growth_templates') && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDownload(item.file_url, item.name);
+                        }}
+                        className="px-4 py-2 bg-primary/20 text-primary hover:bg-primary hover:text-white border border-primary/30 rounded-full text-xs font-bold uppercase tracking-wider transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 delay-50"
+                        title="Baixar Arquivo"
+                      >
+                        Baixar
+                      </button>
+                    )}
                     {(item.type === 'image') && (
                       <div className="transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 delay-75">
                         <SaveToDriveButton
@@ -394,6 +457,18 @@ const ContentLibrary: React.FC = () => {
                         className="px-4 py-2 bg-red-500/20 text-red-500 hover:bg-red-500 hover:text-white border border-red-500/30 rounded-full text-xs font-bold uppercase tracking-wider transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 delay-100"
                       >
                         Excluir
+                      </button>
+                    )}
+                    {(activeTab === 'growth_templates') && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigator.clipboard.writeText(item.file_url);
+                          addToast({ type: 'success', message: 'Copiado!' });
+                        }}
+                        className="px-4 py-2 bg-primary/20 text-primary hover:bg-primary hover:text-white border border-primary/30 rounded-full text-xs font-bold uppercase tracking-wider transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 delay-50"
+                      >
+                        Copiar
                       </button>
                     )}
                   </div>

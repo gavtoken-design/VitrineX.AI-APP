@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <base href="./">
+
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 
   <!-- Google Tag Manager -->
@@ -1391,6 +1391,24 @@
       style="display:none;visibility:hidden"></iframe></noscript>
   <!-- End Google Tag Manager (noscript) -->
   <div id="root" class="h-full"></div>
+
+  <!-- Global Error Trap -->
+  <script>
+    window.onerror = function(message, source, lineno, colno, error) {
+      const root = document.getElementById('root');
+      if (!root || root.innerHTML.trim() === '') {
+        const errorDiv = document.createElement('div');
+        errorDiv.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:#0f172a;color:#ef4444;display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:9999;padding:2rem;font-family:monospace;text-align:center;';
+        errorDiv.innerHTML = `
+          <h2 style="font-size:1.5rem;margin-bottom:1rem;color:#fff;">Erro de Inicialização</h2>
+          <pre style="background:rgba(0,0,0,0.3);padding:1rem;border-radius:0.5rem;max-width:800px;overflow:auto;text-align:left;">${message}\n\nat ${source}:${lineno}:${colno}</pre>
+          <button onclick="window.location.reload()" style="margin-top:2rem;padding:0.75rem 1.5rem;background:#4f46e5;color:white;border:none;border-radius:0.5rem;cursor:pointer;">Tentar Novamente</button>
+        `;
+        document.body.appendChild(errorDiv);
+        console.error('Global Error Trap:', error);
+      }
+    };
+  </script>
   <script type="module" src="/src/index.tsx"></script>
 </body>
 

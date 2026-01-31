@@ -4,7 +4,25 @@
 */
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Loader2, Paintbrush, ArrowLeft, Share2, FileType, Play, Image as ImageIcon, Sparkles, Wand2, Upload, X, VolumeX, Volume2, ChevronLeft, ChevronRight, Video as VideoIcon, Download } from 'lucide-react';
+import {
+    ArrowPathIcon as Loader2,
+    PaintBrushIcon as Paintbrush,
+    ArrowLeftIcon as ArrowLeft,
+    ShareIcon as Share2,
+    DocumentIcon as FileType,
+    PlayIcon as Play,
+    PhotoIcon as ImageIcon,
+    SparklesIcon as Sparkles,
+    SparklesIcon as Wand2,
+    ArrowUpTrayIcon as Upload,
+    XMarkIcon as X,
+    SpeakerXMarkIcon as VolumeX,
+    SpeakerWaveIcon as Volume2,
+    ChevronLeftIcon as ChevronLeft,
+    ChevronRightIcon as ChevronRight,
+    VideoCameraIcon as VideoIcon,
+    ArrowDownTrayIcon as Download
+} from '@heroicons/react/24/outline';
 import { AppState } from './types';
 import { generateTextImage, generateTextVideo, generateStyleSuggestion } from './services';
 import { getRandomStyle, fileToBase64, TYPOGRAPHY_SUGGESTIONS, createGifFromVideo } from './utils';
@@ -90,16 +108,16 @@ const HeroCarousel: React.FC<{ forceMute: boolean }> = ({ forceMute }) => {
                 className="absolute top-6 right-6 p-3 bg-black/40 backdrop-blur-md border border-white/10 rounded-full text-white hover:bg-black/60 transition-all z-20"
                 title={isMuted ? "Ativar som" : "Mudo"}
             >
-                {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+                {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
             </button>
             <div className="absolute inset-y-0 left-0 flex items-center px-4 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button onClick={handlePrev} className="p-2 bg-black/40 backdrop-blur-md rounded-full text-white hover:bg-white hover:text-black transition-all transform hover:scale-110">
-                    <ChevronLeft size={28} />
+                    <ChevronLeft className="w-7 h-7" />
                 </button>
             </div>
             <div className="absolute inset-y-0 right-0 flex items-center px-4 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button onClick={handleNext} className="p-2 bg-black/40 backdrop-blur-md rounded-full text-white hover:bg-white hover:text-black transition-all transform hover:scale-110">
-                    <ChevronRight size={28} />
+                    <ChevronRight className="w-7 h-7" />
                 </button>
             </div>
             <div className="absolute bottom-6 right-8 flex gap-2 z-10">
@@ -259,7 +277,7 @@ const AnimationShowcase: React.FC = () => {
             return (
                 <div className="w-full h-full flex flex-col items-center justify-center p-4 md:p-8 bg-stone-50 dark:bg-zinc-950">
                     <div className={`flex items-center gap-3 px-5 py-2 rounded-full mb-6 transition-all duration-500 ${state === AppState.PLAYING ? 'opacity-0 h-0 mb-0 overflow-hidden' : 'bg-white dark:bg-zinc-900 shadow-sm border border-stone-100 dark:border-zinc-800'}`}>
-                        <Loader2 size={16} className="animate-spin text-stone-400 dark:text-stone-500" />
+                        <Loader2 className="w-4 h-4 animate-spin text-stone-400 dark:text-stone-500" />
                         <span className="text-sm font-medium text-stone-600 dark:text-stone-300 uppercase tracking-wide">{statusMessage}</span>
                     </div>
                     <div className="relative w-full max-w-6xl aspect-video bg-white dark:bg-zinc-900 rounded-2xl overflow-hidden shadow-2xl ring-1 ring-stone-900/5 dark:ring-white/10 group">
@@ -285,18 +303,18 @@ const AnimationShowcase: React.FC = () => {
                     {state === AppState.PLAYING && (
                         <div className="w-full max-w-6xl mt-6 flex flex-col md:flex-row items-center justify-between gap-4 animate-in slide-in-from-bottom-4 fade-in duration-700">
                             <button onClick={reset} className="flex items-center gap-2 px-6 py-3 text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-zinc-800 rounded-xl transition-all font-bold text-sm uppercase tracking-wide group">
-                                <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+                                <ArrowLeft className="w-[18px] h-[18px] group-hover:-translate-x-1 transition-transform" />
                                 Criar Outro
                             </button>
                             <div className="flex items-center gap-3 w-full md:w-auto justify-center md:justify-end flex-wrap">
                                 <button onClick={handleShare} className="px-5 py-3 bg-white dark:bg-zinc-900 text-stone-900 dark:text-stone-200 border border-stone-200 dark:border-zinc-700 font-bold rounded-xl hover:bg-stone-50 dark:hover:bg-zinc-800 transition-colors flex items-center gap-2 text-sm shadow-sm">
-                                    <Share2 size={16} /> Compartilhar
+                                    <Share2 className="w-4 h-4" /> Compartilhar
                                 </button>
                                 <button onClick={handleDownloadGif} disabled={isGifGenerating} className="px-5 py-3 bg-white dark:bg-zinc-900 text-stone-900 dark:text-stone-200 border border-stone-200 dark:border-zinc-700 font-bold rounded-xl hover:bg-stone-50 dark:hover:bg-zinc-800 transition-colors flex items-center gap-2 disabled:opacity-50 text-sm shadow-sm">
-                                    {isGifGenerating ? <Loader2 size={16} className="animate-spin" /> : <FileType size={16} />} GIF
+                                    {isGifGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileType className="w-4 h-4" />} GIF
                                 </button>
                                 <button onClick={handleDownload} className="px-6 py-3 bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 font-bold rounded-xl hover:bg-stone-800 dark:hover:bg-white transition-colors flex items-center gap-2 shadow-xl shadow-stone-900/10 dark:shadow-white/5 active:scale-[0.98] text-sm">
-                                    <Download size={16} /> Baixar MP4
+                                    <Download className="w-4 h-4" /> Baixar MP4
                                 </button>
                             </div>
                         </div>
@@ -316,14 +334,14 @@ const AnimationShowcase: React.FC = () => {
                         <div className="space-y-5">
                             <div className="space-y-2">
                                 <label className="text-xs font-bold text-stone-400 dark:text-zinc-500 uppercase tracking-wider flex items-center gap-2">
-                                    <VideoIcon size={14} /> Conteúdo
+                                    <VideoIcon className="w-3.5 h-3.5" /> Conteúdo
                                 </label>
                                 <input type="text" value={inputText} onChange={(e) => setInputText(e.target.value)} placeholder="Digite o texto..." maxLength={25} className="w-full bg-stone-50 dark:bg-zinc-900 border border-stone-200 dark:border-zinc-800 rounded-xl px-4 py-3 text-lg font-medium focus:outline-none focus:ring-2 focus:ring-stone-900 dark:focus:ring-stone-100 transition-all placeholder-stone-300 dark:placeholder-zinc-700 text-stone-900 dark:text-white" required />
                             </div>
                             <div className="space-y-2">
                                 <div className="flex justify-between items-center">
                                     <label className="text-xs font-bold text-stone-400 dark:text-zinc-500 uppercase tracking-wider flex items-center gap-2">
-                                        <Wand2 size={14} /> Direção de Arte
+                                        <Wand2 className="w-3.5 h-3.5" /> Direção de Arte
                                     </label>
                                     <button type="button" onClick={async () => {
                                         setIsSuggestingStyle(true);
@@ -331,7 +349,7 @@ const AnimationShowcase: React.FC = () => {
                                         if (suggestion) setInputStyle(suggestion);
                                         setIsSuggestingStyle(false);
                                     }} disabled={!inputText.trim() || isSuggestingStyle} className="text-xs font-medium text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200 flex items-center gap-1 transition-colors disabled:opacity-50">
-                                        {isSuggestingStyle ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />} {isSuggestingStyle ? 'Pensando...' : 'Sugerir'}
+                                        {isSuggestingStyle ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />} {isSuggestingStyle ? 'Pensando...' : 'Sugerir'}
                                     </button>
                                 </div>
                                 <textarea value={inputStyle} onChange={(e) => setInputStyle(e.target.value)} placeholder="ex: 'Feito de nuvens em um céu azul'..." className="w-full bg-stone-50 dark:bg-zinc-900 border border-stone-200 dark:border-zinc-800 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-stone-900 dark:focus:ring-stone-100 transition-all placeholder-stone-300 dark:placeholder-zinc-700 text-stone-900 dark:text-white resize-none h-24" />
@@ -340,7 +358,7 @@ const AnimationShowcase: React.FC = () => {
                         <div className="space-y-5">
                             <div className="space-y-2">
                                 <label className="text-xs font-bold text-stone-400 dark:text-zinc-500 uppercase tracking-wider flex items-center gap-2">
-                                    <Paintbrush size={14} /> Tipografia
+                                    <Paintbrush className="w-3.5 h-3.5" /> Tipografia
                                 </label>
                                 <textarea value={typographyPrompt} onChange={(e) => setTypographyPrompt(e.target.value)} placeholder="Estilo da fonte..." className="w-full bg-stone-50 dark:bg-zinc-900 border border-stone-200 dark:border-zinc-800 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-stone-900 dark:focus:ring-stone-100 transition-all placeholder-stone-300 dark:placeholder-zinc-700 text-stone-900 dark:text-white resize-none h-24" />
                                 <div className="flex flex-wrap gap-1.5">
@@ -351,7 +369,7 @@ const AnimationShowcase: React.FC = () => {
                             </div>
                             <div className="space-y-2">
                                 <label className="text-xs font-bold text-stone-400 dark:text-zinc-500 uppercase tracking-wider flex items-center gap-2">
-                                    <ImageIcon size={14} /> Img. Referência
+                                    <ImageIcon className="w-3.5 h-3.5" /> Img. Referência
                                 </label>
                                 <div className="flex items-center gap-3">
                                     <button
@@ -360,7 +378,7 @@ const AnimationShowcase: React.FC = () => {
                                         className="flex-1 border border-dashed border-stone-300 dark:border-zinc-700 rounded-xl h-10 flex items-center justify-center gap-2 text-stone-500 dark:text-zinc-400 hover:bg-stone-50 dark:hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-stone-900 dark:focus:ring-stone-100 cursor-pointer text-xs transition-all"
                                         aria-label="Upload reference image"
                                     >
-                                        <Upload size={14} /> Carregar
+                                        <Upload className="w-3.5 h-3.5" /> Carregar
                                     </button>
                                     <input
                                         type="file"
@@ -381,7 +399,7 @@ const AnimationShowcase: React.FC = () => {
                                                 className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
                                                 aria-label="Remove reference image"
                                             >
-                                                <X size={12} className="text-white" />
+                                                <X className="w-3 h-3 text-white" />
                                             </button>
                                         </div>
                                     )}
@@ -391,7 +409,7 @@ const AnimationShowcase: React.FC = () => {
                     </div>
                     <div className="pt-4 border-t border-stone-100 dark:border-zinc-800">
                         <button type="submit" disabled={!inputText.trim()} className="w-full py-4 bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 font-bold rounded-xl hover:bg-stone-800 dark:hover:bg-white transition-all disabled:opacity-50 shadow-xl shadow-stone-900/10 dark:shadow-white/5 active:scale-[0.99] flex items-center justify-center gap-2">
-                            <Play size={18} className="fill-current" /> GERAR ANIMAÇÃO
+                            <Play className="w-[18px] h-[18px] fill-current" /> GERAR ANIMAÇÃO
                         </button>
                     </div>
                 </form>
@@ -422,7 +440,7 @@ const AnimationShowcase: React.FC = () => {
                             </div>
                             <div className="pt-8 flex flex-col items-center lg:items-start">
                                 <button onClick={handleMainCta} className="group px-8 py-4 bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 text-lg font-bold rounded-xl hover:bg-stone-800 dark:hover:bg-white transition-all shadow-xl shadow-stone-900/20 dark:shadow-white/10 active:scale-95 flex items-center gap-3">
-                                    <VideoIcon size={20} className="group-hover:text-yellow-200 dark:group-hover:text-amber-500 transition-colors" /> Crie o seu
+                                    <VideoIcon className="w-5 h-5 group-hover:text-yellow-200 dark:group-hover:text-amber-500 transition-colors" /> Crie o seu
                                 </button>
                             </div>
                         </div>
@@ -433,7 +451,7 @@ const AnimationShowcase: React.FC = () => {
                                 <HeroCarousel forceMute={isFlip} />
                             </div>
                             <div className="absolute inset-0 w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] bg-white dark:bg-zinc-950 rounded-3xl overflow-hidden border border-stone-100 dark:border-zinc-800">
-                                <button onClick={() => setViewMode('gallery')} className="absolute top-4 right-4 z-50 p-2 bg-stone-100 dark:bg-zinc-800 hover:bg-stone-200 dark:hover:bg-zinc-700 text-stone-500 dark:text-stone-400 rounded-full transition-colors" title="Voltar para Galeria"><X size={20} /></button>
+                                <button onClick={() => setViewMode('gallery')} className="absolute top-4 right-4 z-50 p-2 bg-stone-100 dark:bg-zinc-800 hover:bg-stone-200 dark:hover:bg-zinc-700 text-stone-500 dark:text-stone-400 rounded-full transition-colors" title="Voltar para Galeria"><X className="w-5 h-5" /></button>
                                 {renderAppContent()}
                             </div>
                         </div>

@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "scripts": {
     "dev": "vite",
+    "dev:clean": "rd /s /q \"node_modules\\.vite\" 2>nul & vite",
     "build": "tsc -p electron/tsconfig.json && vite build",
     "build:analyze": "ANALYZE=true vite build",
     "build:canva": "BUILD_MODE=canva vite build",
@@ -49,7 +50,6 @@
     "html2canvas": "^1.4.1",
     "jspdf": "^3.0.4",
     "jszip": "^3.10.1",
-    "lucide-react": "^0.561.0",
     "pptxgenjs": "^4.0.1",
     "react": "^19.2.3",
     "react-chartjs-2": "^5.3.1",
@@ -76,6 +76,7 @@
     "@types/react": "^18.2.64",
     "@types/react-dom": "^18.2.21",
     "@vitejs/plugin-react": "^4.2.1",
+    "@vitest/ui": "^4.0.18",
     "autoprefixer": "^10.4.18",
     "electron": "^39.2.7",
     "electron-builder": "^24.13.3",

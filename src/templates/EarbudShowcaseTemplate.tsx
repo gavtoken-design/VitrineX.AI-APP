@@ -3,17 +3,16 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import {
-    Battery,
-    Sliders,
-    ChevronRight,
-    Zap,
-    Bluetooth,
-    Wifi,
-    Music,
-    LucideIcon,
-    CloudLightning,
-    Headphones,
-} from 'lucide-react';
+    Battery50Icon as Battery,
+    AdjustmentsHorizontalIcon as Sliders,
+    ChevronRightIcon as ChevronRight,
+    BoltIcon as Zap,
+    SignalIcon as Bluetooth,
+    WifiIcon as Wifi,
+    MusicalNoteIcon as Music,
+    CloudArrowDownIcon as CloudLightning,
+    SpeakerWaveIcon as Headphones,
+} from '@heroicons/react/24/outline';
 
 // =========================================
 // 1. CONFIGURATION & DATA TYPES
@@ -24,7 +23,7 @@ export type ProductId = 'left' | 'right';
 export interface FeatureMetric {
     label: string;
     value: number; // 0-100
-    icon: any; // LucideIcon
+    icon: React.ElementType; // LucideIcon replaced
 }
 
 export interface ProductData {
@@ -231,7 +230,7 @@ const ProductDetails = ({ data, isLeft }: { data: ProductData; isLeft: boolean }
                     <div key={feature.label} className="group">
                         <div className={`flex items-center justify-between mb-3 text-sm ${flexDirClass}`}>
                             <div className={`flex items-center gap-2 ${feature.value > 50 ? 'text-zinc-200' : 'text-zinc-400'}`}>
-                                <feature.icon size={16} /> <span>{feature.label}</span>
+                                <feature.icon className="w-4 h-4" /> <span>{feature.label}</span>
                             </div>
                             <span className="font-mono text-xs text-zinc-500">{feature.value}%</span>
                         </div>
@@ -248,15 +247,15 @@ const ProductDetails = ({ data, isLeft }: { data: ProductData; isLeft: boolean }
 
                 <div className={`pt-4 flex ${isLeft ? 'justify-start' : 'justify-end'}`}>
                     <button type="button" className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-zinc-300 hover:text-white transition-colors group">
-                        <Sliders size={14} /> View Specs
-                        <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                        <Sliders className="w-3.5 h-3.5" /> View Specs
+                        <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                     </button>
                 </div>
             </motion.div>
 
             {/* Battery */}
             <motion.div variants={ANIMATIONS.item} className={`mt-6 flex items-center gap-3 text-zinc-500 ${flexDirClass}`}>
-                <Battery size={16} />
+                <Battery className="w-4 h-4" />
                 <span className="text-sm font-medium">{data.stats.batteryLevel}% Charge</span>
             </motion.div>
         </motion.div>

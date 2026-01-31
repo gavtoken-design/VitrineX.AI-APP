@@ -2,19 +2,19 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useToast } from '../contexts/ToastContext';
 import {
-    Heart,
-    Cpu,
-    Zap,
-    Layout,
-    Terminal,
-    Cloud,
-    Check,
-    Copy,
-    ExternalLink,
-    Sparkles,
-    ArrowRight,
-    Gift
-} from 'lucide-react';
+    HeartIcon,
+    CpuChipIcon,
+    BoltIcon,
+    Squares2X2Icon,
+    CommandLineIcon,
+    CloudIcon,
+    CheckIcon,
+    ClipboardIcon,
+    ArrowTopRightOnSquareIcon,
+    SparklesIcon,
+    ArrowRightIcon,
+    GiftIcon
+} from '@heroicons/react/24/outline';
 
 interface Referral {
     id: string;
@@ -32,7 +32,7 @@ const REFERRALS: Referral[] = [
         name: 'Lovable',
         description: 'Plataforma de IA para criar aplicações completas usando linguagem natural.',
         link: 'https://lovable.dev/invite/KJ6COUJ',
-        icon: Heart,
+        icon: HeartIcon,
         color: 'from-rose-500 to-pink-500',
         tag: 'Hot'
     },
@@ -41,7 +41,7 @@ const REFERRALS: Referral[] = [
         name: 'Manus',
         description: 'Agente de IA autônomo para execução de tarefas e automação de fluxos.',
         link: 'https://manus.im/invitation/F4URYJXDCNIK',
-        icon: Cpu,
+        icon: CpuChipIcon,
         color: 'from-blue-500 to-indigo-500',
         tag: 'Novo'
     },
@@ -50,7 +50,7 @@ const REFERRALS: Referral[] = [
         name: 'Tess',
         description: 'Plataforma de IA voltada à automação inteligente e produtividade.',
         link: 'https://tess.cello.so/XlEEa65MXH4',
-        icon: Zap,
+        icon: BoltIcon,
         color: 'from-amber-400 to-orange-500'
     },
     {
@@ -58,7 +58,7 @@ const REFERRALS: Referral[] = [
         name: 'Base44',
         description: 'Plataforma SaaS para criação e gerenciamento de aplicações digitais.',
         link: 'https://app.base44.com/register?ref=S8FBBS91DD861HGO',
-        icon: Layout,
+        icon: Squares2X2Icon,
         color: 'from-emerald-400 to-teal-500'
     },
     {
@@ -66,7 +66,7 @@ const REFERRALS: Referral[] = [
         name: 'Replit',
         description: 'IDE online para criar, executar e publicar aplicações no navegador.',
         link: 'https://replit.com/refer/jeanavila997',
-        icon: Terminal,
+        icon: CommandLineIcon,
         color: 'from-orange-500 to-red-500'
     },
     {
@@ -74,7 +74,7 @@ const REFERRALS: Referral[] = [
         name: 'Hostinger',
         description: 'Plataforma de hospedagem para sites, aplicações e serviços web.',
         link: 'https://hostinger.com.br?REFERRALCODE=UWEJEANAVLAH',
-        icon: Cloud,
+        icon: CloudIcon,
         color: 'from-violet-500 to-purple-500',
         tag: 'Oferta'
     }
@@ -135,7 +135,7 @@ const ReferralCard: React.FC<{ referral: Referral; index: number }> = ({ referra
                         <h3 className="text-xl font-bold text-white group-hover:text-primary transition-colors">
                             {referral.name}
                         </h3>
-                        <ExternalLink className="h-3 w-3 text-gray-500 opacity-0 transition-opacity group-hover:opacity-100" />
+                        <ArrowTopRightOnSquareIcon className="h-3 w-3 text-gray-500 opacity-0 transition-opacity group-hover:opacity-100" />
                     </div>
                     <p className="text-sm leading-relaxed text-gray-400 group-hover:text-gray-300 transition-colors">
                         {referral.description}
@@ -146,7 +146,7 @@ const ReferralCard: React.FC<{ referral: Referral; index: number }> = ({ referra
             <div className="relative z-10 mt-6 pt-6 border-t border-white/5 flex items-center justify-between gap-4">
                 <div className="flex items-center gap-2 overflow-hidden">
                     <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/5">
-                        <Sparkles className="h-3 w-3 text-yellow-500" />
+                        <SparklesIcon className="h-3 w-3 text-yellow-500" />
                     </div>
                     <span className="truncate text-xs font-medium text-gray-500 group-hover:text-gray-400">
                         Benefício exclusivo
@@ -159,12 +159,12 @@ const ReferralCard: React.FC<{ referral: Referral; index: number }> = ({ referra
                 >
                     {copied ? (
                         <>
-                            <Check className="h-3.5 w-3.5 text-green-400" />
+                            <CheckIcon className="h-3.5 w-3.5 text-green-400" />
                             <span className="text-green-400">Copiado</span>
                         </>
                     ) : (
                         <>
-                            <Copy className="h-3.5 w-3.5" />
+                            <ClipboardIcon className="h-3.5 w-3.5" />
                             <span>Copiar</span>
                         </>
                     )}
@@ -186,7 +186,7 @@ const IndicationsPage: React.FC = () => {
                         animate={{ opacity: 1, y: 0 }}
                         className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-medium text-primary backdrop-blur-sm"
                     >
-                        <Gift className="h-3 w-3" />
+                        <GiftIcon className="h-3 w-3" />
                         <span>Parceiros Oficiais</span>
                     </motion.div>
 
@@ -222,7 +222,7 @@ const IndicationsPage: React.FC = () => {
                     transition={{ delay: 0.8 }}
                     className="mt-12 flex items-center justify-center gap-2 text-sm text-gray-500"
                 >
-                    <Sparkles className="h-4 w-4" />
+                    <SparklesIcon className="h-4 w-4" />
                     <span>Novas indicações são adicionadas mensalmente</span>
                 </motion.div>
             </div>

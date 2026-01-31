@@ -1286,7 +1286,11 @@ RETORNE APENAS O ARRAY JSON, SEM TEXTO ADICIONAL.`;
                                                 </span>
                                                 <div>
                                                     <h5 className="text-sm font-bold text-gray-200 group-hover:text-white">{source.name}</h5>
-                                                    <p className="text-[10px] text-gray-500 uppercase tracking-wider">{source.type}</p>
+                                                    <p className="text-[10px] text-gray-500 uppercase tracking-wider">
+                                                        {source.type === 'aggregator' ? 'Agregador' :
+                                                            source.type === 'newspaper' ? 'Jornal' :
+                                                                source.type === 'portal' ? 'Portal' : 'Blog'}
+                                                    </p>
                                                 </div>
                                             </div>
                                             <ArrowDownTrayIcon className="w-4 h-4 text-gray-600 group-hover:text-blue-400 -rotate-90" />

@@ -72,43 +72,8 @@ export default defineConfig({
         main: path.resolve(__dirname, 'index.html'),
       },
       output: {
-        // Code splitting agressivo
-        manualChunks(id) {
-          // React core
-          if (id.includes('react') || id.includes('react-dom')) {
-            return 'react-vendor';
-          }
-
-          // Framer Motion (pesado)
-          if (id.includes('framer-motion')) {
-            return 'framer';
-          }
-
-          // UI Libraries
-          if (id.includes('@headlessui') || id.includes('@heroicons') || id.includes('lucide-react')) {
-            return 'ui-libs';
-          }
-
-          // Charts (pesado)
-          if (id.includes('chart.js') || id.includes('recharts') || id.includes('react-chartjs')) {
-            return 'charts';
-          }
-
-          // AI Services
-          if (id.includes('@google/genai') || id.includes('openai')) {
-            return 'ai-libs';
-          }
-
-          // Supabase
-          if (id.includes('@supabase')) {
-            return 'supabase';
-          }
-
-          // Outras libs grandes
-          if (id.includes('node_modules')) {
-            return 'vendor';
-          }
-        },
+        // Removido manualChunks customizado - causa problemas de ordem de carregamento
+        // Deixando Vite/Rollup fazer o splitting automaticamente
         // Nomes de arquivo com hash para cache
         entryFileNames: 'assets/[name].[hash].js',
         chunkFileNames: 'assets/[name].[hash].js',
@@ -117,7 +82,7 @@ export default defineConfig({
     },
     // Otimizações adicionais
     cssCodeSplit: true,
-    sourcemap: false, // Desabilitar sourcemaps em produção
+    sourcemap: true, // Habilitar sourcemaps para debug
   },
   // Otimizações de dependências
   optimizeDeps: {
